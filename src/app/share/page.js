@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button"
 
 
 
-export default function share(){
+export default function Share(){
     const [formData, setFormData] = useState({
         link: '',
         namaTamu: '',
