@@ -20,7 +20,7 @@ export default function Sidebar({ show, setter }) {
     // Clickable menu items
     const MenuItem = ({ icon, name, route }) => {
         // Highlight menu item based on currently displayed route
-        const colorClass = router.pathname === route ? "text-white" : "text-[#0F2542] hover:zoom-";
+        const colorClass = router.pathname === route ? "text-white" : "text-[#0F2542] hover:border-b-[#0F2542]";
 
         return (
             <Link
