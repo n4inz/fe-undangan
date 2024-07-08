@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation'
 import { SlHome } from 'react-icons/sl'
 import { FaListUl, FaClipboardList } from 'react-icons/fa'
 import { BiLogOut } from "react-icons/bi";
-
+import Image from 'next/image'
 
 import logo from '../../../public/logo/Sewa.png'
 
@@ -53,7 +53,14 @@ export default function Sidebar({ show, setter }) {
                 <div className="p-2 flex items-center justify-center ">
                     <Link href="/">
                         {/*eslint-disable-next-line*/}
-                        <img className='rounded-full' src={logo.src} alt="Company Logo" width={100} height={100} />
+
+                        <Image 
+                            className='rounded-full'
+                            src={logo.src}
+                            alt="Company Logo"
+                            width={100} height={100}
+                        />
+                    
                     </Link>
                 </div>
                 <div className="flex flex-col ">
@@ -69,7 +76,7 @@ export default function Sidebar({ show, setter }) {
                     />
                     <MenuItem
                         name="MyList"
-                        route="/my-list"
+                        route="/mylist"
                         icon={<FaClipboardList />}
                     />
                     <MenuItem
