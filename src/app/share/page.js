@@ -25,7 +25,7 @@ export default function Share(uri) {
             encodedNamaTamu = encodeURIComponent(value);
             try {
                 const url = new URL(updatedLink);
-                if (url.origin === 'https://invitation-wedding-dreams.sewaundangan.store' || url.origin === 'https://buka.undanganku.store') {
+                if (url.origin === 'https://invitation-wedding-dreams.sewaundangan.store' || url.origin === 'https://buka.undanganku.store' || url.origin === 'https://invitation-wedding-dreams.sewaundangan.com/') {
                     updatedLink = `${url.origin}${url.pathname}?to=${encodedNamaTamu}`;
                     text = `Kepada Yth.\nBapak/Ibu/Saudara/i\nKELUARGA ${value}\n__________________________________________\nTanpa mengurangi rasa hormat, perkenankan kami mengundang Bapak/Ibu/Saudara/i, teman sekaligus sahabat, untuk menghadiri acara pernikahan kami\n\nBerikut link undangan kami, untuk info lengkap dari acara, bisa kunjungi:\n\n${updatedLink}\n\nHasil maksimal buka lewat browser chrome/safari\n\nMerupakan suatu kebahagiaan bagi kami apabila Bapak/Ibu/Saudara/i berkenan untuk hadir dan memberikan doa restu.\n\nTerima Kasih`;
                 } else {
