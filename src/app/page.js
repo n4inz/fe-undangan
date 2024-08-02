@@ -198,8 +198,7 @@ export default function Home() {
             <Input
               type="text"
               name="tempatLahirPria"
-              value={formData.              name="tempatLahirPria"
-              }
+              value={formData.tempatLahirPria}
               onChange={handleChange}
               className="mt-1 p-2 w-full border border-gray-300 rounded-lg"
             />
