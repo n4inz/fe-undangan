@@ -1,10 +1,10 @@
 "use client"
-import { useEffect, useState } from 'react';
+// import { useEffect, useState } from 'react';
 import Image from 'next/image';
-import { Button } from '@/components/ui/button';
+// import { Button } from '@/components/ui/button';
 import Link from 'next/link';
-import { ArrowLeftIcon, PhoneIcon } from '@heroicons/react/24/solid';
-// import { useRouter } from 'next/router'; // Import useRouter
+// import { ArrowLeftIcon, PhoneIcon } from '@heroicons/react/24/solid';
+import { BiArrowBack, BiPhone } from "react-icons/bi";
 
 export default function Success({params}) {
   
@@ -14,7 +14,7 @@ export default function Success({params}) {
     <div className="flex items-center justify-center bg-gray-100">
       <div className="h-screen justify-center bg-white p-8 rounded-lg shadow-lg max-w-lg w-full flex items-center flex-col relative">
         <Link href={'/'} type='button' className="absolute top-4 left-4">
-        <ArrowLeftIcon className="h-8 w-8" />
+        <BiArrowBack className="h-8 w-8" />
         </Link>
         
         <div className='text-center'>
@@ -29,7 +29,7 @@ export default function Success({params}) {
         <div className='flex mt-4 items-center'>
 
           <Link type="button" href={contactUrl} target='_blank' className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-full flex items-center">
-            <PhoneIcon className="h-6 w-6 mr-2" />
+            <BiPhone className="h-6 w-6 mr-2" />
             Hubungi Admin
           </Link>
         </div>

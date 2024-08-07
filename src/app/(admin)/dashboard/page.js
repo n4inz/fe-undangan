@@ -1,8 +1,10 @@
 'use client';
-import Sidebar from "@/layout/sidebar";
+import { useState, useEffect } from 'react'
 
-import { TrendingUp } from "lucide-react"
-import { Bar, BarChart, CartesianGrid, XAxis } from "recharts"
+import Sidebar from "@/layout/sidebar";
+// import { TrendingUp } from "lucide-react"
+// import { Bar, BarChart, CartesianGrid, XAxis } from "recharts"
+import DataTableForm from "@/components/DataTableForm";
 
 import {
   Card,
@@ -20,30 +22,38 @@ import {
   ChartTooltip,
   ChartTooltipContent,
 } from "@/components/ui/chart"
-const chartData = [
-  { month: "January", desktop: 186, mobile: 80 },
-  { month: "February", desktop: 305, mobile: 200 },
-  { month: "March", desktop: 237, mobile: 120 },
-  { month: "April", desktop: 73, mobile: 190 },
-  { month: "May", desktop: 209, mobile: 130 },
-  { month: "June", desktop: 214, mobile: 140 },
-]
+// const chartData = [
+//   { month: "January", desktop: 186, mobile: 80 },
+//   { month: "February", desktop: 305, mobile: 200 },
+//   { month: "March", desktop: 237, mobile: 120 },
+//   { month: "April", desktop: 73, mobile: 190 },
+//   { month: "May", desktop: 209, mobile: 130 },
+//   { month: "June", desktop: 214, mobile: 140 },
+// ]
 
-const chartConfig = {
-  desktop: {
-    label: "Desktop",
-    color: "hsl(var(--chart-1))",
-  },
-  mobile: {
-    label: "Mobile",
-    color: "hsl(var(--chart-2))",
-  },
-} 
+// const chartConfig = {
+//   desktop: {
+//     label: "Desktop",
+//     color: "hsl(var(--chart-1))",
+//   },
+//   mobile: {
+//     label: "Mobile",
+//     color: "hsl(var(--chart-2))",
+//   },
+// } 
+
+// Use state to manage dynamic content
+
 
 
 
 const Dashboard = () => {
 
+    const [isClient, setIsClient] = useState(false)
+
+    useEffect(() => {
+        setIsClient(true)
+      }, [])
 
     return (
         <>
@@ -57,7 +67,8 @@ const Dashboard = () => {
                 {/* Main Content */}
                 <div className="flex flex-col flex-grow w-full md:pl-24">
                     <div className="p-4">
-                        <div className="w-[500px]">
+                    {isClient ? <DataTableForm /> : ''}
+                        {/* <div className="w-[500px]">
                             <Card>
                                 <CardHeader>
                                     <CardTitle>Bar Chart - Stacked + Legend</CardTitle>
@@ -101,7 +112,7 @@ const Dashboard = () => {
                                 </CardFooter>
                             </Card>
 
-                        </div>
+                        </div> */}
                     </div>
                 </div>
             </div>

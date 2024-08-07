@@ -11,44 +11,19 @@ import axios from 'axios';
 import { Button } from '@/components/ui/button';
 import { ClipLoader } from 'react-spinners'; // Import the spinner
 import { useRouter } from 'next/navigation';
-import { XMarkIcon } from '@heroicons/react/24/solid';
+// import { XMarkIcon } from '@heroicons/react/24/solid';
+import { BiX } from "react-icons/bi";
+import {schema} from '@/lib/validation'
 
 const requeiredInput = z.string().min(1, { message: "Form harus diisi" });
 const requeiredTgl = z.string().min(1, { message: "Date is required" }).refine(val => !isNaN(Date.parse(val)), { message: "Invalid date" });
 
-const schema = z.object({
-  name: requeiredInput,
-  namaLengkapPria: requeiredInput,
-  namaPanggilanPria: requeiredInput,
-  namaOrtuPria: requeiredInput,
-  tempatLahirPria: requeiredInput,
-  namaLengkapWanita: requeiredInput,
-  namaPanggilanWanita: requeiredInput,
-  namaOrtuWanita: requeiredInput,
-  tempatLahirWanita: requeiredInput,
-  alamatAkad: requeiredInput,
-  alamatResepsi: requeiredInput,
-  nomorWa: z
-    .string()
-    .regex(/^[\d+\s-]+$/, { message: "Nomor telepon mengharuskan angka" })
-    .refine((val) => val !== "", { message: "Nomor telepon harus diisi" }),
-  tglLahirPria: requeiredTgl,
-  tglLahirWanita: requeiredTgl,
-  datetimeAkad: requeiredTgl,
-  datetimeResepsi: requeiredTgl,
-  // images: z.array(z.instanceof(File)).min(1, { message: "Upload gambar minimal 1" }).refine(
-  //   (files) => files.every(file => file.type.startsWith('image/')),
-  //   { message: "Only image files are allowed" }
-  // ),
-
-}).catchall(z.string()); // Allow additional fields of type string
 
 export default function Home() {
   const router = useRouter();
 
   const [formData, setFormData] = useState({
     name: '',
-    phone: '',
     nomorWa: '',
     namaLengkapPria: '',
     namaPanggilanPria: '',
@@ -65,6 +40,7 @@ export default function Home() {
     // images: [],
     opsiAkad: 'Wanita',
     opsiResepsi: 'Wanita',
+    penempatanTulisan: 'Wanita',
     pilihanTema: 'Admin'
 
   });
@@ -102,7 +78,11 @@ export default function Home() {
     setErrors({ ...errors, images: undefined });
   };
   const handleRemoveImage = (index) => {
-    setImages(prev => prev.filter((_, i) => i !== index)); // Fixed to directly filter the images array
+    setImages(prev => {
+      const updatedImages = prev.filter((_, i) => i !== index);
+      // Update the image previews here if necessary
+      return updatedImages;
+    });
   };
 
   const handleSubmit = async (e) => {
@@ -182,7 +162,7 @@ export default function Home() {
               value={formData.nomorWa}
               onChange={handleChange}
               className="mt-1 p-2 w-full border border-gray-300 rounded-lg"
-              inputmode="numeric"
+              inputMode="numeric"
             />
             {errors.nomorWa && <p className="text-red-500 text-sm mt-1">{errors.nomorWa}</p>}
           </div>
@@ -208,7 +188,7 @@ export default function Home() {
               onChange={handleChange}
               className="mt-1 p-2 w-full border border-gray-300 rounded-lg"
             />
-            {errors.name && <p className="text-red-500 text-sm mt-1">{errors.name}</p>}
+            {errors.namaLengkapPria && <p className="text-red-500 text-sm mt-1">{errors.namaLengkapPria}</p>}
           </div>
           <div className="mb-4">
             <label className="block text-gray-700">Nama Panggilan Mempelai Pria
@@ -220,7 +200,7 @@ export default function Home() {
               onChange={handleChange}
               className="mt-1 p-2 w-full border border-gray-300 rounded-lg"
             />
-            {errors.name && <p className="text-red-500 text-sm mt-1">{errors.name}</p>}
+            {errors.namaPanggilanPria && <p className="text-red-500 text-sm mt-1">{errors.namaPanggilanPria}</p>}
           </div>
           <div className="mb-4">
             <label className="block text-gray-700">Nama Orang Tua Mempelai Pria<span className='text-red-500'>*</span>
@@ -233,7 +213,7 @@ export default function Home() {
               onChange={handleChange}
               className="mt-1 p-2 w-full border border-gray-300 rounded-lg"
             />
-            {errors.name && <p className="text-red-500 text-sm mt-1">{errors.name}</p>}
+            {errors.namaOrtuPria && <p className="text-red-500 text-sm mt-1">{errors.namaOrtuPria}</p>}
           </div>
           <div className="mb-4">
             <label className="block text-gray-700">Tempat Lahir Mempelai Pria
@@ -245,7 +225,7 @@ export default function Home() {
               onChange={handleChange}
               className="mt-1 p-2 w-full border border-gray-300 rounded-lg"
             />
-            {errors.name && <p className="text-red-500 text-sm mt-1">{errors.name}</p>}
+            {errors.namaOrtuWanita && <p className="text-red-500 text-sm mt-1">{errors.namaOrtuWanita}</p>}
           </div>
           <div className="mb-4">
             <label className="block text-gray-700">Tanggal Lahir Mempelai Pria <span className='text-red-500'>*</span></label>
@@ -269,7 +249,7 @@ export default function Home() {
               onChange={handleChange}
               className="mt-1 p-2 w-full border border-gray-300 rounded-lg"
             />
-            {errors.name && <p className="text-red-500 text-sm mt-1">{errors.name}</p>}
+            {errors.namaLengkapWanita && <p className="text-red-500 text-sm mt-1">{errors.namaLengkapWanita}</p>}
           </div>
           <div className="mb-4">
             <label className="block text-gray-700">Nama Panggilan Mempelai Wanita
@@ -281,7 +261,7 @@ export default function Home() {
               onChange={handleChange}
               className="mt-1 p-2 w-full border border-gray-300 rounded-lg"
             />
-            {errors.name && <p className="text-red-500 text-sm mt-1">{errors.name}</p>}
+            {errors.namaPanggilanWanita && <p className="text-red-500 text-sm mt-1">{errors.namaPanggilanWanita}</p>}
           </div>
           <div className="mb-4">
             <label className="block text-gray-700">Nama Orang Tua Mempelai Wanita<span className='text-red-500'>*</span>
@@ -294,7 +274,7 @@ export default function Home() {
               onChange={handleChange}
               className="mt-1 p-2 w-full border border-gray-300 rounded-lg"
             />
-            {errors.name && <p className="text-red-500 text-sm mt-1">{errors.name}</p>}
+            {errors.namaOrtuWanita && <p className="text-red-500 text-sm mt-1">{errors.namaOrtuWanita}</p>}
           </div>
           <div className="mb-4">
             <label className="block text-gray-700">Tempat Lahir Mempelai Wanita
@@ -306,7 +286,7 @@ export default function Home() {
               onChange={handleChange}
               className="mt-1 p-2 w-full border border-gray-300 rounded-lg"
             />
-            {errors.name && <p className="text-red-500 text-sm mt-1">{errors.name}</p>}
+            {errors.tempatLahirWanita && <p className="text-red-500 text-sm mt-1">{errors.tempatLahirWanita}</p>}
           </div>
           <div className="mb-4">
             <label className="block text-gray-700">Tanggal Lahir Mempelai Wanita <span className='text-red-500'>*</span></label>
@@ -624,7 +604,8 @@ export default function Home() {
                   className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1 hover:bg-red-600"
                   aria-label="Remove image"
                 >
-                  <XMarkIcon className="h-4 w-4" />
+                  {/* <XMarkIcon className="h-4 w-4" /> */}
+                  <BiX className="h-4 w-4" />
                 </button>
               </div>
             ))}
