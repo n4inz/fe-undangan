@@ -6,6 +6,7 @@ import DataTable from 'react-data-table-component';
 import "@/components/DataTable.css";
 import Link from 'next/link';
 import { Button } from './ui/button';
+import { DebounceInput } from 'react-debounce-input';
 
 const DataTableForm = () => {
 
@@ -13,22 +14,27 @@ const DataTableForm = () => {
   const [totalRows, setTotalRows] = useState(0);
   const [perPage, setPerPage] = useState(10);
   const [currentPage, setCurrentPage] = useState(1);
+  const [search, setSearch] = useState('');
 
   useEffect(() => {
-    fetchData(currentPage, perPage);
-  }, [currentPage, perPage]);
+    fetchData(currentPage, perPage, search);
+  }, [currentPage, perPage, search]);
 
-  const fetchData = async (page, limit) => {
+  const fetchData = async (page, limit, searchQuery) => {
     try {
       const response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/forms`, {
-        params: { page, limit },
+        params: { page, limit, search: searchQuery },
       });
       setData(response.data.data);
       setTotalRows(response.data.total);
-      // console.log(response.data.data);
+      console.log(response.data.data);
     } catch (error) {
       console.error('Error fetching data:', error);
     }
+  };
+
+  const handleSearch = (event) => {
+    setSearch(event.target.value);
   };
 
   const handlePageChange = page => {
@@ -79,17 +85,29 @@ const DataTableForm = () => {
 
 
   return (
-    <DataTable
-      title="Daftar Pesanan Undangan"
-      columns={columns}
-      data={data}
-      pagination
-      paginationServer
-      paginationTotalRows={totalRows}
-      onChangePage={handlePageChange}
-      onChangeRowsPerPage={handlePerRowsChange}
-      className="rdt_TableCol" // {{ edit_1 }} Add a custom class
-    />
+    <>
+      <div className="py-4">
+        Daftar Pesanan Undangan
+      </div>
+      <DebounceInput
+        minLength={2}
+        debounceTimeout={300}
+        placeholder="Search"
+        value={search}
+        onChange={handleSearch}
+        className="border border-gray-300 rounded-md p-2 w-1/2" // {{ edit_1 }} Adjusted width to be shorter
+      />
+      <DataTable
+        columns={columns}
+        data={data}
+        pagination
+        paginationServer
+        paginationTotalRows={totalRows}
+        onChangePage={handlePageChange}
+        onChangeRowsPerPage={handlePerRowsChange}
+        className="rdt_TableCol" // {{ edit_1 }} Add a custom class
+      />
+    </>
   );
 };
 

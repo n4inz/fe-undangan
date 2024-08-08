@@ -51,7 +51,7 @@ export default function Sidebar({ show, setter }) {
         <>
             <div className={`${className}${appendClass}`}>
                 <div className="p-2 flex items-center justify-center ">
-                    <Link href="/">
+                    <Link href="/dashboard">
                         {/*eslint-disable-next-line*/}
 
                         <Image 
