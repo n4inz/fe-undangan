@@ -2,9 +2,8 @@
 import { useState, useEffect } from 'react'
 
 import Sidebar from "@/layout/sidebar";
-// import { TrendingUp } from "lucide-react"
-// import { Bar, BarChart, CartesianGrid, XAxis } from "recharts"
-import DataTableForm from "@/components/DataTableForm";
+import { TrendingUp } from "lucide-react"
+import { Bar, BarChart, CartesianGrid, XAxis } from "recharts"
 
 import {
   Card,
@@ -22,25 +21,31 @@ import {
   ChartTooltip,
   ChartTooltipContent,
 } from "@/components/ui/chart"
-// const chartData = [
-//   { month: "January", desktop: 186, mobile: 80 },
-//   { month: "February", desktop: 305, mobile: 200 },
-//   { month: "March", desktop: 237, mobile: 120 },
-//   { month: "April", desktop: 73, mobile: 190 },
-//   { month: "May", desktop: 209, mobile: 130 },
-//   { month: "June", desktop: 214, mobile: 140 },
-// ]
+const chartData = [
+    { month: "January", desktop: 186, mobile: 80 },
+    { month: "February", desktop: 305, mobile: 200 },
+    { month: "March", desktop: 237, mobile: 120 },
+    { month: "April", desktop: 73, mobile: 190 },
+    { month: "May", desktop: 209, mobile: 130 },
+    { month: "June", desktop: 214, mobile: 140 },
+    { month: "July", desktop: 250, mobile: 160 },
+    { month: "August", desktop: 300, mobile: 180 },
+    { month: "September", desktop: 220, mobile: 140 },
+    { month: "October", desktop: 270, mobile: 200 },
+    { month: "November", desktop: 310, mobile: 220 },
+    { month: "December", desktop: 400, mobile: 300 },
+  ]
 
-// const chartConfig = {
-//   desktop: {
-//     label: "Desktop",
-//     color: "hsl(var(--chart-1))",
-//   },
-//   mobile: {
-//     label: "Mobile",
-//     color: "hsl(var(--chart-2))",
-//   },
-// } 
+const chartConfig = {
+  desktop: {
+    label: "Desktop",
+    color: "hsl(var(--chart-1))",
+  },
+  mobile: {
+    label: "Mobile",
+    color: "hsl(var(--chart-2))",
+  },
+} 
 
 // Use state to manage dynamic content
 
@@ -67,8 +72,7 @@ const Dashboard = () => {
                 {/* Main Content */}
                 <div className="flex flex-col flex-grow w-full md:pl-24">
                     <div className="p-4">
-                    {isClient ? <DataTableForm /> : ''}
-                        {/* <div className="w-[500px]">
+                        <div className="w-1/2">
                             <Card>
                                 <CardHeader>
                                     <CardTitle>Bar Chart - Stacked + Legend</CardTitle>
@@ -112,7 +116,7 @@ const Dashboard = () => {
                                 </CardFooter>
                             </Card>
 
-                        </div> */}
+                        </div>
                     </div>
                 </div>
             </div>

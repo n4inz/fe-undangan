@@ -1,29 +1,37 @@
 // components/DataTable.js
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 import DataTable from 'react-data-table-component';
 import "@/components/DataTable.css";
 import Link from 'next/link';
 import { Button } from './ui/button';
 import { DebounceInput } from 'react-debounce-input';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
+import { BiArrowToRight, BiDotsVertical, BiRightArrow } from 'react-icons/bi';
 
-const DataTableForm = () => {
+const DataTableForm = ({ initialStatus }) => {
 
   const [data, setData] = useState([]);
   const [totalRows, setTotalRows] = useState(0);
   const [perPage, setPerPage] = useState(10);
   const [currentPage, setCurrentPage] = useState(1);
   const [search, setSearch] = useState('');
+  const [status, setStatus] = useState(initialStatus);
 
   useEffect(() => {
     fetchData(currentPage, perPage, search);
   }, [currentPage, perPage, search]);
 
-  const fetchData = async (page, limit, searchQuery) => {
+  const fetchData = useCallback(async (page, limit, searchQuery) => {
     try {
       const response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/forms`, {
-        params: { page, limit, search: searchQuery },
+        params: { page, limit, search: searchQuery, status: status },
       });
       setData(response.data.data);
       setTotalRows(response.data.total);
@@ -31,7 +39,7 @@ const DataTableForm = () => {
     } catch (error) {
       console.error('Error fetching data:', error);
     }
-  };
+  }, [status]);
 
   const handleSearch = (event) => {
     setSearch(event.target.value);
@@ -75,20 +83,48 @@ const DataTableForm = () => {
     },
     {
       name: 'Action',
-      cell: row => <Link href={`/detail/${row.id}`}><Button className="w-10 h-6 text-xs bg-opacity-80 bg-black">View</Button></Link>,
+      cell: row => <>
+        <Link href={`/admin/detail/${row.id}`}><Button className="w-10 h-6 text-xs bg-opacity-80 bg-black">View</Button></Link>
+
+        <DropdownMenu>
+          <DropdownMenuTrigger className='ml-4' asChild>
+            <span className="cursor-pointer"><BiDotsVertical className="h-4 w-4" /></span>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent className="w-56">
+            <DropdownMenuItem onClick={() => handleAction(row)}>
+              <BiArrowToRight className="mr-2 h-4 w-4" />
+              <span>Move to {initialStatus === 1 ? "List" : "MyList"}</span>
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </>,
     },
   ];
 
   const handleAction = (row) => {
-    alert(`Action for ${row.name}`);
+    // alert(`Action for ${row.name}`);
+    try {
+      const response = axios.post(`${process.env.NEXT_PUBLIC_API_URL}/forms/${row.id}`,
+        {
+          type: initialStatus === 1 ? "toList" : "toMyList" // {{ edit_1 }} Added ternary operator for type based on initialStatus
+        })
+        .then(response => {
+          console.log('Response', response);
+          fetchData(currentPage, perPage, search);
+          // setIsLoading(false)
+        })
+        .catch(error => {
+          console.error('Error:', error);
+        });
+    } catch (error) {
+      console.error('Error:', error);
+    }
+    
   };
 
 
   return (
     <>
-      <div className="py-4">
-        Daftar Pesanan Undangan
-      </div>
       <DebounceInput
         minLength={2}
         debounceTimeout={300}

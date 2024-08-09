@@ -66,17 +66,17 @@ export default function Sidebar({ show, setter }) {
                 <div className="flex flex-col ">
                     <MenuItem
                         name="Dashboard"
-                        route="/dashboard"
+                        route="/admin/dashboard"
                         icon={<SlHome />}
                     />
                     <MenuItem
                         name="List"
-                        route="/list"
+                        route="/admin/list"
                         icon={<FaListUl />}
                     />
                     <MenuItem
                         name="MyList"
-                        route="/mylist"
+                        route="/admin/mylist"
                         icon={<FaClipboardList />}
                     />
                     <MenuItem

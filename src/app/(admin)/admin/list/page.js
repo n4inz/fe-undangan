@@ -1,8 +1,16 @@
 'use client';
+import { useState, useEffect } from 'react'
+
 import Sidebar from "@/layout/sidebar";
+import DataTableForm from "@/components/DataTableForm";
 
-const Dashboard = () => {
+const List = () => {
 
+    const [isClient, setIsClient] = useState(false)
+
+    useEffect(() => {
+        setIsClient(true)
+      }, [])
 
     return (
         <>
@@ -16,7 +24,10 @@ const Dashboard = () => {
                 {/* Main Content */}
                 <div className="flex flex-col flex-grow w-full md:pl-24">
                     <div className="p-4">
-                        List
+                              <div className="py-4">
+        List
+      </div>
+                    {isClient ? <DataTableForm initialStatus={0} /> : ''}
                     </div>
                 </div>
             </div>
@@ -26,4 +37,6 @@ const Dashboard = () => {
 
 }
 
-export default Dashboard;
+export default List;
+
+

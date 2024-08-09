@@ -6,7 +6,7 @@ import Link from 'next/link';
 // import { ArrowLeftIcon, PhoneIcon } from '@heroicons/react/24/solid';
 import { BiArrowBack, BiPhone } from "react-icons/bi";
 
-export default function Success({params}) {
+const Success = ({params}) => {
   
   const contactUrl = `https://wa.me/${process.env.NEXT_PUBLIC_WA_NUMBER}?text=Halo,%0ASaya%20ingin%20memesan%20undangan%20dengan%20kode%20id%20:%20${params.formId}`; // Use formId in the URL
 
@@ -38,3 +38,5 @@ export default function Success({params}) {
     </div>
   );
 }
+
+export default Success;

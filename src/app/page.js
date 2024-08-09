@@ -19,7 +19,7 @@ const requeiredInput = z.string().min(1, { message: "Form harus diisi" });
 const requeiredTgl = z.string().min(1, { message: "Date is required" }).refine(val => !isNaN(Date.parse(val)), { message: "Invalid date" });
 
 
-export default function Home() {
+const Home = () => {
   const router = useRouter();
 
   const [formData, setFormData] = useState({
@@ -667,3 +667,5 @@ export default function Home() {
     </div>
   );
 }
+
+export default Home;
