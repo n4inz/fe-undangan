@@ -24,3 +24,9 @@ export const schema = z.object({
   datetimeAkad: requeiredTgl,
   datetimeResepsi: requeiredTgl,
 }).catchall(z.string()); // Allow additional fields of type string
+
+
+export const loginSchema = z.object({
+  email: z.string().email({ message: "Invalid email" }),
+  password: z.string().min(1, { message: "Password is required" }),
+})
