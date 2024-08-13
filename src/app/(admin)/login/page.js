@@ -9,6 +9,7 @@ import { useRouter } from 'next/navigation'
 import { z } from 'zod'
 import axios from 'axios'
 import { ClipLoader } from 'react-spinners'
+import Cookies from 'js-cookie'
 
 const Login = () => {
 
@@ -18,6 +19,7 @@ const Login = () => {
   const [isLoading, setIsLoading] = useState(false);
 
   const [errors, setErrors] = useState({});
+const [status, setStatus]=useState(false);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -27,25 +29,21 @@ const Login = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsLoading(true)
-    console.log('Form submit triggered');
     try {
       loginSchema.parse(formData);
 
       setErrors({}); // Changed from setErrors([]) to setErrors({}) to match the initial state structure
 
-      const response = axios.post(`${process.env.NEXT_PUBLIC_API_URL}/login`, {
+      const response = await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/login`, {
         email: formData.email,
         password: formData.password
-      })
-        .then(response => {
-          console.log('successfully:', response);
-          router.push(`/admin/dashboard`)
-          // setIsLoading(false)
-        })
-        .catch(error => {
-          console.error('Error:', error);
-          setIsLoading(false)
-        });
+      }, { withCredentials: true }); // Include credentials in the request
+      // Cookies.set('token', response.data.token, { expires: 30 }); // Adjust according to your token structure
+      if(response.status!==200){
+        setStatus(true)
+      }
+      router.push(`/admin/dashboard`)
+      // setIsLoading(false)
     } catch (error) {
       setIsLoading(false)
       if (error instanceof z.ZodError) {
@@ -54,9 +52,10 @@ const Login = () => {
           fieldErrors[err.path[0]] = err.message;
         });
         setErrors(fieldErrors);
-        console.log(fieldErrors);
+        setStatus(false)
       } else {
         console.error('An unexpected error occurred:', error);
+        setStatus(true)
       }
     }
   }
@@ -80,17 +79,18 @@ const Login = () => {
                 <Label htmlFor="password">Password</Label>
                 <Input name="password" id="password" type="password" onChange={handleChange} />
                 {errors.password && <p className="text-red-500 text-sm mt-1">{errors.password}</p>}
+                {status && <p className="text-red-500 text-sm mt-1">Wrong email or password</p>}
               </div>
               <Button type="submit" className="w-full px-4 py-2 rounded-lg" disabled={isLoading}>
-            {isLoading ? (
-              <>
-                <ClipLoader size={20} color="#fff" className="inline-block mr-2" /> {/* Spinner */}
-                Login
-              </>
-            ) : (
-              'Login'
-            )}
-          </Button>
+                {isLoading ? (
+                  <>
+                    <ClipLoader size={20} color="#fff" className="inline-block mr-2" /> {/* Spinner */}
+                    Login
+                  </>
+                ) : (
+                  'Login'
+                )}
+              </Button>
             </div>
           </form>
         </CardContent>

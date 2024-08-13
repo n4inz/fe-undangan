@@ -58,8 +58,17 @@ const Dashboard = () => {
 
   const [chartData, setChartData] = useState([])
   const fetchData = async () => {
+    // await isAuthenticated();
+    // axios.get('http://localhost:5000/auth', { withCredentials: true })
+    // .then(response => {
+    //   console.log('Profile data:', response.data);
+    // })
+    // .catch(error => {
+    //   console.error('Error fetching profile:', error);
+    // });
     const response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/count-form`)
 
+    console.log(response.data)
     setChartData(response.data)
 
   }

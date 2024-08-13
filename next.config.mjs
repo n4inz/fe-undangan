@@ -24,10 +24,6 @@ const nextConfig = {
           source: '/',
           destination: '/',
         },
-        {
-          source: '/logout',
-          destination: '/',
-        },
       ];
     },
   
