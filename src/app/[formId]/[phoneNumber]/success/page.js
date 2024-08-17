@@ -4,11 +4,15 @@ import Image from 'next/image';
 // import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 // import { ArrowLeftIcon, PhoneIcon } from '@heroicons/react/24/solid';
-import { BiArrowBack, BiPhone } from "react-icons/bi";
+import { BiArrowBack, BiPhone, BiPhotoAlbum } from "react-icons/bi";
+import { usePathname } from 'next/navigation'; // Add this import
 
 const Success = ({params}) => {
-  
+
+  const pathname = usePathname()
+
   const contactUrl = `https://wa.me/${process.env.NEXT_PUBLIC_WA_NUMBER}?text=Halo,%0ASaya%20ingin%20memesan%20undangan%20dengan%20kode%20id%20:%20${params.formId}`; // Use formId in the URL
+
 
   return (
     <div className="flex items-center justify-center bg-gray-100">
@@ -32,6 +36,17 @@ const Success = ({params}) => {
             <BiPhone className="h-6 w-6 mr-2" />
             Hubungi Admin
           </Link>
+
+          
+        </div>
+        <div className='flex mt-4 items-center'>
+
+          <Link type="button" href={pathname+'/share-my-detail-acara'} className="bg-slate-500 hover:bg-slate-700 text-white font-bold py-2 px-4 rounded-full flex items-center">
+            <BiPhotoAlbum className="h-6 w-6 mr-2" />
+            Atur Urutan Foto
+          </Link>
+
+          
         </div>
       </div>
 

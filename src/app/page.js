@@ -13,10 +13,7 @@ import { ClipLoader } from 'react-spinners'; // Import the spinner
 import { useRouter } from 'next/navigation';
 // import { XMarkIcon } from '@heroicons/react/24/solid';
 import { BiX } from "react-icons/bi";
-import {schema} from '@/lib/validation'
-
-const requeiredInput = z.string().min(1, { message: "Form harus diisi" });
-const requeiredTgl = z.string().min(1, { message: "Date is required" }).refine(val => !isNaN(Date.parse(val)), { message: "Invalid date" });
+import { schema } from '@/lib/validation'
 
 
 const Home = () => {
@@ -50,6 +47,8 @@ const Home = () => {
 
   const [isLoading, setIsLoading] = useState(false); // Add loading state
 
+  const [isLoadingImage, setIsLoadingImage] = useState(Array(images.length).fill(false)); // Initialize loading state for each image
+
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData({
@@ -60,6 +59,7 @@ const Home = () => {
   };
 
   const handleImageChange = (e) => {
+    setIsLoadingImage(true);
     const newFiles = Array.from(e.target.files);
     const existingFiles = images;
 
@@ -70,17 +70,25 @@ const Home = () => {
       return;
     }
 
+    // Limit to 20 images
+    if (existingFiles.length + newFiles.length > 20) {
+      setErrors({ ...errors, images: "Maksimal upload adalah 20 foto" });
+      return;
+    }
+
     // Combine existing files with new files
     setImages(prev => (
       [...existingFiles, ...newFiles]
     ));
-    console.log("images", images)
+    // console.log("images", images)
     setErrors({ ...errors, images: undefined });
   };
   const handleRemoveImage = (index) => {
+    setIsLoadingImage(true);
     setImages(prev => {
-      const updatedImages = prev.filter((_, i) => i !== index);
-      // Update the image previews here if necessary
+      const updatedImages = [...prev]; // Create a copy of the current images
+      updatedImages.splice(index, 1); // Remove the image at the specified index
+      setErrors({ ...errors, images: undefined });
       return updatedImages;
     });
   };
@@ -88,7 +96,7 @@ const Home = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsLoading(true)
-    console.log('Form submit triggered');
+    // console.log('Form submit triggered');
     try {
       schema.parse(formData);
 
@@ -108,7 +116,8 @@ const Home = () => {
       })
         .then(response => {
           console.log('Files uploaded successfully:', response);
-          router.push(`/${response.data.id}/success`)
+          //redirect to /[formId]/[phoneNumber]/success
+          router.push(`/${response.data.id}/${response.data.nomorWa}/success`)
           // setIsLoading(false)
         })
         .catch(error => {
@@ -124,7 +133,11 @@ const Home = () => {
           fieldErrors[err.path[0]] = err.message;
         });
         setErrors(fieldErrors);
-        console.log(fieldErrors);
+        const firstErrorField = document.querySelector(`[name="${error.errors[0].path[0]}"]`);
+        if (firstErrorField) {
+          firstErrorField.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+        // console.log(fieldErrors);
       } else {
         console.error('An unexpected error occurred:', error);
       }
@@ -575,7 +588,7 @@ const Home = () => {
           </div>
 
           <div className="mb-4">
-            <label className="block text-gray-700">Upload Foto Yang Ingin Di Tampilkan (1)</label>
+            <label className="block text-gray-700">Upload Foto Yang Ingin Di Tampilkan (Max. 20)</label>
             <input
               type="file"
               name="images"
@@ -587,28 +600,38 @@ const Home = () => {
             {errors.images && <p className="text-red-500 text-sm mt-1">{errors.images}</p>}
           </div>
           <div className="flex flex-wrap gap-2 mb-4">
-            {images.map((file, index) => (
-              <div key={index} className="relative w-24 h-24">
-                <Image
-                  src={URL.createObjectURL(file)}
-                  alt={`Preview ${index}`}
-                  // layout="fill"
-                  fill
-                  // objectFit="cover"
-                  className="rounded-lg border border-gray-300"
-                  unoptimized
-                />
-                <button
-                  type="button"
-                  onClick={() => handleRemoveImage(index)}
-                  className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1 hover:bg-red-600"
-                  aria-label="Remove image"
-                >
-                  {/* <XMarkIcon className="h-4 w-4" /> */}
-                  <BiX className="h-4 w-4" />
-                </button>
-              </div>
-            ))}
+            {images.map((file, index) => {
+
+
+              return (
+                <div key={index} className="relative w-24 h-24">
+                  {isLoadingImage && (
+                    <div className="absolute inset-0 flex items-center justify-center bg-gray-200">
+                      <ClipLoader size={20} color="#000" /> {/* Spinner */}
+                    </div>
+                   )}
+                  <Image
+                    src={URL.createObjectURL(file)}
+                    alt={`Preview ${index}`}
+                    fill
+                    className="rounded-lg border border-gray-300"
+                    unoptimized
+                    onError={() => setIsLoadingImage(false)} // Hide spinner on error
+                    onLoad={() => setIsLoadingImage(true)} // Hide spinner when image loads
+                    // onLoadingComplete={() => setIsLoadingImage(false)} // Hide spinner when image loads
+                    quality={50}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => handleRemoveImage(index)}
+                    className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1 hover:bg-red-600"
+                    aria-label="Remove image"
+                  >
+                    <BiX className="h-4 w-4" />
+                  </button>
+                </div>
+              );
+            })}
           </div>
 
 
