@@ -7,18 +7,20 @@ import { usePathname, useRouter } from 'next/navigation'
 import Image from 'next/image'
 import axios from 'axios'
 import { Button } from '@/components/ui/button'
+import LoadingOverlay from 'react-loading-overlay-ts'
 const DetailAcara = ({ params }) => {
 
   const pathname = usePathname()
   const router = useRouter()
 
   const [listImages, setListImages] = useState([]);
-  const [count, setCount] = useState();
+  const [count, setCount] = useState(10);
   const [step, setStep] = useState(1);
   const [selectedImageIndex, setSelectedImageIndex] = useState([]);
   const [selectedImageSrc, setSelectedImageSrc] = useState([]); // State for image sources
   const [imageOrder, setImageOrder] = useState([]);
   const [disBtn, setDisBtn] = useState(true);
+  const [isActive, setActive] = useState(true)
 
   const handleImageClick = (index, src, srcId) => {
     setSelectedImageIndex((prevIndexes) => {
@@ -55,24 +57,39 @@ const DetailAcara = ({ params }) => {
   };
 
   const handleButtonClick = async () => {
-    setImageOrder((prevOrder) => [...prevOrder, ...selectedImageSrc.map((src, index) => ({ id: listImages[selectedImageIndex[index]].id, fileImage: src }))]); // Update to include id and fileImage
+    setImageOrder(selectedImageSrc.map((src, index) => ({
+      id: listImages[selectedImageIndex[index]].id,
+      fileImage: src
+    })));
 
-    setListImages((prevList) => prevList.filter(file => !selectedImageSrc.includes(file.fileImage))); // Remove selected images from listImages
+    // setListImages((prevList) => prevList.filter(file => !selectedImageSrc.includes(file.fileImage))); // Remove selected images from listImages
     setDisBtn(true);
     setStep((prevStep) => prevStep + 1); // Increment step by 1
     setSelectedImageIndex([]);
     setSelectedImageSrc([]);
+    console.log("ImageOrder:", imageOrder);
+  };
 
+  const postImageOrder = async (data) => {
+    try {
+      const response = await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/image-order`, {
+        image: data
+      });
+      console.log(response.data);
+    } catch (error) {
+      console.error('Error fetching data:', error);
+    }
   };
 
   const fetchData = async () => {
     try {
       const response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/display-image/${params.formId}/${params.phoneNumber}`);
       setListImages(response.data.image);
-      setCount(response.data.count);
-      console.log(response.data.image)
+      // setCount(response.data.count);
+      // console.log(response.data.image)
 
       // console.log(response.data);
+      setActive(false)
     } catch (error) {
       console.error('Error fetching data:', error);
     }
@@ -83,58 +100,74 @@ const DetailAcara = ({ params }) => {
   }, []);
 
   useEffect(() => {
-    if (listImages.length === 0 && imageOrder.length > 0) {
-      axios.post(`${process.env.NEXT_PUBLIC_API_URL}/image-order/${params.formId}`, {
-        image: imageOrder
-      })
-      .then(() => router.push(pathname + '/table'))
-      .catch(console.error); // Simplified error handling
+    if (step > count) {
+      // axios.post(`${process.env.NEXT_PUBLIC_API_URL}/image-order/${params.formId}`, {
+      //   image: imageOrder
+      // })
+      // .then(() => router.push(pathname + '/table'))
+      // .catch(console.error); // Simplified error handling
+      setActive(true)
+      router.push(pathname + '/table')
     }
+    postImageOrder(imageOrder)
+    console.log(imageOrder);
   }, [listImages, imageOrder]); // No need for the console.log here
-  
+
 
   return (
-    <div className="flex items-center justify-center bg-gray-100">
-      <div className="h-full min-h-screen bg-white rounded-lg shadow-lg max-w-lg w-full flex items-center flex-col relative">
-        <div className="top-0 p-4 text-center">
-          <h1 className="text-3xl underline">Atur Foto</h1>
-
-          <div className='text-center'>
-            <RenderStepIndicator dataStep={step} dataAmount={count} />
-
-          </div>
-          <p className='mt-2 text-lg'>Pilih 2 Foto lalu tekan tombol <BiChevronRightCircle className='inline' /></p>
-        </div>
-
-        <div className="grid grid-cols-2 gap-4 mb-4">
-          {listImages.map((file, index) => (
-            <div
-              key={index}
-              className={`w-full max-w-xs rounded-lg border border-gray-300 ${selectedImageIndex.includes(index) ? 'ring-4 ring-blue-500 ring-offset-2 ring-offset-blue-200 shadow-lg shadow-blue-500/50' : ''}`} // Add gradient light to ring when active
-              onClick={() => handleImageClick(index, file.fileImage, file.id)}
-            >
-              <Image
-                src={`${process.env.NEXT_PUBLIC_API_URL}/images/${file.fileImage}`}
-                alt={`Image ${index}`}
-                width={250}
-                height={150}
-                className="rounded-lg object-cover"
-                unoptimized
-              />
-            </div>
-          ))}
-        </div>
-
-      </div>
-      <Button
-        className="fixed bottom-4 right-4 md:right-[30%] rounded-full shadow-lg bg-blue-600 text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
-        disabled={disBtn}
-        onClick={handleButtonClick}
+    <>
+      <LoadingOverlay
+        active={isActive}
+        spinner
+        text='Loading your content...'
       >
-        <BiChevronRight className="h-8 w-8" />
-      </Button>
-    </div>
+        <div className="flex items-center justify-center bg-gray-100">
+          <div className="h-full min-h-screen bg-white rounded-lg shadow-lg max-w-lg w-full flex items-center flex-col relative">
+            <div className="top-0 p-4 text-center">
+              <h1 className="text-3xl underline">Atur Foto</h1>
 
+              <div className='text-center mt-2'>
+                {/* <R enderStepIndicator dataStep={step} dataAmount={10} /> */}
+                <span className="inline-flex items-center rounded-full bg-blue-100 px-4 py-2 text-lg font-medium text-blue-800">
+                  Step {step} dari {count}
+                </span>
+
+              </div>
+              <p className='mt-2 text-lg'>Pilih 2 Foto lalu tekan tombol <BiChevronRightCircle className='inline' />
+              <br /> atau tekan tombol skip
+              </p>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4 mb-4">
+              {listImages.map((file, index) => (
+                <div
+                  key={index}
+                  className={`w-full max-w-xs rounded-lg border border-gray-300 ${selectedImageIndex.includes(index) ? 'ring-4 ring-blue-500 ring-offset-2 ring-offset-blue-200 shadow-lg shadow-blue-500/50' : ''}`} // Add gradient light to ring when active
+                  onClick={() => handleImageClick(index, file.fileImage, file.id)}
+                >
+                  <Image
+                    src={`${process.env.NEXT_PUBLIC_API_URL}/images/${file.fileImage}`}
+                    alt={`Image ${index}`}
+                    width={250}
+                    height={150}
+                    className="rounded-lg object-cover"
+                    unoptimized
+                  />
+                </div>
+              ))}
+            </div>
+            <Link href={pathname + '/table'} className='my-4 text-blue-600 underline'>Skip</Link>
+          </div>
+          <Button
+            className="fixed bottom-4 right-4 md:right-[30%] rounded-full shadow-lg bg-blue-600 text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+            disabled={disBtn}
+            onClick={handleButtonClick}
+          >
+            <BiChevronRight className="h-8 w-8" />
+          </Button>
+        </div>
+      </LoadingOverlay>
+    </>
 
   )
 }

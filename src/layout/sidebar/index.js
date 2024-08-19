@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 
@@ -8,10 +9,11 @@ import Image from 'next/image'
 
 import logo from '../../../public/logo/Sewa.png'
 import axios from 'axios';
-import Cookies from 'js-cookie';
+// import Cookies from 'js-cookie';
 
 export default function Sidebar({ show, setter }) {
     const router = useRouter();
+
 
     // Define our base class
     const className = "pt-10 bg-white w-[300px] transition-[margin-left] ease-in-out duration-500 top-0 bottom-0 left-0 z-40 border-r fixed";
@@ -48,11 +50,13 @@ export default function Sidebar({ show, setter }) {
     )
 
     const handleLogout = async () => {
+        setActive(true)
         try {
           await axios.get(process.env.NEXT_PUBLIC_API_URL + '/logout', { withCredentials: true });
           router.push('/login'); // Adjust the URL as needed
         } catch (error) {
           console.error("Logout failed:", error);
+          setActive(false)
         }
       };
 

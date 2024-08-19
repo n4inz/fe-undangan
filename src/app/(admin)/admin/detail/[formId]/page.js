@@ -2,35 +2,42 @@
 import React, { useState, useEffect } from "react";
 import Sidebar from "@/layout/sidebar";
 import Image from 'next/image';
-import { z } from 'zod';
+// import { z } from 'zod';
 // import LoadingSpinner from '../components/LoadingSpinner'; // Adjust the path as needed
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import axios from "axios";
 
-import { BiX } from "react-icons/bi";
+// import { BiX } from "react-icons/bi";
 
 const Detail = ({params}) => {
 
     const [formData, setFormData] = useState({});
     const [listImages, setListImages] = useState([]);
   
-    useEffect(() => {
-      fetchData();
-    }, []);
-  
+    
     const fetchData = async () => {
       try {
-        const response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/forms/${params.formId}`);
+        const response = await axios.get(process.env.NEXT_PUBLIC_API_URL+`/forms/${params.formId}`);
         setFormData(response.data.form);
-        setListImages(response.data.image);
-        console.log(response.data.image)
+        
 
         // console.log(response.data);
       } catch (error) {
         console.error('Error fetching data:', error);
       }
     };
+
+    const fetchImage = async () => {
+      const response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/image-order/${params.formId}`);
+      setListImages(response.data.imageOrder);
+      // console.log(response.data.imageOrder)
+    };
+    
+    useEffect(() => {
+      fetchData();
+      fetchImage()
+    }, []);
 
     return (
         <>
@@ -409,7 +416,7 @@ const Detail = ({params}) => {
             {listImages.map((file, index) => (
               <div key={index} className="relative h-56 max-w-xs w-full"> {/* Set max width */}
                 <Image
-                  src={`http://localhost:5000/images/${file.fileImage}`}
+                  src={`${process.env.NEXT_PUBLIC_API_URL}/images/${file.images.fileImage}`}
                   alt={`Image ${index}`}
                   fill
                   className="rounded-lg border border-gray-300 object-cover"

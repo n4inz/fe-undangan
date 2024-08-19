@@ -17,6 +17,14 @@ const nextConfig = {
     experimental: {
       missingSuspenseWithCSRBailout: false,
     },
+    images: {
+      remotePatterns: [
+        {
+          protocol: 'http',
+          hostname: process.env.NEXT_PUBLIC_API_URL ? new URL(process.env.NEXT_PUBLIC_API_URL).hostname : 'localhost',
+        },
+      ],
+    },
   
     async rewrites() {
       return [
