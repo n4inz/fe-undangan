@@ -9,7 +9,6 @@ import { useRouter } from 'next/navigation'
 import { z } from 'zod'
 import axios from 'axios'
 import { ClipLoader } from 'react-spinners'
-import Cookies from 'js-cookie'
 
 const Login = () => {
 

@@ -48,6 +48,9 @@ const Home = () => {
   const [isLoading, setIsLoading] = useState(false); // Add loading state
 
   const [isLoadingImage, setIsLoadingImage] = useState(Array(images.length).fill(false)); // Initialize loading state for each image
+  const [newFiles, setNewFiles] = useState([]);
+  const [filePath, setFilePath] = useState([]);
+  // const [displayedImages, setDisplayedImages] = useState([]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -58,31 +61,57 @@ const Home = () => {
     // console.log(formData.datetimeAkad)
   };
 
-  const handleImageChange = (e) => {
+  const handleImageChange = async (e) => {
+    setIsLoading(true)
     setIsLoadingImage(true);
     const newFiles = Array.from(e.target.files);
-    const existingFiles = images;
 
     const nonImageFiles = newFiles.filter(file => !file.type.startsWith('image/'));
 
     if (nonImageFiles.length > 0) {
       setErrors({ ...errors, images: "Only image files are allowed" });
+      setIsLoadingImage(false);
+      setIsLoading(false)
       return;
     }
 
-    // Limit to 20 images
-    if (existingFiles.length + newFiles.length > 20) {
+    // Limit to 20 images (including previously displayed images)
+    if (images.length + newFiles.length > 20) {
       setErrors({ ...errors, images: "Maksimal upload adalah 20 foto" });
+      setIsLoadingImage(false);
+      setIsLoading(false)
       return;
     }
 
-    // Combine existing files with new files
-    setImages(prev => (
-      [...existingFiles, ...newFiles]
-    ));
-    // console.log("images", images)
+    // Add new files to displayed images
+    setImages([...images, ...newFiles]);
+    setNewFiles(newFiles); // Set newFiles for uploading
     setErrors({ ...errors, images: undefined });
+
+    const fd = new FormData();
+    newFiles.forEach((file) => {
+      fd.append('files', file);
+    });
+
+    try {
+      const response = await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/forms-upload-temp`, fd, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+      console.log('Files uploaded successfully:', response);
+      setFilePath(prevFilePaths => [...prevFilePaths, ...response.data.filePaths]);
+      // Redirect to /[formId]/[phoneNumber]/success
+      // router.push(`/${response.data.id}/${response.data.nomorWa}/success`);
+    } catch (error) {
+      console.error('Error uploading files:', error);
+    } finally {
+      setIsLoadingImage(false);
+      setIsLoading(false)
+    }
   };
+
+
   const handleRemoveImage = (index) => {
     setIsLoadingImage(true);
     setImages(prev => {
@@ -90,6 +119,11 @@ const Home = () => {
       updatedImages.splice(index, 1); // Remove the image at the specified index
       setErrors({ ...errors, images: undefined });
       return updatedImages;
+    });
+    setFilePath(prev => {
+      const updatedFilePaths = [...prev];
+      updatedFilePaths.splice(index, 1);
+      return updatedFilePaths;
     });
   };
 
@@ -103,15 +137,22 @@ const Home = () => {
       setErrors({}); // Changed from setErrors([]) to setErrors({}) to match the initial state structure
 
       const fd = new FormData();
-      fd.append('data', JSON.stringify(formData))
-      images.forEach((file) => {
-        fd.append('files', file);
-        // console.log(file)
-      });
+      // Combine formData, images, and filePaths into a single object
 
-      const response = axios.post(`${process.env.NEXT_PUBLIC_API_URL}/forms`, fd, {
+      fd.append('data', JSON.stringify(formData))
+      fd.append('images', JSON.stringify(filePath))
+
+    //   console.log("FormData:", formData);
+    // console.log("Images:", images);
+    console.log("FilePaths:", filePath);
+    // console.log("Combined Data:", combinedData);
+    // console.log("FormData object entries:");
+    for (let [key, value] of fd.entries()) {
+      console.log(key, value);
+    }
+      const response = await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/forms`, fd, {
         headers: {
-          'Content-Type': 'multipart/form-data',
+          'Content-Type': 'application/json',
         },
       })
         .then(response => {
@@ -161,6 +202,11 @@ const Home = () => {
       ...prevData,
     }));
   }, []);
+
+  useEffect(() => {
+    console.log("FilePath: :", filePath);
+    console.log("Images: :", images);
+  }, [filePath, images]);
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-100">
@@ -600,38 +646,34 @@ const Home = () => {
             {errors.images && <p className="text-red-500 text-sm mt-1">{errors.images}</p>}
           </div>
           <div className="flex flex-wrap gap-2 mb-4">
-            {images.map((file, index) => {
-
-
-              return (
-                <div key={index} className="relative w-24 h-24">
-                  {isLoadingImage && (
-                    <div className="absolute inset-0 flex items-center justify-center bg-gray-200">
-                      <ClipLoader size={20} color="#000" /> {/* Spinner */}
-                    </div>
-                   )}
-                  <Image
-                    src={URL.createObjectURL(file)}
-                    alt={`Preview ${index}`}
-                    fill
-                    className="rounded-lg border border-gray-300"
-                    unoptimized
-                    onError={() => setIsLoadingImage(false)} // Hide spinner on error
-                    onLoad={() => setIsLoadingImage(true)} // Hide spinner when image loads
-                    // onLoadingComplete={() => setIsLoadingImage(false)} // Hide spinner when image loads
-                    quality={50}
-                  />
-                  <button
-                    type="button"
-                    onClick={() => handleRemoveImage(index)}
-                    className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1 hover:bg-red-600"
-                    aria-label="Remove image"
-                  >
-                    <BiX className="h-4 w-4" />
-                  </button>
-                </div>
-              );
-            })}
+            {images.map((file, index) => (
+              <div key={index} className="relative w-24 h-24">
+                {isLoadingImage && (
+                  <div className="absolute inset-0 flex items-center justify-center bg-gray-200">
+                    <ClipLoader size={20} color="#000" /> {/* Spinner */}
+                  </div>
+                )}
+                <Image
+                  src={URL.createObjectURL(file)}
+                  alt={`Preview ${index}`}
+                  fill
+                  className="rounded-lg border border-gray-300"
+                  unoptimized
+                  onError={() => setIsLoadingImage(false)} // Hide spinner on error
+                  onLoad={() => setIsLoadingImage(true)} // Hide spinner when image loads
+                  // onLoadingComplete={() => setIsLoadingImage(false)} // Hide spinner when image loads
+                  quality={50}
+                />
+                <button
+                  type="button"
+                  onClick={() => handleRemoveImage(index)}
+                  className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1 hover:bg-red-600"
+                  aria-label="Remove image"
+                >
+                  <BiX className="h-4 w-4" />
+                </button>
+              </div>
+            ))}
           </div>
 
 

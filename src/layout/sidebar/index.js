@@ -9,7 +9,6 @@ import Image from 'next/image'
 
 import logo from '../../../public/logo/Sewa.png'
 import axios from 'axios';
-// import Cookies from 'js-cookie';
 
 export default function Sidebar({ show, setter }) {
     const router = useRouter();
@@ -50,7 +49,7 @@ export default function Sidebar({ show, setter }) {
     )
 
     const handleLogout = async () => {
-        setActive(true)
+        // setActive(true)
         try {
           await axios.get(process.env.NEXT_PUBLIC_API_URL + '/logout', { withCredentials: true });
           router.push('/login'); // Adjust the URL as needed

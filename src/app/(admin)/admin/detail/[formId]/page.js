@@ -51,7 +51,7 @@ const Detail = ({params}) => {
                 {/* Main Content */}
                 <div className="flex flex-col flex-grow w-full md:pl-24">
                     <div className="p-4">
-                        Detail
+                        Detail : ID {params.formId}
                     </div>
                     <div className="mb-4">
             <label className="block text-gray-700">Nomor Whatsapp Anda<span className='text-red-500'>*</span></label>
