@@ -1,6 +1,5 @@
 'use client';
 import React, { useState, useEffect } from "react";
-import Sidebar from "@/layout/sidebar";
 import Image from 'next/image';
 // import { z } from 'zod';
 // import LoadingSpinner from '../components/LoadingSpinner'; // Adjust the path as needed
@@ -30,8 +29,9 @@ const Detail = ({params}) => {
 
     const fetchImage = async () => {
       const response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/image-order/${params.formId}`);
-      setListImages(response.data.imageOrder);
-      // console.log(response.data.imageOrder)
+      setListImages(response.data.images);
+      
+      
     };
     
     useEffect(() => {
@@ -39,13 +39,17 @@ const Detail = ({params}) => {
       fetchImage()
     }, []);
 
+    useEffect(() => {
+      console.log("ListImages:", listImages)
+    }, [listImages]);
+
     return (
         <>
             <div className="h-10 z-50 bg-white border-b w-full"></div>
             <div className="flex min-h-screen mx-4">
                 {/* Sidebar */}
                 <div className="fixed md:relative z-40 w-64 h-full bg-gray-800 md:block hidden">
-                    <Sidebar />
+                    {/* <Sidebar /> */}
                 </div>
                 
                 {/* Main Content */}
@@ -412,11 +416,11 @@ const Detail = ({params}) => {
             <label className="block text-gray-700">Upload Foto Yang Ingin Di Tampilkan (1)</label>
 
           </div>
-          <div className="flex flex-wrap gap-2 mb-4">
-            {listImages.map((file, index) => (
-              <div key={index} className="relative h-56 max-w-xs w-full"> {/* Set max width */}
+         <div className="flex flex-wrap gap-2 mb-4">
+            {listImages.map((src, index) => (
+              <div key={index} className="relative h-56 max-w-xs w-full">
                 <Image
-                  src={`${process.env.NEXT_PUBLIC_API_URL}/images/${file.images.fileImage}`}
+                  src={`${process.env.NEXT_PUBLIC_API_URL}/images/${src.images.fileImage}`}
                   alt={`Image ${index}`}
                   fill
                   className="rounded-lg border border-gray-300 object-cover"

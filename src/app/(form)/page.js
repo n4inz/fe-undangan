@@ -14,6 +14,7 @@ import { useRouter } from 'next/navigation';
 // import { XMarkIcon } from '@heroicons/react/24/solid';
 import { BiX } from "react-icons/bi";
 import { schema } from '@/lib/validation'
+import { Loader2 } from 'lucide-react';
 
 
 const Home = () => {
@@ -108,6 +109,7 @@ const Home = () => {
     } finally {
       setIsLoadingImage(false);
       setIsLoading(false)
+      // e.target.value = '';
     }
   };
 
@@ -142,14 +144,14 @@ const Home = () => {
       fd.append('data', JSON.stringify(formData))
       fd.append('images', JSON.stringify(filePath))
 
-    //   console.log("FormData:", formData);
-    // console.log("Images:", images);
-    console.log("FilePaths:", filePath);
-    // console.log("Combined Data:", combinedData);
-    // console.log("FormData object entries:");
-    for (let [key, value] of fd.entries()) {
-      console.log(key, value);
-    }
+    // //   console.log("FormData:", formData);
+    // // console.log("Images:", images);
+    // console.log("FilePaths:", filePath);
+    // // console.log("Combined Data:", combinedData);
+    // // console.log("FormData object entries:");
+    // for (let [key, value] of fd.entries()) {
+    //   console.log(key, value);
+    // }
       const response = await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/forms`, fd, {
         headers: {
           'Content-Type': 'application/json',
@@ -719,7 +721,8 @@ const Home = () => {
           <Button type="submit" className="bg-blue-500 text-white px-4 py-2 rounded-lg" disabled={isLoading}>
             {isLoading ? (
               <>
-                <ClipLoader size={20} color="#fff" className="inline-block mr-2" /> {/* Spinner */}
+                {/* <ClipLoader size={20} color="#fff" className="inline-block mr-2" /> */}
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                 Submit
               </>
             ) : (
