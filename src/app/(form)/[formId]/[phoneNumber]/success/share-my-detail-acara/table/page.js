@@ -9,6 +9,7 @@ import { usePathname } from 'next/navigation'; // Add this import
 import axios from 'axios';
 import DataTable from 'react-data-table-component';
 import { Button } from '@/components/ui/button';
+import { DialogModalForm } from '@/components/DialogModalForm';
 
 const TableFoto = ({ params }) => {
 
@@ -20,6 +21,11 @@ const TableFoto = ({ params }) => {
 
   const [currentPage, setCurrentPage] = useState(1);
   const [rowsPerPage, setRowsPerPage] = useState(10);
+
+  const [open, setOpen] = useState(false);
+  const [formId, setFormId] = useState(params.formId);
+  const [selectedIndex, setSelectedIndex] = useState(null);
+  const [selectedRow, setSelectedRow] = useState({ id: null, idImage: null });
 
   const columns = [
     {
@@ -43,12 +49,20 @@ const TableFoto = ({ params }) => {
     },
     {
       name: 'Action',
-      selector: row => <>
-        <Link href={`#`}><Button className="w-10 h-6 text-xs bg-opacity-80 bg-black">Edit</Button></Link>
+      selector: (row, index) => <>
+        <Button className="w-10 h-6 text-xs bg-opacity-80 bg-black" onClick={() => handleAction(row, index)}>Edit</Button>
       </>,
       // sortable: true,
     },
   ];
+
+  const handleAction = (row, index) => {
+    const rowIndex = (currentPage - 1) * rowsPerPage + index + 1;
+    setSelectedIndex(rowIndex)
+    setSelectedRow({ id: row.id, idImage: row.idImage });
+    setOpen(true)
+    console.log(row)
+  }
 
   const handlePageChange = (page) => {
     setCurrentPage(page);
@@ -61,12 +75,16 @@ const TableFoto = ({ params }) => {
   const fetchData = async () => {
     try {
       const response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/image-order/${params.formId}`);
-      setData(response.data.imageOrder);
-
+      setData(response.data.images);
+      console.log(response.data.images)
       // console.log(response.data);
     } catch (error) {
       console.error('Error fetching data:', error);
     }
+  };
+
+  const handleDataUpdate = () => {
+    fetchData(); // Re-fetch the data after it has been updated
   };
 
   useEffect(() => {
@@ -76,6 +94,7 @@ const TableFoto = ({ params }) => {
   return (
     <div className="flex items-center justify-center bg-gray-100">
       <div className="h-full min-h-screen bg-white rounded-lg shadow-lg max-w-xl w-full flex items-center flex-col relative">
+        <DialogModalForm open={open} onOpenChange={setOpen} index={selectedIndex} row={selectedRow} formId={formId} onDataUpdate={handleDataUpdate} />
         <div className="top-0 p-4 text-center">
           <h1 className="text-3xl underline">Atur Foto</h1>
 
