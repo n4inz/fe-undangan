@@ -97,8 +97,6 @@ const TableFoto = ({ params }) => {
         <DialogModalForm open={open} onOpenChange={setOpen} index={selectedIndex} row={selectedRow} formId={formId} onDataUpdate={handleDataUpdate} />
         <div className="top-0 p-4 text-center">
           <h1 className="text-3xl underline">Atur Foto</h1>
-
-
         </div>
         <DataTable
           columns={columns}
