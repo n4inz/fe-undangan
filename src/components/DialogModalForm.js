@@ -66,6 +66,7 @@ export function DialogModalForm({ open, onOpenChange, index, row, formId, onData
       setSelectedImage(null); // Clear the selected image when the dialog is closed
       setImageFile(null); // Clear the file as well
     }
+    console.log("row", row)
   }, [open]);
 
   return (

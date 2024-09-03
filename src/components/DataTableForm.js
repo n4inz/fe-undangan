@@ -85,9 +85,9 @@ const DataTableForm = ({ initialStatus, onDataUpdate }) => {
       selector: row => new Date(row.createdAt).toLocaleString(), // {{ edit_1 }} Convert to simple date and time
       sortable: true,
     },
-    ...(isAdmin === 1 && status === 1 ? [{
+    ...(isAdmin === 1 ? [{
       name: 'Staff',
-      selector: row => row.user.name,
+      selector: row => row.user?.name ?? '-',
       sortable: true,
     }] : []), // Tambahkan kolom Staff jika isAdmin == 1
     {

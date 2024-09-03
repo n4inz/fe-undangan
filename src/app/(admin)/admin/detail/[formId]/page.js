@@ -9,55 +9,55 @@ import axios from "axios";
 
 // import { BiX } from "react-icons/bi";
 
-const Detail = ({params}) => {
+const Detail = ({ params }) => {
 
-    const [formData, setFormData] = useState({});
-    const [listImages, setListImages] = useState([]);
-  
-    
-    const fetchData = async () => {
-      try {
-        const response = await axios.get(process.env.NEXT_PUBLIC_API_URL+`/forms/${params.formId}`);
-        setFormData(response.data.form);
-        
+  const [formData, setFormData] = useState({});
+  const [listImages, setListImages] = useState([]);
 
-        // console.log(response.data);
-      } catch (error) {
-        console.error('Error fetching data:', error);
-      }
-    };
 
-    const fetchImage = async () => {
-      const response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/image-order/${params.formId}`);
-      setListImages(response.data.images);
-      
-      
-    };
-    
-    useEffect(() => {
-      fetchData();
-      fetchImage()
-    }, []);
+  const fetchData = async () => {
+    try {
+      const response = await axios.get(process.env.NEXT_PUBLIC_API_URL + `/forms/${params.formId}`);
+      setFormData(response.data.form);
 
-    useEffect(() => {
-      console.log("ListImages:", listImages)
-    }, [listImages]);
 
-    return (
-        <>
-            <div className="h-10 z-50 bg-white border-b w-full"></div>
-            <div className="flex min-h-screen mx-4">
-                {/* Sidebar */}
-                <div className="fixed md:relative z-40 w-64 h-full bg-gray-800 md:block hidden">
-                    {/* <Sidebar /> */}
-                </div>
-                
-                {/* Main Content */}
-                <div className="flex flex-col flex-grow w-full md:pl-24">
-                    <div className="p-4">
-                        Detail : ID {params.formId}
-                    </div>
-                    <div className="mb-4">
+      // console.log(response.data);
+    } catch (error) {
+      console.error('Error fetching data:', error);
+    }
+  };
+
+  const fetchImage = async () => {
+    const response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/image-order/${params.formId}`);
+    setListImages(response.data.images);
+
+
+  };
+
+  useEffect(() => {
+    fetchData();
+    fetchImage()
+  }, []);
+
+  useEffect(() => {
+    console.log("ListImages:", listImages)
+  }, [listImages]);
+
+  return (
+    <>
+      <div className="h-10 z-50 bg-white border-b w-full"></div>
+      <div className="flex min-h-screen mx-4">
+        {/* Sidebar */}
+        <div className="fixed md:relative z-40 w-64 h-full bg-gray-800 md:block hidden">
+          {/* <Sidebar /> */}
+        </div>
+
+        {/* Main Content */}
+        <div className="flex flex-col flex-grow w-full md:pl-24">
+          <div className="p-4">
+            Detail : ID {params.formId}
+          </div>
+          <div className="mb-4">
             <label className="block text-gray-700">Nomor Whatsapp Anda<span className='text-red-500'>*</span></label>
             <Input
               type="text"
@@ -73,7 +73,7 @@ const Detail = ({params}) => {
               type="text"
               name="name"
               value={formData.name}
-              
+
               className="mt-1 p-2 w-full border border-gray-300 rounded-lg"
             />
           </div>
@@ -85,7 +85,7 @@ const Detail = ({params}) => {
               type="text"
               name="namaLengkapPria"
               value={formData.namaLengkapPria}
-              
+
               className="mt-1 p-2 w-full border border-gray-300 rounded-lg"
             />
           </div>
@@ -96,7 +96,7 @@ const Detail = ({params}) => {
               type="text"
               name="namaPanggilanPria"
               value={formData.namaPanggilanPria}
-              
+
               className="mt-1 p-2 w-full border border-gray-300 rounded-lg"
             />
           </div>
@@ -108,7 +108,7 @@ const Detail = ({params}) => {
               type="text"
               name="namaOrtuPria"
               value={formData.namaOrtuPria}
-              
+
               className="mt-1 p-2 w-full border border-gray-300 rounded-lg"
             />
           </div>
@@ -119,7 +119,7 @@ const Detail = ({params}) => {
               type="text"
               name="tempatLahirPria"
               value={formData.tempatLahirPria}
-              
+
               className="mt-1 p-2 w-full border border-gray-300 rounded-lg"
             />
           </div>
@@ -129,7 +129,7 @@ const Detail = ({params}) => {
               type="date"
               name="tglLahirPria"
               value={formData.tglLahirPria}
-              
+
               className="mt-1 p-2 w-full border border-gray-300 rounded-lg"
             />
           </div>
@@ -141,7 +141,7 @@ const Detail = ({params}) => {
               type="text"
               name="namaLengkapWanita"
               value={formData.namaLengkapWanita}
-              
+
               className="mt-1 p-2 w-full border border-gray-300 rounded-lg"
             />
           </div>
@@ -152,7 +152,7 @@ const Detail = ({params}) => {
               type="text"
               name="namaPanggilanWanita"
               value={formData.namaPanggilanWanita}
-              
+
               className="mt-1 p-2 w-full border border-gray-300 rounded-lg"
             />
           </div>
@@ -164,7 +164,7 @@ const Detail = ({params}) => {
               type="text"
               name="namaOrtuWanita"
               value={formData.namaOrtuWanita}
-              
+
               className="mt-1 p-2 w-full border border-gray-300 rounded-lg"
             />
           </div>
@@ -175,7 +175,7 @@ const Detail = ({params}) => {
               type="text"
               name="tempatLahirWanita"
               value={formData.tempatLahirWanita}
-              
+
               className="mt-1 p-2 w-full border border-gray-300 rounded-lg"
             />
           </div>
@@ -185,7 +185,7 @@ const Detail = ({params}) => {
               type="date"
               name="tglLahirWanita"
               value={formData.tglLahirWanita}
-              
+
               className="mt-1 p-2 w-full border border-gray-300 rounded-lg"
             />
           </div>
@@ -199,7 +199,7 @@ const Detail = ({params}) => {
               type="datetime-local"
               name="datetimeAkad"
               value={formData.datetimeAkad}
-              
+
               className="mt-1 p-2 w-full border border-gray-300 rounded-lg"
             />
           </div>
@@ -212,7 +212,7 @@ const Detail = ({params}) => {
               type="datetime-local"
               name="datetimeResepsi"
               value={formData.datetimeResepsi}
-              
+
               className="mt-1 p-2 w-full border border-gray-300 rounded-lg"
             />
           </div>
@@ -226,7 +226,7 @@ const Detail = ({params}) => {
               type="text"
               name="alamatAkad"
               value={formData.alamatAkad}
-              
+
               className="mt-1 p-2 w-full border border-gray-300 rounded-lg"
             />
           </div>
@@ -240,7 +240,7 @@ const Detail = ({params}) => {
               type="text"
               name="alamatResepsi"
               value={formData.alamatResepsi}
-              
+
               className="mt-1 p-2 w-full border border-gray-300 rounded-lg"
             />
           </div>
@@ -254,7 +254,7 @@ const Detail = ({params}) => {
               type="text"
               name="linkSherlokAkad"
               value={formData.alamatAkad}
-              
+
               className="mt-1 p-2 w-full border border-gray-300 rounded-lg"
             />
 
@@ -271,7 +271,7 @@ const Detail = ({params}) => {
               type="text"
               name="linkSherlokAkad"
               value={formData.alamatResepsi}
-              
+
               className="mt-1 p-2 w-full border border-gray-300 rounded-lg"
             />
             {/* {errors.alamatResepsi && <p className="text-red-500 text-sm mt-1">{errors.alamatResepsi}</p>} */}
@@ -286,7 +286,7 @@ const Detail = ({params}) => {
               type="text"
               name="liveYt"
               value={formData.liveYt}
-              
+
               className="mt-1 p-2 w-full border border-gray-300 rounded-lg"
             />
 
@@ -299,7 +299,7 @@ const Detail = ({params}) => {
               type="text"
               name="usernameIg"
               value={formData.usernameIg}
-              
+
               className="mt-1 p-2 w-full border border-gray-300 rounded-lg"
             />
           </div>
@@ -311,7 +311,7 @@ const Detail = ({params}) => {
               type="text"
               name="noRek"
               value={formData.noRek}
-              
+
               className="mt-1 p-2 w-full border border-gray-300 rounded-lg"
             />
           </div>
@@ -323,7 +323,7 @@ const Detail = ({params}) => {
               type="text"
               name="alamatHadiah"
               value={formData.alamatHadiah}
-              
+
               className="mt-1 p-2 w-full border border-gray-300 rounded-lg"
             />
           </div>
@@ -332,7 +332,7 @@ const Detail = ({params}) => {
             <Textarea
               name="ceritaAwal"
               value={formData.ceritaAwal}
-              
+
               className="mt-1 p-2 w-full border border-gray-300 rounded-lg"
             />
           </div>
@@ -341,7 +341,7 @@ const Detail = ({params}) => {
             <Textarea
               name="ceritaJadian"
               value={formData.ceritaJadian}
-              
+
               className="mt-1 p-2 w-full border border-gray-300 rounded-lg"
             />
           </div>
@@ -350,7 +350,7 @@ const Detail = ({params}) => {
             <Textarea
               name="ceritaLamaran"
               value={formData.ceritaLamaran}
-              
+
               className="mt-1 p-2 w-full border border-gray-300 rounded-lg"
             />
           </div>
@@ -362,7 +362,7 @@ const Detail = ({params}) => {
               type="text"
               name="linkSherlokAkad"
               value={formData.linkSherlokAkad}
-              
+
               className="mt-1 p-2 w-full border border-gray-300 rounded-lg"
             />
           </div>
@@ -374,7 +374,7 @@ const Detail = ({params}) => {
               type="text"
               name="linkSherlokResepsi"
               value={formData.linkSherlokResepsi}
-              
+
               className="mt-1 p-2 w-full border border-gray-300 rounded-lg"
             />
           </div>
@@ -405,7 +405,7 @@ const Detail = ({params}) => {
               type="text"
               name="pilihanTema"
               value={formData.pilihanTema}
-              
+
               className="mt-1 p-2 w-full border border-gray-300 rounded-lg"
             />
 
@@ -416,23 +416,32 @@ const Detail = ({params}) => {
             <label className="block text-gray-700">Upload Foto Yang Ingin Di Tampilkan (1)</label>
 
           </div>
-         <div className="flex flex-wrap gap-2 mb-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
             {listImages.map((src, index) => (
-              <div key={index} className="relative h-56 max-w-xs w-full">
-                <Image
-                  src={`${process.env.NEXT_PUBLIC_API_URL}/images/${src.images.fileImage}`}
-                  alt={`Image ${index}`}
-                  fill
-                  className="rounded-lg border border-gray-300 object-cover"
-                  unoptimized
-                />
+              <div key={index} className="flex items-center">
+                {index % 2 === 0 && (
+                  <div className="text-4xl font-bold text-gray-700 mr-4">
+                    {Math.floor(index / 2) + 1}
+                  </div>
+                )}
+                <div className="relative h-56 max-w-xs w-full">
+                  <Image
+                    src={`${process.env.NEXT_PUBLIC_API_URL}/images/${src.images.fileImage}`}
+                    alt={`Image ${index}`}
+                    fill
+                    className="rounded-lg border border-gray-300 object-cover"
+                    unoptimized
+                  />
+                </div>
               </div>
             ))}
           </div>
-                </div>
-            </div>
-        </>
-    );
+
+
+        </div>
+      </div>
+    </>
+  );
 
 
 }

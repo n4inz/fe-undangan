@@ -59,7 +59,10 @@ const TableFoto = ({ params }) => {
   const handleAction = (row, index) => {
     const rowIndex = (currentPage - 1) * rowsPerPage + index + 1;
     setSelectedIndex(rowIndex)
-    setSelectedRow({ id: row.id, idImage: row.idImage });
+    setSelectedRow({
+      id: row.id !== undefined ? row.id : row.images.id,
+      idImage: row.idImage
+    });
     setOpen(true)
     console.log(row)
   }
@@ -77,7 +80,7 @@ const TableFoto = ({ params }) => {
       const response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/image-order/${params.formId}`);
       setData(response.data.images);
       console.log(response.data.images)
-      // console.log(response.data);
+      console.log(response.data);
     } catch (error) {
       console.error('Error fetching data:', error);
     }
