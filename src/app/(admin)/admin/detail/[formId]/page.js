@@ -38,32 +38,10 @@ const Detail = ({ params }) => {
 
   };
 
-  const downloadImage = async () => {
-    setLoading(true); // Start loading
-    try {
-      const response = await axios.get(
-        `${process.env.NEXT_PUBLIC_API_URL}/download-images/${params.formId}`,
-        {
-          responseType: 'blob', // Important for handling binary files
-        }
-      );
-
-      // Create a link element to trigger the download
-      const url = window.URL.createObjectURL(new Blob([response.data]));
-      const link = document.createElement('a');
-      link.href = url;
-      link.setAttribute('download', `ID-${params.formId}.zip`); // Define the download name
-      document.body.appendChild(link);
-      link.click();
-
-      // Clean up
-      link.remove();
-      window.URL.revokeObjectURL(url);
-    } catch (error) {
-      console.error('Error downloading zip:', error);
-    } finally {
-      setLoading(false); // Stop loading when download is complete
-    }
+  const downloadImage = () => {
+    // Open the download link in a new tab
+    const downloadUrl = `${process.env.NEXT_PUBLIC_API_URL}/download-images/${params.formId}`;
+    window.open(downloadUrl, '_blank');
   };
 
   useEffect(() => {
