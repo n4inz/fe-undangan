@@ -6,6 +6,8 @@ import Image from 'next/image';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import axios from "axios";
+import { Button } from "@/components/ui/button";
+import { Loader2 } from "lucide-react";
 
 // import { BiX } from "react-icons/bi";
 
@@ -13,6 +15,8 @@ const Detail = ({ params }) => {
 
   const [formData, setFormData] = useState({});
   const [listImages, setListImages] = useState([]);
+
+  const [loading, setLoading] = useState(false);
 
 
   const fetchData = async () => {
@@ -32,6 +36,34 @@ const Detail = ({ params }) => {
     setListImages(response.data.images);
 
 
+  };
+
+  const downloadImage = async () => {
+    setLoading(true); // Start loading
+    try {
+      const response = await axios.get(
+        `${process.env.NEXT_PUBLIC_API_URL}/download-images/${params.formId}`,
+        {
+          responseType: 'blob', // Important for handling binary files
+        }
+      );
+
+      // Create a link element to trigger the download
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', `ID-${params.formId}.zip`); // Define the download name
+      document.body.appendChild(link);
+      link.click();
+
+      // Clean up
+      link.remove();
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error('Error downloading zip:', error);
+    } finally {
+      setLoading(false); // Stop loading when download is complete
+    }
   };
 
   useEffect(() => {
@@ -414,7 +446,17 @@ const Detail = ({ params }) => {
 
           <div className="mb-4">
             <label className="block text-gray-700">Upload Foto Yang Ingin Di Tampilkan (1)</label>
-
+            <Button onClick={() => downloadImage()}>
+              {loading ? (
+                <>
+                  {/* <ClipLoader size={20} color="#fff" className="inline-block mr-2" /> */}
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Download
+                </>
+              ) : (
+                'Download'
+              )}
+            </Button>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
             {listImages.map((src, index) => (
