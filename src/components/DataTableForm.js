@@ -1,5 +1,3 @@
-// components/DataTable.js
-
 import React, { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 import DataTable from 'react-data-table-component';
@@ -14,6 +12,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { BiArrowToRight, BiDotsVertical, BiRightArrow } from 'react-icons/bi';
+import StatusSelect from './StatusSelect';
 
 const DataTableForm = ({ initialStatus, onDataUpdate }) => {
 
@@ -23,6 +22,8 @@ const DataTableForm = ({ initialStatus, onDataUpdate }) => {
   const [currentPage, setCurrentPage] = useState(1);
   const [search, setSearch] = useState('');
   const [status, setStatus] = useState(initialStatus);
+
+  const [updatedStatus, setUpdatedStatus] = useState(null);
 
   const [isAdmin, setIsAdmin] = useState(0);
 
@@ -39,7 +40,7 @@ const DataTableForm = ({ initialStatus, onDataUpdate }) => {
       setData(response.data.data);
       setIsAdmin(response.data.isAdmin);
       setTotalRows(response.data.total);
-      // console.log(response.data.data);
+      console.log(response.data.data);
     } catch (error) {
       console.error('Error fetching data:', error);
     }
@@ -85,11 +86,22 @@ const DataTableForm = ({ initialStatus, onDataUpdate }) => {
       selector: row => new Date(row.createdAt).toLocaleString(), // {{ edit_1 }} Convert to simple date and time
       sortable: true,
     },
-    ...(isAdmin === 1 ? [{
-      name: 'Staff',
-      selector: row => row.user?.name ?? '-',
-      sortable: true,
-    }] : []), // Tambahkan kolom Staff jika isAdmin == 1
+    ...(isAdmin === 1 ? [
+      {
+        name: 'Staff',
+        selector: row => row.user?.name ?? '-',
+        sortable: true,
+      },
+      {
+        name: 'Status',
+        cell: row => (
+          <StatusSelect
+            status={row}
+            onDataUpdate={handleStatusUpdate}
+          />
+        ),
+      }
+    ] : []), // Tambahkan kolom Staff jika isAdmin == 1
     {
       name: 'Action',
       cell: row => <>
@@ -110,36 +122,36 @@ const DataTableForm = ({ initialStatus, onDataUpdate }) => {
     },
   ];
 
-  const handleAction = (row) => {
-    // alert(`Action for ${row.name}`);
+  const handleAction = async (row) => {
     try {
-      const response = axios.post(
+      const response = await axios.post(
         `${process.env.NEXT_PUBLIC_API_URL}/forms/${row.id}`,
         {
           type: initialStatus === 1 ? "toList" : "toMyList"
         },
         {
-          withCredentials: true // Menambahkan kredensial
+          withCredentials: true
         }
-      )
-        .then(response => {
-          console.log('Response', response);
-          fetchData(currentPage, perPage, search);
-          // setIsLoading(false)
-          if (onDataUpdate && typeof onDataUpdate === 'function') {
-            onDataUpdate(response.data.message);
-          }
-        })
-        .catch(error => {
-          console.error('Error:', error);
-        });
+      );
+
+      console.log('Response', response);
+
+      if (response.status === 200) {
+        // Only fetch data if the request was successful
+        fetchData(currentPage, perPage, search);
+        if (onDataUpdate && typeof onDataUpdate === 'function') {
+          onDataUpdate(response.data.message);
+        }
+      }
     } catch (error) {
       console.error('Error:', error);
     }
-
-
   };
 
+  const handleStatusUpdate = (updatedStatus) => {
+    setUpdatedStatus(updatedStatus);
+    fetchData(currentPage, perPage, search); // Refetch the data with the updated status
+  };
 
   return (
     <>
