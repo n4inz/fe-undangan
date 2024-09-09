@@ -11,7 +11,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { BiArrowToRight, BiDotsVertical, BiRightArrow } from 'react-icons/bi';
+import { BiArrowToRight, BiDotsVertical, BiMoneyWithdraw, BiRightArrow } from 'react-icons/bi';
 import StatusSelect from './StatusSelect';
 
 const DataTableForm = ({ initialStatus, onDataUpdate }) => {
@@ -64,7 +64,7 @@ const DataTableForm = ({ initialStatus, onDataUpdate }) => {
       name: 'ID',
       selector: row => row.id,
       sortable: true,
-      width: '100px', // {{ edit_1 }} Set a smaller width for the ID column
+      width: '100px', // Set a smaller width for the ID column
     },
     {
       name: 'Nomor Whatsapp',
@@ -83,7 +83,7 @@ const DataTableForm = ({ initialStatus, onDataUpdate }) => {
     },
     {
       name: 'Tanggal',
-      selector: row => new Date(row.createdAt).toLocaleString(), // {{ edit_1 }} Convert to simple date and time
+      selector: row => new Date(row.createdAt).toLocaleString(), // Convert to simple date and time
       sortable: true,
     },
     ...(isAdmin === 1 ? [
@@ -105,7 +105,9 @@ const DataTableForm = ({ initialStatus, onDataUpdate }) => {
     {
       name: 'Action',
       cell: row => <>
-        <Link href={`/admin/detail/${row.id}`}><Button className="w-10 h-6 text-xs bg-opacity-80 bg-black">View</Button></Link>
+        <Link href={`/admin/detail/${row.id}`}>
+          <Button className="w-10 h-6 text-xs bg-opacity-80 bg-black">View</Button>
+        </Link>
 
         <DropdownMenu>
           <DropdownMenuTrigger className='ml-4' asChild>
@@ -116,11 +118,32 @@ const DataTableForm = ({ initialStatus, onDataUpdate }) => {
               <BiArrowToRight className="mr-2 h-4 w-4" />
               <span>Move to {initialStatus === 1 ? "List" : "MyList"}</span>
             </DropdownMenuItem>
+            {/* Conditionally render "Lunas" if isAdmin === 1 */}
+            {isAdmin === 1 && (
+              <>
+                {row.isPaid === 0 ? (
+                  <DropdownMenuItem onClick={() => handlePayment(row)}>
+                    <BiMoneyWithdraw className="mr-2 h-4 w-4" />
+                    <span>Lunas</span>
+                  </DropdownMenuItem>
+                ) : (
+                  <DropdownMenuItem onClick={() => handlePayment(row)}>
+                    <BiMoneyWithdraw className="mr-2 h-4 w-4" />
+                    <span>Batalkan Status Lunas</span>
+                  </DropdownMenuItem>
+                )}
+              </>
+            )}
           </DropdownMenuContent>
         </DropdownMenu>
+        {row.isPaid === 1 && (
+          <BiMoneyWithdraw className="mr-2 h-4 w-4 text-green-600" />
+        )}
+
       </>,
     },
   ];
+
 
   const handleAction = async (row) => {
     try {
@@ -151,6 +174,30 @@ const DataTableForm = ({ initialStatus, onDataUpdate }) => {
   const handleStatusUpdate = (updatedStatus) => {
     setUpdatedStatus(updatedStatus);
     fetchData(currentPage, perPage, search); // Refetch the data with the updated status
+  };
+
+  const handlePayment = async (row) => {
+    try {
+      const response = await axios.post(
+        `${process.env.NEXT_PUBLIC_API_URL}/update-payment/${row.id}`,
+        {
+          isPaid: row.isPaid
+        },
+        {
+          withCredentials: true
+        }
+      );
+
+      if (response.status === 200) {
+        // Only fetch data if the request was successful
+        fetchData(currentPage, perPage, search);
+        if (onDataUpdate && typeof onDataUpdate === 'function') {
+          onDataUpdate(response.data.message);
+        }
+      }
+    } catch (error) {
+      console.error('Error:', error);
+    }
   };
 
   return (

@@ -1,6 +1,11 @@
 /* src/components/DataTableForm.css */
 .rdt_TableCol {
-    color: black;
-    font-weight: bolder;
-    font-size: 14px;
-    }
+  color: black;
+  font-weight: bolder;
+  font-size: 14px;
+}
+
+.rdt_TableRow:hover {
+  background-color: #f0f8ff; /* Light blue color on hover */
+  transition: background-color 0.3s ease; /* Smooth transition effect */
+}

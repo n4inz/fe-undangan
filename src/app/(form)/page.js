@@ -15,6 +15,9 @@ import { useRouter } from 'next/navigation';
 import { BiX } from "react-icons/bi";
 import { schema } from '@/lib/validation'
 import { Loader2 } from 'lucide-react';
+import { Select, SelectContent, SelectItem, SelectTrigger } from '@/components/ui/select';
+import { getTema } from '@/lib/tema';
+import { SelectValue } from '@radix-ui/react-select';
 
 
 const Home = () => {
@@ -47,11 +50,13 @@ const Home = () => {
   const [errors, setErrors] = useState({});
 
   const [isLoading, setIsLoading] = useState(false); // Add loading state
+  const [isLoadingOptions, setIsLoadingOptions] = useState(true);
 
   const [isLoadingImage, setIsLoadingImage] = useState(Array(images.length).fill(false)); // Initialize loading state for each image
   const [newFiles, setNewFiles] = useState([]);
   const [filePath, setFilePath] = useState([]);
   // const [displayedImages, setDisplayedImages] = useState([]);
+  const [options, setOptions] = useState([]); // Store options for the Select component
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -144,14 +149,14 @@ const Home = () => {
       fd.append('data', JSON.stringify(formData))
       fd.append('images', JSON.stringify(filePath))
 
-    // //   console.log("FormData:", formData);
-    // // console.log("Images:", images);
-    // console.log("FilePaths:", filePath);
-    // // console.log("Combined Data:", combinedData);
-    // // console.log("FormData object entries:");
-    // for (let [key, value] of fd.entries()) {
-    //   console.log(key, value);
-    // }
+      // //   console.log("FormData:", formData);
+      // // console.log("Images:", images);
+      // console.log("FilePaths:", filePath);
+      // // console.log("Combined Data:", combinedData);
+      // // console.log("FormData object entries:");
+      // for (let [key, value] of fd.entries()) {
+      //   console.log(key, value);
+      // }
       const response = await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/forms`, fd, {
         headers: {
           'Content-Type': 'application/json',
@@ -187,16 +192,15 @@ const Home = () => {
     }
   };
 
-  // const [selectedValue, setSelectedValue] = useState('');
-  const [selectedValue, setSelectedValue] = useState({
-    radioAkad: '',
-    radioResepsi: '',
-  })
   const handleRadioChange = (group, value) => {
     setFormData((prevValues) => ({
       ...prevValues,
       [group]: value,
     }));
+  };
+
+  const handleSelectChange = (value) => {
+    setFormData({ ...formData, pilihanTema: value });
   };
 
   useEffect(() => {
@@ -206,9 +210,21 @@ const Home = () => {
   }, []);
 
   useEffect(() => {
-    console.log("FilePath: :", filePath);
-    console.log("Images: :", images);
-  }, [filePath, images]);
+    const fetchOptions = async () => {
+      try {
+        const data = await getTema();
+        setOptions(data || []); // Ensure data is an array, even if it's undefined
+      } catch (error) {
+        console.error('Error fetching tema options:', error);
+        setOptions([]); // Ensure options remains an array in case of error
+      } finally {
+        setIsLoadingOptions(false);
+      }
+    };
+
+    fetchOptions();
+  }, []);
+
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-100">
@@ -613,24 +629,37 @@ const Home = () => {
             </label>
 
 
-            <RadioGroup defaultValue="Admin" name="pilihanTema" onChange={(e) => handleRadioChange('pilihanTema', e.target.value)}>
+            <RadioGroup defaultValue="Admin" name="pilihanTema" onChange={(e) => handleSelectChange(e.target.value)}>
               <div className="flex items-center space-x-2">
                 <RadioGroupItem value="Admin" id="PilihanAdmin" />
                 <Label htmlFor="PilihanAdmin">Admin Pilihkan</Label>
               </div>
               <div className="flex items-center space-x-2">
-                <RadioGroupItem value="Lainnya" id="LainnyaPilihanTema"
-                />
+                <RadioGroupItem value="Lainnya" id="LainnyaPilihanTema" />
                 <Label htmlFor="LainnyaPilihanTema">Lainnya</Label>
-                <Input
-                  type="text"
-                  name="LainnyaTema"
-                  onChange={handleChange}
-                  className="w-full h-6 border border-gray-300 rounded-lg smaller-input"
-                  disabled={formData.pilihanTema === "Admin" ? true : false}
-                />
+                <Select
+                  onValueChange={handleSelectChange}
+                  disabled={formData.pilihanTema === "Admin"}
+                  className="w-full h-6 border border-gray-300 rounded-lg"
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Pilih Tema" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {isLoadingOptions ? (
+                      <SelectItem value="loading" disabled>Loading...</SelectItem>
+                    ) : options.length > 0 ? (
+                      options.map((option) => (
+                        <SelectItem key={option.id} value={option.name}>
+                          {option.name}
+                        </SelectItem>
+                      ))
+                    ) : (
+                      <SelectItem value="no-options" disabled>No options available</SelectItem>
+                    )}
+                  </SelectContent>
+                </Select>
               </div>
-
             </RadioGroup>
             {/* {errors.alamatResepsi && <p className="text-red-500 text-sm mt-1">{errors.alamatResepsi}</p>} */}
           </div>

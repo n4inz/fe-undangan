@@ -121,28 +121,28 @@ const DetailAcara = ({ params }) => {
         spinner
         text='Loading your content...'
       >
-        <div className="flex items-center justify-center bg-gray-100">
-          <div className="h-full min-h-screen bg-white rounded-lg shadow-lg max-w-lg w-full flex items-center flex-col relative">
-            <div className="top-0 p-4 text-center">
+        <div className="flex flex-col items-center justify-center bg-gray-100 min-h-screen">
+          <div className="bg-white rounded-lg shadow-lg max-w-lg w-full flex flex-col relative">
+            <div className="p-4 text-center">
               <h1 className="text-3xl underline">Atur Foto</h1>
 
-              <div className='text-center mt-2'>
-                {/* <R enderStepIndicator dataStep={step} dataAmount={10} /> */}
+              {/* Sticky step part */}
+              <div className="sticky top-0 bg-white z-50 py-2 w-full flex justify-center">
                 <span className="inline-flex items-center rounded-full bg-blue-100 px-4 py-2 text-lg font-medium text-blue-800">
                   Step {step} dari {count}
                 </span>
-
               </div>
-              <p className='mt-2 text-lg'>Pilih 2 Foto lalu tekan tombol <BiChevronRightCircle className='inline' />
-              <br /> atau tekan tombol skip
-              </p>
-            </div>
 
-            <div className="grid grid-cols-2 gap-4 mb-4">
+              <p className='mt-2 text-lg'>
+                Pilih 2 Foto lalu tekan tombol <BiChevronRightCircle className='inline' />
+                <br /> atau tekan tombol skip
+              </p>
+
+              <div className="grid grid-cols-2 gap-4 mb-4 mt-2">
               {listImages.map((file, index) => (
                 <div
                   key={index}
-                  className={`w-full max-w-xs rounded-lg border border-gray-300 ${selectedImageIndex.includes(index) ? 'ring-4 ring-blue-500 ring-offset-2 ring-offset-blue-200 shadow-lg shadow-blue-500/50' : ''}`} // Add gradient light to ring when active
+                  className={`w-full max-w-xs rounded-lg border border-gray-300 ${selectedImageIndex.includes(index) ? 'ring-4 ring-blue-500 ring-offset-2 ring-offset-blue-200 shadow-lg shadow-blue-500/50' : ''}`}
                   onClick={() => handleImageClick(index, file.fileImage, file.id)}
                 >
                   <Image
@@ -156,8 +156,15 @@ const DetailAcara = ({ params }) => {
                 </div>
               ))}
             </div>
-            <Link href={pathname + '/table'} className='my-4 text-blue-600 underline'>Skip</Link>
+            </div>
+
+            
+
+            <div className="flex justify-center">
+              <Link href={pathname + '/table'} className='my-4 text-blue-600 underline'>Skip</Link>
+            </div>
           </div>
+
           <Button
             className="fixed bottom-4 right-4 md:right-[30%] rounded-full shadow-lg bg-blue-600 text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
             disabled={disBtn}
@@ -166,7 +173,10 @@ const DetailAcara = ({ params }) => {
             <BiChevronRight className="h-8 w-8" />
           </Button>
         </div>
-      </LoadingOverlay>
+
+
+      </LoadingOverlay >
+
     </>
 
   )
