@@ -110,7 +110,7 @@ const FormStaff = ({ params }) => {
 
   return (
     <>
-      <div className="h-10 z-50 bg-white border-b w-full"></div>
+      <div className="h-10 bg-white border-b w-full"></div>
       <div className="flex min-h-screen mx-4">
         {/* Sidebar */}
         <div className="fixed md:relative z-40 w-64 h-full bg-gray-800 md:block hidden">

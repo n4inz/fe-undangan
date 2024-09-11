@@ -138,7 +138,7 @@ const Staff = () => {
 
   return (
     <>
-      <div className="h-10 fixed z-50 bg-white border-b w-full"></div>
+      <div className="h-10 fixed bg-white border-b w-full"></div>
       <div className="flex min-h-screen pt-10">
         {/* Sidebar */}
         <div className="fixed md:relative z-40 w-64 h-full bg-gray-800 md:block hidden">
