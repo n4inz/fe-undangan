@@ -13,6 +13,9 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { BiArrowToRight, BiDotsVertical, BiMoneyWithdraw, BiRightArrow } from 'react-icons/bi';
 import StatusSelect from './StatusSelect';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from './ui/tooltip';
+import { Popover, PopoverContent, PopoverTrigger } from './ui/popover';
+import { DialogModalPayment } from './admin/DialogModalPayment';
 
 const DataTableForm = ({ initialStatus, onDataUpdate }) => {
 
@@ -24,6 +27,11 @@ const DataTableForm = ({ initialStatus, onDataUpdate }) => {
   const [status, setStatus] = useState(initialStatus);
 
   const [updatedStatus, setUpdatedStatus] = useState(null);
+  const [showTooltip, setShowTooltip] = useState(false);
+
+  
+  const [selectedRow, setSelectedRow] = useState({ id: null, paymentAmount: null });
+  const [open, setOpen] = useState(false);
 
   const [isAdmin, setIsAdmin] = useState(0);
 
@@ -67,7 +75,7 @@ const DataTableForm = ({ initialStatus, onDataUpdate }) => {
       width: '100px', // Set a smaller width for the ID column
     },
     {
-      name: 'Nomor Whatsapp',
+      name: 'Nomor WA',
       selector: row => row.nomorWa,
       sortable: true,
     },
@@ -136,8 +144,16 @@ const DataTableForm = ({ initialStatus, onDataUpdate }) => {
             )}
           </DropdownMenuContent>
         </DropdownMenu>
+
         {row.isPaid === 1 && (
-          <BiMoneyWithdraw className="mr-2 h-4 w-4 text-green-600" />
+          <Popover>
+            <PopoverTrigger>
+              <BiMoneyWithdraw className="mr-2 h-4 w-4 text-green-600" />
+            </PopoverTrigger>
+            <PopoverContent className="w-20 p-2 text-xs text-center">
+              {row.paymentAmount}
+            </PopoverContent>
+          </Popover>
         )}
 
       </>,
@@ -176,32 +192,62 @@ const DataTableForm = ({ initialStatus, onDataUpdate }) => {
     fetchData(currentPage, perPage, search); // Refetch the data with the updated status
   };
 
+  // const handlePayment = async (row) => {
+  //   try {
+  //     const response = await axios.post(
+  //       `${process.env.NEXT_PUBLIC_API_URL}/update-payment/${row.id}`,
+  //       {
+  //         isPaid: row.isPaid
+  //       },
+  //       {
+  //         withCredentials: true
+  //       }
+  //     );
+
+  //     if (response.status === 200) {
+  //       // Only fetch data if the request was successful
+  //       fetchData(currentPage, perPage, search);
+  //       if (onDataUpdate && typeof onDataUpdate === 'function') {
+  //         onDataUpdate(response.data.message);
+  //       }
+  //     }
+  //   } catch (error) {
+  //     console.error('Error:', error);
+  //   }
+  // };
+
   const handlePayment = async (row) => {
-    try {
+    setSelectedRow({
+      id: row.id,
+      isPaid:row.isPaid,
+      paymentAmount: row.paymentAmount,
+    });
+    if(row.isPaid === 0){
+      setOpen(true)
+      console.log(row)
+    }else{
       const response = await axios.post(
         `${process.env.NEXT_PUBLIC_API_URL}/update-payment/${row.id}`,
         {
-          isPaid: row.isPaid
+          isPaid: row.isPaid,
+          paymentAmount: 0
         },
         {
-          withCredentials: true
+          withCredentials: true // This should be inside the config object (third argument)
         }
       );
-
-      if (response.status === 200) {
-        // Only fetch data if the request was successful
-        fetchData(currentPage, perPage, search);
-        if (onDataUpdate && typeof onDataUpdate === 'function') {
-          onDataUpdate(response.data.message);
-        }
-      }
-    } catch (error) {
-      console.error('Error:', error);
+      handleDataUpdate();
     }
+  }
+
+  const handleDataUpdate = () => {
+    fetchData(); // Re-fetch the data after it has been updated
+    onDataUpdate('Payment has been updated');
   };
 
   return (
     <>
+    <DialogModalPayment open={open} onOpenChange={setOpen} row={selectedRow} onDataUpdate={handleDataUpdate} />
       <DebounceInput
         minLength={2}
         debounceTimeout={300}

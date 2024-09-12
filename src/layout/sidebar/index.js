@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { SlHome } from "react-icons/sl";
 import { FaListUl, FaClipboardList } from "react-icons/fa";
-import { BiLogOut, BiUser, BiMenu } from "react-icons/bi";
+import { BiLogOut, BiUser, BiMenu, BiMoney } from "react-icons/bi";
 import Image from "next/image";
 
 import logo from "../../../public/logo/Sewa.png";
@@ -101,7 +101,12 @@ export default function Sidebar() {
                     <MenuItem name="Dashboard" route="/admin/dashboard" icon={<SlHome />} />
                     <MenuItem name="List" route="/admin/list" icon={<FaListUl />} />
                     <MenuItem name="MyList" route="/admin/mylist" icon={<FaClipboardList />} />
-                    {isAdmin === 1 && <MenuItem name="Staff" route="/admin/staff" icon={<BiUser />} />}
+                    {isAdmin === 1 &&
+                        <>
+                            <MenuItem name="Staff" route="/admin/staff" icon={<BiUser />} />
+                            <MenuItem name="Expending" route="/admin/expending" icon={<BiMoney />} />
+                        </>
+                    }
                     <MenuItem name="Logout" route="#logout" icon={<BiLogOut />} onClick={handleLogout} />
                 </div>
             </div>
