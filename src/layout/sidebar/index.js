@@ -56,7 +56,7 @@ export default function Sidebar() {
     // Overlay to prevent background clicks, also serves as close button for mobile
     const ModalOverlay = () => (
         <div
-            className={`fixed md:hidden top-0 right-0 bottom-0 left-0 bg-black/50 z-30`}
+            className={`fixed lg:hidden top-0 right-0 bottom-0 left-0 bg-black/50 z-30`}
             onClick={() => {
                 setIsSidebarOpen(false); // Close the sidebar when clicking outside
             }}
@@ -75,7 +75,7 @@ export default function Sidebar() {
     return (
         <>
             {/* Mobile toggle button */}
-            <div className="md:hidden fixed top-4 left-4 z-50">
+            <div className="lg:hidden fixed top-4 left-4 z-50">
                 <button
                     onClick={() => setIsSidebarOpen(!isSidebarOpen)}
                     className="text-3xl text-black p-2"

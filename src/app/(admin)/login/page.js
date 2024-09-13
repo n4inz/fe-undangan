@@ -5,7 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { loginSchema } from '@/lib/validation'
-import { useRouter } from 'next/navigation'
+import { redirect, useRouter } from 'next/navigation'
 import { z } from 'zod'
 import axios from 'axios'
 import { ClipLoader } from 'react-spinners'
@@ -18,7 +18,7 @@ const Login = () => {
   const [isLoading, setIsLoading] = useState(false);
 
   const [errors, setErrors] = useState({});
-const [status, setStatus]=useState(false);
+  const [status, setStatus] = useState(false);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -38,10 +38,12 @@ const [status, setStatus]=useState(false);
         password: formData.password
       }, { withCredentials: true }); // Include credentials in the request
       // Cookies.set('token', response.data.token, { expires: 30 }); // Adjust according to your token structure
-      if(response.status!==200){
+      if (response.status !== 200) {
         setStatus(true)
       }
-      router.push(`/admin/dashboard`)
+      else{
+        redirect('/admin/dashboard')
+      }
       // setIsLoading(false)
     } catch (error) {
       setIsLoading(false)
