@@ -1,20 +1,30 @@
 import { NextResponse } from 'next/server';
 
-export function middleware(request) {
-    const { pathname } = request.nextUrl;
+export function middleware(request, event) {
+    const token = request.cookies.get('token')?.value; // Retrieve the token from cookies
 
-    // Check if the request is for /admin and there is no auth cookie
-    if (pathname.startsWith('/admin') && !request.cookies.get('token')) {
-        // Explicitly set the method to 'GET' when redirecting to avoid 307 errors
-        const url = new URL('/login', request.url);
-        return NextResponse.redirect(url, 307); // Use 307 explicitly if method consistency is required
-    }
+    // Use waitUntil to handle the token check asynchronously
+    event.waitUntil(
+        fetch(process.env.NEXT_PUBLIC_API_URL + "/auth", { 
+            credentials: 'include', 
+            headers: { 'Cookie': `token=${token}` } // Send the token as a cookie header
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (!data.email) {
+                return NextResponse.redirect(new URL('/login', request.url));
+            }
+        })
+        .catch(() => {
+            // Handle error and redirect to login if token verification fails
+            return NextResponse.redirect(new URL('/login', request.url));
+        })
+    );
 
-    console.log(request.cookies.get('token'));
-
+    // Proceed with the request for now
     return NextResponse.next();
 }
 
 export const config = {
-    matcher: '/admin/:path*', // Adjust as needed for matching admin paths
+    matcher: '/admin/:path*', // Adjust the path as needed
 };
