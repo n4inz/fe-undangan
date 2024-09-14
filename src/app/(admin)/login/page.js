@@ -39,7 +39,9 @@ const Login = () => {
       }, { withCredentials: true }); // Include credentials in the request
       // Cookies.set('token', response.data.token, { expires: 30 }); // Adjust according to your token structure
       if (response.status === 200) {
-        router.push(`/admin/dashboard`);
+        setTimeout(() => {
+          router.push(`/admin/dashboard`);
+        }, 1000); // Delay for 1 second
       } else {
         setStatus(true); // Handle login failure
       }
