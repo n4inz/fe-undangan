@@ -1,20 +1,17 @@
 'use server'
 
 import axios from 'axios';
+import { cookies } from 'next/headers';
 
 export async function checkAuthClient(req) {
-  try {
-    const response = await axios.get(process.env.NEXT_PUBLIC_API_URL + "/cek-role", {
-        withCredentials: true,
-    });
-
-    if (response.status === 200 && response.data.isAdmin) {
-      return { authenticated: true, user: response.data.isAdmin };
+  const cookieStore = cookies()
+  const token = cookieStore.get('client_token')
+    if (token) {
+      console.log('Authentication successful');
+      return { authenticated: true};
     } else {
+      console.log('Authentication fail');
       return { authenticated: false };
     }
-  } catch (error) {
-    console.error('Error checking authentication:', error);
-    return { authenticated: false };
-  }
+
 }

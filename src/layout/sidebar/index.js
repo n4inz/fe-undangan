@@ -1,7 +1,7 @@
 "use client";
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { redirect, useRouter } from "next/navigation";
 import { SlHome } from "react-icons/sl";
 import { FaListUl, FaClipboardList } from "react-icons/fa";
 import { BiLogOut, BiUser, BiMenu, BiMoney } from "react-icons/bi";
@@ -9,12 +9,16 @@ import Image from "next/image";
 
 import logo from "../../../public/logo/Sewa.png";
 import axios from "axios";
+import Cookies from "js-cookie";
 
-export default function Sidebar() {
+export default function Sidebar({ authenticated }) {
+    const router = useRouter();
     const [isAdmin, setIsAdmin] = useState(0);
     const [isSidebarOpen, setIsSidebarOpen] = useState(false); // State to handle sidebar visibility
-    const router = useRouter();
 
+    if (!authenticated) {
+        redirect("/login");
+    }
     const fetchUserStatus = async () => {
         try {
             const res = await axios.get(process.env.NEXT_PUBLIC_API_URL + "/cek-role", {
@@ -28,6 +32,7 @@ export default function Sidebar() {
 
     useEffect(() => {
         fetchUserStatus();
+        console.log("CHECK: " + authenticated)
     }, []);
 
     // Define base class for sidebar
@@ -66,6 +71,7 @@ export default function Sidebar() {
     const handleLogout = async () => {
         try {
             await axios.get(process.env.NEXT_PUBLIC_API_URL + "/logout", { withCredentials: true });
+            Cookies.remove('client_token')
             router.push("/login");
         } catch (error) {
             console.error("Logout failed:", error);

@@ -9,6 +9,7 @@ import { useRouter } from 'next/navigation'
 import { z } from 'zod'
 import axios from 'axios'
 import { ClipLoader } from 'react-spinners'
+import Cookies from 'js-cookie'
 
 const Login = () => {
 
@@ -39,9 +40,9 @@ const Login = () => {
       }, { withCredentials: true }); // Include credentials in the request
       // Cookies.set('token', response.data.token, { expires: 30 }); // Adjust according to your token structure
       if (response.status === 200) {
-        setTimeout(() => {
-          router.push(`/admin/dashboard`);
-        }, 1000); // Delay for 1 second
+        Cookies.set('client_token', response.data.token, { expires: 7 });
+
+        router.push(`/admin/dashboard`);
       } else {
         setStatus(true); // Handle login failure
       }

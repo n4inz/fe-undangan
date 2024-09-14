@@ -2,8 +2,7 @@ import { Inter } from "next/font/google";
 import "@/app/globals.css";
 import Sidebar from "@/layout/sidebar";
 import { Toaster } from "@/components/ui/toaster";
-import { cookies } from 'next/headers'; // To access cookies on the server side
-import { redirect } from 'next/navigation'; // To handle redirection
+import { checkAuthClient } from "@/app/api/auth/checkAuth";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -13,20 +12,14 @@ export const metadata = {
 };
 
 export default async function AdminLayout({ children }) {
-  // Server-side token check
-  const cookieStore = cookies();
-  const token = cookieStore.get('token')?.value;
 
-  // If no token is found, redirect to login
-  if (!token) {
-    redirect('/login');
-  }
+  const authResult = await checkAuthClient();
 
   return (
     <html lang="en">
       <body className={inter.className}>
         {/* Render the Sidebar for the admin layout */}
-        <Sidebar />
+        <Sidebar authenticated={authResult.authenticated} />
 
         {/* Render children (protected content) */}
         <main>{children}</main>
