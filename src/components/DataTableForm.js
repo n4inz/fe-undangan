@@ -241,7 +241,7 @@ const DataTableForm = ({ initialStatus, onDataUpdate }) => {
   }
 
   const handleDataUpdate = () => {
-    fetchData(); // Re-fetch the data after it has been updated
+    fetchData(currentPage, perPage, search); // Re-fetch the data after it has been updated
     onDataUpdate('Payment has been updated');
   };
 
