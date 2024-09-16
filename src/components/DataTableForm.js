@@ -29,7 +29,7 @@ const DataTableForm = ({ initialStatus, onDataUpdate }) => {
   const [updatedStatus, setUpdatedStatus] = useState(null);
   const [showTooltip, setShowTooltip] = useState(false);
 
-  
+
   const [selectedRow, setSelectedRow] = useState({ id: null, paymentAmount: null });
   const [open, setOpen] = useState(false);
 
@@ -103,10 +103,10 @@ const DataTableForm = ({ initialStatus, onDataUpdate }) => {
       {
         name: 'Status',
         cell: row => (
-          <StatusSelect
-            status={row}
-            onDataUpdate={handleStatusUpdate}
-          />
+            <StatusSelect
+              status={row}
+              onDataUpdate={handleStatusUpdate}
+            />
         ),
       }
     ] : []), // Tambahkan kolom Staff jika isAdmin == 1
@@ -219,13 +219,13 @@ const DataTableForm = ({ initialStatus, onDataUpdate }) => {
   const handlePayment = async (row) => {
     setSelectedRow({
       id: row.id,
-      isPaid:row.isPaid,
+      isPaid: row.isPaid,
       paymentAmount: row.paymentAmount,
     });
-    if(row.isPaid === 0){
+    if (row.isPaid === 0) {
       setOpen(true)
       console.log(row)
-    }else{
+    } else {
       const response = await axios.post(
         `${process.env.NEXT_PUBLIC_API_URL}/update-payment/${row.id}`,
         {
@@ -247,7 +247,7 @@ const DataTableForm = ({ initialStatus, onDataUpdate }) => {
 
   return (
     <>
-    <DialogModalPayment open={open} onOpenChange={setOpen} row={selectedRow} onDataUpdate={handleDataUpdate} />
+      <DialogModalPayment open={open} onOpenChange={setOpen} row={selectedRow} onDataUpdate={handleDataUpdate} />
       <DebounceInput
         minLength={2}
         debounceTimeout={300}

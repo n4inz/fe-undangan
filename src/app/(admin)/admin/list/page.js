@@ -28,7 +28,7 @@ const List = () => {
                 </div>
                 
                 {/* Main Content */}
-                <div className="flex flex-col flex-grow w-full md:pl-24">
+                <div className="flex flex-col flex-grow w-full xl:pl-24">
                     <div className="p-4">
                               <div className="py-4">
         List

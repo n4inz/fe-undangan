@@ -39,7 +39,7 @@ export default function Sidebar({ authenticated }) {
     const className =
         "pt-10 bg-white w-[300px] transition-transform ease-in-out duration-500 top-0 bottom-0 left-0 z-40 border-r fixed";
     // Append class based on sidebar visibility state
-    const appendClass = isSidebarOpen ? " translate-x-0" : " -translate-x-full md:translate-x-0";
+    const appendClass = isSidebarOpen ? " translate-x-0" : " -translate-x-full xl:translate-x-0";
 
     // Clickable menu items
     const MenuItem = ({ icon, name, route, onClick }) => {
@@ -61,7 +61,7 @@ export default function Sidebar({ authenticated }) {
     // Overlay to prevent background clicks, also serves as close button for mobile
     const ModalOverlay = () => (
         <div
-            className={`fixed lg:hidden top-0 right-0 bottom-0 left-0 bg-black/50 z-30`}
+            className={`fixed xl:hidden top-0 right-0 bottom-0 left-0 bg-black/50 z-30`}
             onClick={() => {
                 setIsSidebarOpen(false); // Close the sidebar when clicking outside
             }}
@@ -81,7 +81,7 @@ export default function Sidebar({ authenticated }) {
     return (
         <>
             {/* Mobile toggle button */}
-            <div className="lg:hidden fixed top-4 left-4 z-50">
+            <div className="xl:hidden fixed top-4 left-4 z-50">
                 <button
                     onClick={() => setIsSidebarOpen(!isSidebarOpen)}
                     className="text-3xl text-black p-2"

@@ -1,3 +1,4 @@
+import { createPortal } from 'react-dom';
 import { useState, useEffect, useRef } from 'react';
 import { FaCheckCircle, FaSpinner, FaClipboardList, FaClipboardCheck } from 'react-icons/fa';
 import axios from 'axios';
@@ -10,60 +11,41 @@ const statusOptions = [
 ];
 
 const StatusSelect = ({ status, onDataUpdate }) => {
-  // Ensure that the status is a valid index (0-3), defaulting to 0 if out of bounds
   const initialStatus = statusOptions[status.statusForm];
   const [selectedStatus, setSelectedStatus] = useState(initialStatus);
   const [isOpen, setIsOpen] = useState(false);
-  const [dropdownPosition, setDropdownPosition] = useState('down'); // State to track dropdown position
-  const dropdownRef = useRef(null); // Ref to track dropdown
-  const buttonRef = useRef(null);   // Ref to track the button for positioning
+  const [dropdownPosition, setDropdownPosition] = useState({ top: 0, left: 0 }); // Track exact position
+  const dropdownRef = useRef(null); 
+  const buttonRef = useRef(null); 
 
   const handleSelect = async (option) => {
     setSelectedStatus(option);
     try {
-      // Make the POST request with the correct URL and options
       const response = await axios.post(
         `${process.env.NEXT_PUBLIC_API_URL}/update-status-form/${status.id}`,
-        { option },  // Empty request body if no data is being sent
-        { withCredentials: true } // Pass withCredentials as a config option
+        { option },
+        { withCredentials: true }
       );
-
       if (onDataUpdate) {
         onDataUpdate(option);
       }
-
-      // Optionally log the response for debugging
-      console.log('Response:', response.data);
-
-      // Update the selected status after successful request
-
     } catch (error) {
-      // Handle any errors that occur during the request
       console.error('Error updating status:', error);
-      // Optionally show an error message to the user
     }
-    setIsOpen(false); // Close the dropdown after selecting an option
+    setIsOpen(false);
   };
-
 
   const toggleDropdown = () => {
-    setIsOpen(!isOpen); // Toggle dropdown open and close
+    setIsOpen(!isOpen);
   };
 
-  // Function to adjust the dropdown's position based on available space
   const adjustDropdownPosition = () => {
-    if (dropdownRef.current && buttonRef.current) {
-      const dropdown = dropdownRef.current.getBoundingClientRect();
-      const button = buttonRef.current.getBoundingClientRect();
-      const spaceBelow = window.innerHeight - button.bottom - 50; // Adjusted space below with an offset
-      const spaceAbove = button.top;
-
-      // Compare available space and decide whether to place the dropdown above or below
-      if (spaceBelow < dropdown.height && spaceAbove > dropdown.height) {
-        setDropdownPosition('up'); // Position the dropdown above
-      } else {
-        setDropdownPosition('down'); // Position the dropdown below
-      }
+    if (buttonRef.current) {
+      const buttonRect = buttonRef.current.getBoundingClientRect();
+      setDropdownPosition({
+        top: buttonRect.bottom + window.scrollY,
+        left: buttonRect.left + window.scrollX
+      });
     }
   };
 
@@ -93,7 +75,26 @@ const StatusSelect = ({ status, onDataUpdate }) => {
 
   useEffect(() => {
     setSelectedStatus(statusOptions[status.statusForm]); // Ensure status update from parent
-  }, [status]); // Re-run this effect when the `status` prop changes
+  }, [status]);
+
+  // Dropdown menu to be rendered with Portal
+  const dropdownMenu = (
+    <ul
+      ref={dropdownRef}
+      className="absolute bg-white border border-gray-300 rounded-md max-h-48 overflow-auto shadow-lg z-[9999]"
+      style={{ top: dropdownPosition.top, left: dropdownPosition.left, width: buttonRef.current?.offsetWidth }}
+    >
+      {statusOptions.map((option) => (
+        <li
+        key={option.value}
+        className={`p-1 hover:bg-gray-100 cursor-pointer flex items-center text-sm ${option.color}`}
+        onClick={() => handleSelect(option)}
+      >
+          {option.icon} {option.label}
+        </li>
+      ))}
+    </ul>
+  );
 
   return (
     <div className="relative w-full">
@@ -105,23 +106,7 @@ const StatusSelect = ({ status, onDataUpdate }) => {
         {selectedStatus.icon} {selectedStatus.label}
       </button>
 
-      {isOpen && (
-        <ul
-          ref={dropdownRef}
-          className={`absolute w-full bg-white border border-gray-300 rounded-md max-h-48 overflow-auto shadow-lg z-50 ${dropdownPosition === 'up' ? 'bottom-full mb-2' : 'top-full mt-2'
-            }`}
-        >
-          {statusOptions.map((option) => (
-            <li
-              key={option.value} // Use option.value as a unique key
-              className={`p-2 hover:bg-gray-100 cursor-pointer flex items-center ${option.color}`}
-              onClick={() => handleSelect(option)}
-            >
-              {option.icon} {option.label}
-            </li>
-          ))}
-        </ul>
-      )}
+      {isOpen && createPortal(dropdownMenu, document.body)}
     </div>
   );
 };
