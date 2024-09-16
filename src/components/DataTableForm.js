@@ -101,7 +101,6 @@ const DataTableForm = ({ initialStatus, onDataUpdate }) => {
         name: 'Staff',
         selector: row => row.user?.name ?? '-',
         sortable: true,
-        width: '80px', // Fixed width for small content
       },
       {
         name: 'Status',
