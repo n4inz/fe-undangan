@@ -72,26 +72,28 @@ const DataTableForm = ({ initialStatus, onDataUpdate }) => {
       name: 'ID',
       selector: row => row.id,
       sortable: true,
-      width: '100px', // Set a smaller width for the ID column
     },
     {
       name: 'Nomor WA',
       selector: row => row.nomorWa,
       sortable: true,
+      wrap: true, // Enables text wrapping to prevent overflow
     },
     {
       name: 'Nama',
       selector: row => row.name,
       sortable: true,
+      wrap: true,
     },
     {
       name: 'Pengantin',
       selector: row => row.namaPanggilanPria + " & " + row.namaPanggilanWanita,
       sortable: true,
+      wrap: true,
     },
     {
       name: 'Tanggal',
-      selector: row => new Date(row.createdAt).toLocaleString(), // Convert to simple date and time
+      selector: row => new Date(row.createdAt).toLocaleString(),
       sortable: true,
     },
     ...(isAdmin === 1 ? [
@@ -99,66 +101,70 @@ const DataTableForm = ({ initialStatus, onDataUpdate }) => {
         name: 'Staff',
         selector: row => row.user?.name ?? '-',
         sortable: true,
+        width: '80px', // Fixed width for small content
       },
       {
         name: 'Status',
         cell: row => (
-            <StatusSelect
-              status={row}
-              onDataUpdate={handleStatusUpdate}
-            />
+          <StatusSelect
+            status={row}
+            onDataUpdate={handleStatusUpdate}
+          />
         ),
+        wrap: true, // Allows text to wrap and avoid overflow
       }
-    ] : []), // Tambahkan kolom Staff jika isAdmin == 1
+    ] : []),
     {
       name: 'Action',
-      cell: row => <>
-        <Link href={`/admin/detail/${row.id}`}>
-          <Button className="w-10 h-6 text-xs bg-opacity-80 bg-black">View</Button>
-        </Link>
-
-        <DropdownMenu>
-          <DropdownMenuTrigger className='ml-4' asChild>
-            <span className="cursor-pointer"><BiDotsVertical className="h-4 w-4" /></span>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent className="w-56">
-            <DropdownMenuItem onClick={() => handleAction(row)}>
-              <BiArrowToRight className="mr-2 h-4 w-4" />
-              <span>Move to {initialStatus === 1 ? "List" : "MyList"}</span>
-            </DropdownMenuItem>
-            {/* Conditionally render "Lunas" if isAdmin === 1 */}
-            {isAdmin === 1 && (
-              <>
-                {row.isPaid === 0 ? (
-                  <DropdownMenuItem onClick={() => handlePayment(row)}>
-                    <BiMoneyWithdraw className="mr-2 h-4 w-4" />
-                    <span>Lunas</span>
-                  </DropdownMenuItem>
-                ) : (
-                  <DropdownMenuItem onClick={() => handlePayment(row)}>
-                    <BiMoneyWithdraw className="mr-2 h-4 w-4" />
-                    <span>Batalkan Status Lunas</span>
-                  </DropdownMenuItem>
-                )}
-              </>
-            )}
-          </DropdownMenuContent>
-        </DropdownMenu>
-
-        {row.isPaid === 1 && (
-          <Popover>
-            <PopoverTrigger>
-              <BiMoneyWithdraw className="mr-2 h-4 w-4 text-green-600" />
-            </PopoverTrigger>
-            <PopoverContent className="w-20 p-2 text-xs text-center">
-              {row.paymentAmount}
-            </PopoverContent>
-          </Popover>
-        )}
-
-      </>,
+      cell: row => (
+        <>
+          <Link href={`/admin/detail/${row.id}`}>
+            <Button className="w-10 h-6 text-xs bg-opacity-80 bg-black">View</Button>
+          </Link>
+  
+          <DropdownMenu>
+            <DropdownMenuTrigger className='ml-4' asChild>
+              <span className="cursor-pointer"><BiDotsVertical className="h-4 w-4" /></span>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent className="w-56">
+              <DropdownMenuItem onClick={() => handleAction(row)}>
+                <BiArrowToRight className="mr-2 h-4 w-4" />
+                <span>Move to {initialStatus === 1 ? "List" : "MyList"}</span>
+              </DropdownMenuItem>
+  
+              {isAdmin === 1 && (
+                <>
+                  {row.isPaid === 0 ? (
+                    <DropdownMenuItem onClick={() => handlePayment(row)}>
+                      <BiMoneyWithdraw className="mr-2 h-4 w-4" />
+                      <span>Lunas</span>
+                    </DropdownMenuItem>
+                  ) : (
+                    <DropdownMenuItem onClick={() => handlePayment(row)}>
+                      <BiMoneyWithdraw className="mr-2 h-4 w-4" />
+                      <span>Batalkan Status Lunas</span>
+                    </DropdownMenuItem>
+                  )}
+                </>
+              )}
+            </DropdownMenuContent>
+          </DropdownMenu>
+  
+          {row.isPaid === 1 && (
+            <Popover>
+              <PopoverTrigger>
+                <BiMoneyWithdraw className="mr-2 h-4 w-4 text-green-600" />
+              </PopoverTrigger>
+              <PopoverContent className="w-20 p-2 text-xs text-center">
+                {row.paymentAmount}
+              </PopoverContent>
+            </Popover>
+          )}
+        </>
+      ),
+      wrap: true, // Ensures content wraps and fits within the container
     },
-  ];
+  ];  
 
 
   const handleAction = async (row) => {

@@ -9,7 +9,7 @@ const MyList = () => {
 
     useEffect(() => {
         setIsClient(true)
-      }, [])
+    }, [])
 
     return (
         <>
@@ -19,14 +19,14 @@ const MyList = () => {
                 <div className="fixed md:relative z-40 w-64 h-full bg-gray-800 md:block hidden">
                     {/* <Sidebar /> */}
                 </div>
-                
+
                 {/* Main Content */}
-                <div className="flex flex-col flex-grow w-full md:pl-24">
+                <div className="flex flex-col flex-grow w-full xl:pl-24">
                     <div className="p-4">
-                    <div className="py-4">
-        My List
-      </div>
-                    {isClient ? <DataTableForm initialStatus={1} /> : ''}
+                        <div className="py-4">
+                            My List
+                        </div>
+                        {isClient ? <DataTableForm initialStatus={1} /> : ''}
                     </div>
                 </div>
             </div>

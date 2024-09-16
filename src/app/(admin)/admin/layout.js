@@ -12,21 +12,17 @@ export const metadata = {
 };
 
 export default async function AdminLayout({ children }) {
-
   const authResult = await checkAuthClient();
-
   return (
     <html lang="en">
       <body className={inter.className}>
-        {/* Render the Sidebar for the admin layout */}
-        <Sidebar authenticated={authResult.authenticated} />
+      <Sidebar authenticated={authResult.authenticated} />
+      <main>
 
-        {/* Render children (protected content) */}
-        <main>{children}</main>
-
-        {/* Notification system */}
+        {children}
+      </main>
         <Toaster />
-      </body>
+        </body>
     </html>
   );
 }
