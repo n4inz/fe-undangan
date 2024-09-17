@@ -27,7 +27,7 @@ import {
 } from "@/components/ui/alert-dialog"
 import { toast } from '@/components/ui/use-toast';
 
-const Staff = () => {
+const Expending = () => {
 
   const [data, setData] = useState([]);
   const [totalRows, setTotalRows] = useState(0);
@@ -44,7 +44,7 @@ const Staff = () => {
 
   const fetchData = useCallback(async (page, limit, searchQuery) => {
     try {
-      const response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/users`, {
+      const response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/expend`, {
         params: { page, limit, search: searchQuery },
         withCredentials: true,
       });
@@ -76,24 +76,33 @@ const Staff = () => {
       width: '80px',
     },
     {
-      name: 'Nama',
+      name: 'Name',
       selector: row => row.name,
       sortable: true,
     },
     {
-      name: 'Email',
-      selector: row => row.email,
+      name: 'Total Spending',
+      selector: row => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(row.totalSpending),
       sortable: true,
     },
+    
     {
-      name: 'Role',
-      selector: row => row.isAdmin ? 'Admin' : 'Staff',
+      name: 'Tanggal',
+      selector: row => new Date(row.createdAt).toLocaleString('id-ID', {
+        day: '2-digit',
+        month: 'short',
+        year: 'numeric',
+        hour: 'numeric',
+        minute: 'numeric',
+        hour12: true,
+      }),
       sortable: true,
     },
+    
     {
       name: 'Action',
       cell: row => <>
-        <Link href={`/admin/staff/edit/${row.id}`}><Button className="w-10 h-6 text-xs bg-opacity-80 bg-black">Edit</Button></Link>
+        <Link href={`/admin/expending/edit/${row.id}`}><Button className="w-10 h-6 text-xs bg-opacity-80 bg-black">Edit</Button></Link>
         <DropdownMenu>
           <DropdownMenuTrigger className='ml-4' asChild>
             <span className="cursor-pointer"><BiDotsVertical className="h-4 w-4" /></span>
@@ -112,13 +121,13 @@ const Staff = () => {
   const handleDelete = () => {
     // alert(`Action for ${row.name}`);
     try {
-      axios.delete(`${process.env.NEXT_PUBLIC_API_URL}/users/${selectedRow.id}`, {
+      axios.delete(`${process.env.NEXT_PUBLIC_API_URL}/expend/${selectedRow.id}`, {
         withCredentials: true,
       })
         .then(response => {
           // console.log('Response', response);
           toast({
-            title: "Staff Deleted",
+            title: "Expend Deleted",
           });
           fetchData(currentPage, perPage, search);
         })
@@ -166,7 +175,7 @@ const Staff = () => {
               Expending
             </div>
             <div className='mb-2'>
-              <Link href="/admin/staff/add/0"><Button className="bg-black">Add</Button></Link>
+              <Link href="/admin/expending/add/0"><Button className="bg-black">Add</Button></Link>
 
             </div>
             {/* TABLE USERS */}
@@ -197,6 +206,6 @@ const Staff = () => {
 
 }
 
-export default Staff;
+export default Expending;
 
 

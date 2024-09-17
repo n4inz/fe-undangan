@@ -98,13 +98,17 @@ const StatusSelect = ({ status, onDataUpdate }) => {
 
   return (
     <div className="relative w-full">
-      <button
-        onClick={toggleDropdown}
-        ref={buttonRef}
-        className={`block w-full bg-gray-100 border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-blue-500 text-left ${selectedStatus.color}`}
-      >
-        {selectedStatus.icon} {selectedStatus.label}
-      </button>
+<button
+  onClick={toggleDropdown}
+  ref={buttonRef}
+  className={`block w-full bg-gray-100 border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-blue-500 text-left ${selectedStatus.color}`}
+>
+  <span className="flex items-center">
+    {selectedStatus.icon}
+    <span className="truncate max-w-full">{selectedStatus.label}</span>
+  </span>
+</button>
+
 
       {isOpen && createPortal(dropdownMenu, document.body)}
     </div>

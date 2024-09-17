@@ -17,10 +17,8 @@ export default async function AdminLayout({ children }) {
     <html lang="en">
       <body className={inter.className}>
       <Sidebar authenticated={authResult.authenticated} />
-      <main>
 
         {children}
-      </main>
         <Toaster />
         </body>
     </html>

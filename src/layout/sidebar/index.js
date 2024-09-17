@@ -27,6 +27,8 @@ export default function Sidebar({ authenticated }) {
             setIsAdmin(res.data.isAdmin);
         } catch (error) {
             console.error("Error fetching user status", error);
+            Cookies.remove("client_token");
+            router.push("/login");
         }
     };
 

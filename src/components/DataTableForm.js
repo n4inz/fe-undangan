@@ -93,9 +93,20 @@ const DataTableForm = ({ initialStatus, onDataUpdate }) => {
     },
     {
       name: 'Tanggal',
-      selector: row => new Date(row.createdAt).toLocaleString(),
+      selector: row => (
+
+              <p>{new Date(row.createdAt).toLocaleString('id-ID', {
+                day: '2-digit',
+                month: 'short',
+                year: 'numeric',
+                hour: 'numeric',
+                minute: 'numeric',
+                hour12: true,
+              })}</p>
+      ),
       sortable: true,
-    },
+      wrap: true,
+    },    
     ...(isAdmin === 1 ? [
       {
         name: 'Staff',

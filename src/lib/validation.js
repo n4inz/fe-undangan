@@ -36,3 +36,10 @@ export const staffSchema = z.object({
   email: z.string().email({ message: "Invalid email" }),
   password: z.string().min(1, { message: "Password is required" }),
 })
+
+export const expendSchema = z.object({
+  name: requeiredInput,
+  totalSpending: z.string()
+    .regex(/^[\d+\s-]+$/, { message: "Total spending mengharuskan angka" })
+    .refine((val) => val !== "", { message: "Total spending harus diisi" }),
+});

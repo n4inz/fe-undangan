@@ -1,11 +1,18 @@
 'use client';
 import { useState, useEffect } from 'react'
+import { toast } from '@/components/ui/use-toast';
 
 import DataTableForm from "@/components/DataTableForm";
 
 const MyList = () => {
 
     const [isClient, setIsClient] = useState(false)
+
+    const handleUpdate = (msg) => {
+        toast({
+            description: msg,
+        })
+    }
 
     useEffect(() => {
         setIsClient(true)
@@ -26,7 +33,7 @@ const MyList = () => {
                         <div className="py-4">
                             My List
                         </div>
-                        {isClient ? <DataTableForm initialStatus={1} /> : ''}
+                        {isClient ? <DataTableForm initialStatus={1} onDataUpdate={handleUpdate} /> : ''}
                     </div>
                 </div>
             </div>
