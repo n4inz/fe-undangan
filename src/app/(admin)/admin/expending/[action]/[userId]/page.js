@@ -50,7 +50,7 @@ const FormExpending = ({ params }) => {
             title: "Expend Added",
           });
           break;
-        
+
         case 'edit':
           response = await axios.put(`${process.env.NEXT_PUBLIC_API_URL}/expend/${params.userId}`, formData, {
             withCredentials: true,
@@ -119,7 +119,7 @@ const FormExpending = ({ params }) => {
         {/* Main Content */}
         <div className="flex flex-col flex-grow w-full md:pl-24">
           <h1 className="my-4">
-          {params.action === 'edit' ? 'Edit Expending' : 'Tambah Expending'}
+            {params.action === 'edit' ? 'Edit Expending' : 'Tambah Expending'}
           </h1>
           <form onSubmit={handleSubmit}>
             <div className="mb-4">
