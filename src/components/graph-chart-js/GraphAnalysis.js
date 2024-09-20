@@ -44,27 +44,27 @@ const AnalysisGraph = () => {
             .map((item) => new Date(item.startDate).toLocaleDateString()), // Display only start date
         datasets: [
             {
-                label: 'Total Spending',
+                label: 'Total Selisih',
                 data: analysisData
                     .slice()
                     .reverse()
-                    .map((item) => item.totalSpending),
+                    .map((item) => item.difference),
                 fill: false,
-                borderColor: 'red',
+                borderColor: analysisData
+                .slice()
+                .reverse()
+                .map((item) => item.difference < 0 ? 'red' : 'green'),
                 tension: 0.1,
-            },
-            {
-                label: 'Payment Amount',
-                data: analysisData
-                    .slice()
-                    .reverse()
-                    .map((item) => item.paymentAmount),
-                fill: false,
-                borderColor: 'green',
-                tension: 0.1,
+                segment: {
+                    borderColor: (ctx) => {
+                        const { p0, p1 } = ctx; // p0 is the previous point, p1 is the current point
+                        return p1.parsed.y < p0.parsed.y ? 'red' : 'green'; // Red if the line goes down
+                    },
+                },
             }
         ],
-    };
+    };    
+    
 
     return (
         <Card>
@@ -119,7 +119,7 @@ const AnalysisGraph = () => {
                             plugins: {
                                 title: {
                                     display: true,
-                                    text: `Total Spending and Payments for Last ${periods} ${range.charAt(0).toUpperCase() + range.slice(1)} Periods`,
+                                    text: `Total Selisih for Last ${periods} ${range.charAt(0).toUpperCase() + range.slice(1)} Periods`,
                                 },
                             },
                         }}

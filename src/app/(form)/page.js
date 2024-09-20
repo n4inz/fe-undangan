@@ -19,32 +19,50 @@ import { Select, SelectContent, SelectItem, SelectTrigger } from '@/components/u
 import { getTema } from '@/lib/tema';
 import { SelectValue } from '@radix-ui/react-select';
 
+// Define the key for localStorage
+const FORM_DATA_KEY = 'formData';
+
+const formatDateTime = (datetime) => {
+  if (!datetime) return '';
+  const date = new Date(datetime);
+  const pad = (num) => String(num).padStart(2, '0');
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
+};
 
 const Home = () => {
   const router = useRouter();
 
-  const [formData, setFormData] = useState({
-    name: '',
-    nomorWa: '',
-    namaLengkapPria: '',
-    namaPanggilanPria: '',
-    namaOrtuPria: '',
-    tglLahirPria: '',
-    namaLengkapWanita: '',
-    namaPanggilanWanita: '',
-    namaOrtuWanita: '',
-    tglLahirWanita: '',
-    datetimeAkad: '',
-    datetimeResepsi: '',
-    alamatAkad: "",
-    alamatResepsi: "",
-    // images: [],
-    opsiAkad: 'Wanita',
-    opsiResepsi: 'Wanita',
-    penempatanTulisan: 'Wanita',
-    pilihanTema: 'Admin'
-
+  const [mounted, setMounted] = useState(false); // Track if component is mounted
+  // Set initial state for formData
+  const [formData, setFormData] = useState(() => {
+    // On first render, try to load form data from localStorage
+    if (typeof window !== "undefined") {
+      const savedFormData = localStorage.getItem(FORM_DATA_KEY);
+      return savedFormData ? JSON.parse(savedFormData) : {
+        name: '',
+        nomorWa: '',
+        namaLengkapPria: '',
+        namaPanggilanPria: '',
+        namaOrtuPria: '',
+        tglLahirPria: '',
+        namaLengkapWanita: '',
+        namaPanggilanWanita: '',
+        namaOrtuWanita: '',
+        tglLahirWanita: '',
+        datetimeAkad: '',
+        datetimeResepsi: '',
+        alamatAkad: "",
+        alamatResepsi: "",
+        opsiAkad: 'Wanita',
+        opsiResepsi: 'Wanita',
+        penempatanTulisan: 'Wanita',
+        pilihanTema: 'Admin'
+      };
+    } else {
+      return {}; // Fallback for server-side rendering
+    }
   });
+
   const [images, setImages] = useState([]);
 
   const [errors, setErrors] = useState({});
@@ -58,13 +76,29 @@ const Home = () => {
   // const [displayedImages, setDisplayedImages] = useState([]);
   const [options, setOptions] = useState([]); // Store options for the Select component
 
+  // Only run this after the component has mounted (client-side)
+  useEffect(() => {
+    setMounted(true); // Indicate that the component has mounted
+
+    const savedFormData = localStorage.getItem(FORM_DATA_KEY);
+    if (savedFormData) {
+      setFormData(JSON.parse(savedFormData));
+    }
+  }, []);
+
+  // Save form data to localStorage whenever formData changes
+  useEffect(() => {
+    if (mounted) {
+      localStorage.setItem(FORM_DATA_KEY, JSON.stringify(formData));
+    }
+  }, [formData, mounted]);
+
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData({
       ...formData,
       [name]: value,
     });
-    // console.log(formData.datetimeAkad)
   };
 
   const handleImageChange = async (e) => {
@@ -225,6 +259,10 @@ const Home = () => {
     fetchOptions();
   }, []);
 
+  // If the component is not mounted, don't render anything (prevent SSR mismatch)
+  if (!mounted) {
+    return null;
+  }
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-100">
@@ -385,7 +423,7 @@ const Home = () => {
             <input
               type="datetime-local"
               name="datetimeAkad"
-              value={formData.datetimeakad}
+              value={formatDateTime(formData.datetimeAkad)}
               onChange={handleChange}
               className="mt-1 p-2 w-full border border-gray-300 rounded-lg"
             />
@@ -399,7 +437,7 @@ const Home = () => {
             <input
               type="datetime-local"
               name="datetimeResepsi"
-              value={formData.datetimeResepsi}
+              value={formatDateTime(formData.datetimeResepsi)}
               onChange={handleChange}
               className="mt-1 p-2 w-full border border-gray-300 rounded-lg"
             />
@@ -440,31 +478,28 @@ const Home = () => {
               Tempat Acara Akad/Pemberkatan
               <span className='text-red-500'>*</span>
             </label>
-            <RadioGroup defaultValue="Wanita" name="opsiAkad" onChange={(e) => handleRadioChange('opsiAkad', e.target.value)}>
+            <RadioGroup value={formData.opsiAkad} name="opsiAkad" onValueChange={(value) => handleChange({ target: { name: 'opsiAkad', value } })}>
               <div className="flex items-center space-x-2">
-                <RadioGroupItem value="Wanita" id="Wanita" />
-                <Label htmlFor="Wanita">Rumah Mempelai Wanita</Label>
+                <RadioGroupItem value="Wanita" id="WanitaAkad" />
+                <Label htmlFor="WanitaAkad">Rumah Mempelai Wanita</Label>
               </div>
               <div className="flex items-center space-x-2">
-                <RadioGroupItem value="Pria" id="Pria" />
-                <Label htmlFor="Pria">Rumah Mempelai Pria</Label>
+                <RadioGroupItem value="Pria" id="PriaAkad" />
+                <Label htmlFor="PriaAkad">Rumah Mempelai Pria</Label>
               </div>
               <div className="flex items-center space-x-2">
-                <RadioGroupItem value="Lainnya" id="Lainnya"
-
-                />
-                <Label htmlFor="Lainnya">Lainnya</Label>
+                <RadioGroupItem value="Lainnya" id="LainnyaAkad" />
+                <Label htmlFor="LainnyaAkad">Lainnya</Label>
                 <Input
                   type="text"
                   name="LainnyaInputAkad"
+                  value={formData.LainnyaInputAkad || ''}
                   onChange={handleChange}
                   className="w-full h-6 border border-gray-300 rounded-lg smaller-input"
-                  disabled={formData.opsiAkad === "Pria" || formData.opsiAkad === "Wanita" ? true : false}
+                  disabled={formData.opsiAkad !== "Lainnya"}
                 />
               </div>
-
             </RadioGroup>
-
 
             {/* {errors.alamatResepsi && <p className="text-red-500 text-sm mt-1">{errors.alamatResepsi}</p>} */}
           </div>
@@ -475,7 +510,7 @@ const Home = () => {
               <span className='text-red-500'>*</span>
             </label>
 
-            <RadioGroup defaultValue="Wanita" name="opsiResepsi" onChange={(e) => handleRadioChange('opsiResepsi', e.target.value)}>
+            <RadioGroup value={formData.opsiResepsi} name="opsiResepsi" onValueChange={(value) => handleChange({ target: { name: 'opsiResepsi', value } })}>
               <div className="flex items-center space-x-2">
                 <RadioGroupItem value="Wanita" id="WanitaResepsi" />
                 <Label htmlFor="WanitaResepsi">Rumah Mempelai Wanita</Label>
@@ -485,19 +520,19 @@ const Home = () => {
                 <Label htmlFor="PriaResepsi">Rumah Mempelai Pria</Label>
               </div>
               <div className="flex items-center space-x-2">
-                <RadioGroupItem value="Lainnya" id="LainnyaResepsi"
-                />
+                <RadioGroupItem value="Lainnya" id="LainnyaResepsi" />
                 <Label htmlFor="LainnyaResepsi">Lainnya</Label>
                 <Input
                   type="text"
                   name="LainnyaInputResepsi"
+                  value={formData.LainnyaInputResepsi || ''}
                   onChange={handleChange}
                   className="w-full h-6 border border-gray-300 rounded-lg smaller-input"
-                  disabled={formData.opsiResepsi === "Pria" || formData.opsiResepsi === "Wanita" ? true : false}
+                  disabled={formData.opsiResepsi !== "Lainnya"}
                 />
               </div>
-
             </RadioGroup>
+
             {/* {errors.alamatResepsi && <p className="text-red-500 text-sm mt-1">{errors.alamatResepsi}</p>} */}
           </div>
 
@@ -608,7 +643,7 @@ const Home = () => {
               <span className='text-red-500'>*</span>
             </label>
 
-            <RadioGroup defaultValue="Wanita" name="penempatanTulisan" onChange={handleChange}>
+            <RadioGroup defaultValue={formData.penempatanTulisan} name="penempatanTulisan" onChange={handleChange}>
               <div className="flex items-center space-x-2">
                 <RadioGroupItem value="Wanita" id="WanitaDulu" />
                 <Label htmlFor="WanitaDulu"> Wanita Dulu</Label>
@@ -628,39 +663,42 @@ const Home = () => {
               <span className='text-red-500'>*</span>
             </label>
 
+            <RadioGroup value={formData.pilihanTema} name="pilihanTema" onValueChange={(value) => handleChange({ target: { name: 'pilihanTema', value } })}>
+  <div className="flex items-center space-x-2">
+    <RadioGroupItem value="Admin" id="PilihanAdmin" />
+    <Label htmlFor="PilihanAdmin">Admin Pilihkan</Label>
+  </div>
+  <div className="flex items-center space-x-2">
+    <RadioGroupItem value="Lainnya" id="LainnyaPilihanTema" />
+    <Label htmlFor="LainnyaPilihanTema">Lainnya</Label>
+    <Select
+      onValueChange={handleSelectChange}
+      disabled={formData.pilihanTema === "Admin"}
+      className="w-full h-6 border border-gray-300 rounded-lg"
+    >
+      <SelectTrigger>
+        <SelectValue placeholder="Pilih Tema" />
+      </SelectTrigger>
+      <SelectContent>
+        {isLoadingOptions ? (
+          <SelectItem value="loading" disabled>Loading...</SelectItem>
+        ) : options.length > 0 ? (
+          options.map((option) => (
+            <SelectItem key={option.id} value={option.name}>
+              {option.name}
+            </SelectItem>
+          ))
+        ) : (
+          <SelectItem value="no-options" disabled>No options available</SelectItem>
+        )}
+      </SelectContent>
+    </Select>
+  </div>
+</RadioGroup>
 
-            <RadioGroup defaultValue="Admin" name="pilihanTema" onChange={(e) => handleSelectChange(e.target.value)}>
-              <div className="flex items-center space-x-2">
-                <RadioGroupItem value="Admin" id="PilihanAdmin" />
-                <Label htmlFor="PilihanAdmin">Admin Pilihkan</Label>
-              </div>
-              <div className="flex items-center space-x-2">
-                <RadioGroupItem value="Lainnya" id="LainnyaPilihanTema" />
-                <Label htmlFor="LainnyaPilihanTema">Lainnya</Label>
-                <Select
-                  onValueChange={handleSelectChange}
-                  disabled={formData.pilihanTema === "Admin"}
-                  className="w-full h-6 border border-gray-300 rounded-lg"
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Pilih Tema" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {isLoadingOptions ? (
-                      <SelectItem value="loading" disabled>Loading...</SelectItem>
-                    ) : options.length > 0 ? (
-                      options.map((option) => (
-                        <SelectItem key={option.id} value={option.name}>
-                          {option.name}
-                        </SelectItem>
-                      ))
-                    ) : (
-                      <SelectItem value="no-options" disabled>No options available</SelectItem>
-                    )}
-                  </SelectContent>
-                </Select>
-              </div>
-            </RadioGroup>
+
+
+
             {/* {errors.alamatResepsi && <p className="text-red-500 text-sm mt-1">{errors.alamatResepsi}</p>} */}
           </div>
 
