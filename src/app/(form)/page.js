@@ -199,6 +199,8 @@ const Home = () => {
         .then(response => {
           console.log('Files uploaded successfully:', response);
           //redirect to /[formId]/[phoneNumber]/success
+          localStorage.removeItem('formData');
+          // setFormData(null); // Update state to reflect the change
           router.push(`/${response.data.id}/${response.data.nomorWa}/success`)
           // setIsLoading(false)
         })
@@ -340,7 +342,7 @@ const Home = () => {
               onChange={handleChange}
               className="mt-1 p-2 w-full border border-gray-300 rounded-lg"
             />
-            {errors.namaOrtuWanita && <p className="text-red-500 text-sm mt-1">{errors.namaOrtuWanita}</p>}
+            {errors.tempatLahirPria && <p className="text-red-500 text-sm mt-1">{errors.tempatLahirPria}</p>}
           </div>
           <div className="mb-4">
             <label className="block text-gray-700">Tanggal Lahir Mempelai Pria <span className='text-red-500'>*</span></label>
@@ -663,22 +665,31 @@ const Home = () => {
               <span className='text-red-500'>*</span>
             </label>
 
-            <RadioGroup value={formData.pilihanTema} name="pilihanTema" onValueChange={(value) => handleChange({ target: { name: 'pilihanTema', value } })}>
+            <RadioGroup
+  value={formData.pilihanTema}
+  name="pilihanTema"
+  onValueChange={(value) => handleChange({ target: { name: 'pilihanTema', value } })}
+>
   <div className="flex items-center space-x-2">
     <RadioGroupItem value="Admin" id="PilihanAdmin" />
     <Label htmlFor="PilihanAdmin">Admin Pilihkan</Label>
   </div>
+
   <div className="flex items-center space-x-2">
     <RadioGroupItem value="Lainnya" id="LainnyaPilihanTema" />
     <Label htmlFor="LainnyaPilihanTema">Lainnya</Label>
+
     <Select
-      onValueChange={handleSelectChange}
-      disabled={formData.pilihanTema === "Admin"}
+      value={formData.LainnyaPilihanTema || ''} // Add a value binding to ensure controlled input
+      name='LainnyaPilihanTema'
+      onValueChange={(value) => handleChange({ target: { name: 'LainnyaPilihanTema', value } })} // Update the value in formData when changed
+      disabled={formData.pilihanTema !== "Lainnya"}
       className="w-full h-6 border border-gray-300 rounded-lg"
     >
       <SelectTrigger>
         <SelectValue placeholder="Pilih Tema" />
       </SelectTrigger>
+
       <SelectContent>
         {isLoadingOptions ? (
           <SelectItem value="loading" disabled>Loading...</SelectItem>
@@ -695,9 +706,6 @@ const Home = () => {
     </Select>
   </div>
 </RadioGroup>
-
-
-
 
             {/* {errors.alamatResepsi && <p className="text-red-500 text-sm mt-1">{errors.alamatResepsi}</p>} */}
           </div>
