@@ -13,9 +13,9 @@ import { Label } from "@/components/ui/label";
 import { Loader2 } from "lucide-react";
 import axios from "axios"; // Assuming axios will be used later for image upload
 
-export function DialogModalPayment({ open, onOpenChange, index, row, formId, onDataUpdate }) {
+export function DialogModalLinkUndangan({ open, onOpenChange, index, row, formId, onDataUpdate }) {
   const [isLoading, setIsLoading] = useState(false);
-  const [formData, setFormData] = useState({ payment: "" });
+  const [formData, setFormData] = useState({ linkUndangan: "" });
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -27,17 +27,14 @@ export function DialogModalPayment({ open, onOpenChange, index, row, formId, onD
 
     try {
       const response = await axios.post(
-        `${process.env.NEXT_PUBLIC_API_URL}/update-payment/${row.id}`,
+        `${process.env.NEXT_PUBLIC_API_URL}/update-link/${row.id}`,
         {
-          isPaid: row.isPaid,
-          paymentAmount: formData.payment
+          linkUndangan: formData.linkUndangan
         },
         {
           withCredentials: true // This should be inside the config object (third argument)
         }
       );
-
-
       onOpenChange(false); // Close the dialog after successful upload
       onDataUpdate(response.data.message); // Trigger data update
     } catch (error) {
@@ -49,7 +46,7 @@ export function DialogModalPayment({ open, onOpenChange, index, row, formId, onD
 
   useEffect(() => {
     if (!open) {
-      setFormData({ payment: "" }); // Clear the form when dialog is closed
+      setFormData({ linkUndangan: "" }); // Clear the form when dialog is closed
     }
     console.log("row", row);
   }, [open, row]);
@@ -58,16 +55,16 @@ export function DialogModalPayment({ open, onOpenChange, index, row, formId, onD
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle>Pembayaran Lunas</DialogTitle>
+          <DialogTitle>Link Undangan</DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit}>
           <div className="grid gap-4 py-4">
             <div className="grid w-full max-w-sm items-center gap-1.5">
-              <Label htmlFor="payment">Jumlah Pembayaran</Label>
+              <Label htmlFor="payment">Masukkan Link URL Undangan</Label>
               <Input
-                type="number"
-                name="payment"
-                value={formData.payment}
+                type="text"
+                name="linkUndangan"
+                value={formData.linkUndangan}
                 onChange={handleChange}
                 className="mt-1 p-2 w-full border border-gray-300 rounded-lg"
               />

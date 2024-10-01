@@ -11,11 +11,13 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { BiArrowToRight, BiDotsVertical, BiMoneyWithdraw, BiRightArrow } from 'react-icons/bi';
+import { BiArrowToRight, BiDotsVertical, BiLink, BiMoneyWithdraw, BiPlusCircle, BiRightArrow } from 'react-icons/bi';
 import StatusSelect from './StatusSelect';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from './ui/tooltip';
 import { Popover, PopoverContent, PopoverTrigger } from './ui/popover';
 import { DialogModalPayment } from './admin/DialogModalPayment';
+import { DialogModalLinkUndangan } from './admin/DialogModalLinkUndangan';
+import { toast } from './ui/use-toast';
 
 const DataTableForm = ({ initialStatus, onDataUpdate }) => {
 
@@ -32,6 +34,7 @@ const DataTableForm = ({ initialStatus, onDataUpdate }) => {
 
   const [selectedRow, setSelectedRow] = useState({ id: null, paymentAmount: null });
   const [open, setOpen] = useState(false);
+  const [openLink, setOpenLink] = useState(false);
 
   const [isAdmin, setIsAdmin] = useState(0);
 
@@ -73,12 +76,14 @@ const DataTableForm = ({ initialStatus, onDataUpdate }) => {
       selector: row => row.id,
       sortable: true,
     },
-    {
-      name: 'Nomor WA',
-      selector: row => row.nomorWa,
-      sortable: true,
-      wrap: true, // Enables text wrapping to prevent overflow
-    },
+    ...(isAdmin === 1 ? [
+      {
+        name: 'Nomor WA',
+        selector: row => row.nomorWa,
+        sortable: true,
+        wrap: true, // Enables text wrapping to prevent overflow
+      }
+    ] : []),
     {
       name: 'Nama',
       selector: row => row.name,
@@ -95,18 +100,39 @@ const DataTableForm = ({ initialStatus, onDataUpdate }) => {
       name: 'Tanggal',
       selector: row => (
 
-              <p>{new Date(row.createdAt).toLocaleString('id-ID', {
-                day: '2-digit',
-                month: 'short',
-                year: 'numeric',
-                hour: 'numeric',
-                minute: 'numeric',
-                hour12: true,
-              })}</p>
+        <p>{new Date(row.createdAt).toLocaleString('id-ID', {
+          day: '2-digit',
+          month: 'short',
+          year: 'numeric',
+          hour: 'numeric',
+          minute: 'numeric',
+          hour12: true,
+        })}</p>
       ),
       sortable: true,
       wrap: true,
+    },
+    {
+      name: 'Link Undangan',
+      selector: row => row.linkUndangan ? (
+        <>
+          <a
+            href="#"
+            onClick={(e) => {
+              e.preventDefault(); // Prevent opening a link
+              navigator.clipboard.writeText(row.linkUndangan);
+              toast({
+                title: "Link copied!",
+              });
+            }}
+          >
+            {row.linkUndangan}
+          </a>
+        </>
+      ) : '-',
+      wrap: true,
     },    
+
     ...(isAdmin === 1 ? [
       {
         name: 'Staff',
@@ -131,7 +157,7 @@ const DataTableForm = ({ initialStatus, onDataUpdate }) => {
           <Link href={`/admin/detail/${row.id}`}>
             <Button className="w-10 h-6 text-xs bg-opacity-80 bg-black">View</Button>
           </Link>
-  
+
           <DropdownMenu>
             <DropdownMenuTrigger className='ml-4' asChild>
               <span className="cursor-pointer"><BiDotsVertical className="h-4 w-4" /></span>
@@ -141,7 +167,11 @@ const DataTableForm = ({ initialStatus, onDataUpdate }) => {
                 <BiArrowToRight className="mr-2 h-4 w-4" />
                 <span>Move to {initialStatus === 1 ? "List" : "MyList"}</span>
               </DropdownMenuItem>
-  
+              <DropdownMenuItem onClick={() => handleLinkUndangan(row)}>
+                <BiLink className="mr-2 h-4 w-4" />
+                <span>Tambahkan Link</span>
+              </DropdownMenuItem>
+
               {isAdmin === 1 && (
                 <>
                   {row.isPaid === 0 ? (
@@ -159,7 +189,7 @@ const DataTableForm = ({ initialStatus, onDataUpdate }) => {
               )}
             </DropdownMenuContent>
           </DropdownMenu>
-  
+
           {row.isPaid === 1 && (
             <Popover>
               <PopoverTrigger>
@@ -174,7 +204,7 @@ const DataTableForm = ({ initialStatus, onDataUpdate }) => {
       ),
       wrap: true, // Ensures content wraps and fits within the container
     },
-  ];  
+  ];
 
 
   const handleAction = async (row) => {
@@ -252,18 +282,37 @@ const DataTableForm = ({ initialStatus, onDataUpdate }) => {
           withCredentials: true // This should be inside the config object (third argument)
         }
       );
-      handleDataUpdate();
+      handleDataUpdate(response.data.message);
     }
   }
 
-  const handleDataUpdate = () => {
+  const handleLinkUndangan = async (row) => {
+    setSelectedRow({
+      id: row.id,
+      linkUndangan: row.linkUndangan,
+    });
+    setOpenLink(true)
+    // const response = await axios.post(
+    //   `${process.env.NEXT_PUBLIC_API_URL}/update-link/${row.id}`,
+    //   {
+    //     linkUndangan: row.linkUndangan,
+    //   },
+    //   {
+    //     withCredentials: true // This should be inside the config object (third argument)
+    //   }
+    // );
+    // handleDataUpdate(response.data.message);
+  }
+
+  const handleDataUpdate = (msg) => {
     fetchData(currentPage, perPage, search); // Re-fetch the data after it has been updated
-    onDataUpdate('Payment has been updated');
+    onDataUpdate(msg);
   };
 
   return (
     <>
       <DialogModalPayment open={open} onOpenChange={setOpen} row={selectedRow} onDataUpdate={handleDataUpdate} />
+      <DialogModalLinkUndangan open={openLink} onOpenChange={setOpenLink} row={selectedRow} onDataUpdate={handleDataUpdate} />
       <DebounceInput
         minLength={2}
         debounceTimeout={300}

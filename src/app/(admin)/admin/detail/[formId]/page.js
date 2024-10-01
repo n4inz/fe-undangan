@@ -17,19 +17,22 @@ const Detail = ({ params }) => {
   const [listImages, setListImages] = useState([]);
 
   const [loading, setLoading] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(null); // Initialize isAdmin
 
 
   const fetchData = async () => {
     try {
-      const response = await axios.get(process.env.NEXT_PUBLIC_API_URL + `/forms/${params.formId}`);
+      const response = await axios.get(process.env.NEXT_PUBLIC_API_URL + `/forms/${params.formId}`, {
+        withCredentials: true 
+      });
       setFormData(response.data.form);
-
-
+      setIsAdmin(response.data.isAdmin);
       // console.log(response.data);
     } catch (error) {
       console.error('Error fetching data:', error);
     }
   };
+  
 
   const fetchImage = async () => {
     const response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/image-order/${params.formId}`);
@@ -67,6 +70,7 @@ const Detail = ({ params }) => {
           <div className="p-4">
             Detail : ID {params.formId}
           </div>
+          {isAdmin === 1 && ( // Show only if isAdmin is 1
           <div className="mb-4">
             <label className="block text-gray-700">Nomor Whatsapp Anda<span className='text-red-500'>*</span></label>
             <Input
@@ -77,6 +81,7 @@ const Detail = ({ params }) => {
               inputMode="numeric"
             />
           </div>
+           )}
           <div className="mb-4">
             <label className="block text-gray-700">Nama Anda <span className='text-red-500'>*</span></label>
             <Input
