@@ -103,19 +103,19 @@ const Dashboard = () => {
 
             {/* Line Chart for Expending Data */}
             <div className="flex flex-wrap w-full">
-  {/* GraphPayment: Takes full width on small screens, half on large screens */}
-  <div className="w-full lg:w-1/2 p-4"> {/* Add padding to create spacing between components */}
-    <GraphPayment />
-  </div>
+              {/* GraphPayment: Takes full width on small screens, half on large screens */}
+              <div className="w-full lg:w-1/2 p-4"> {/* Add padding to create spacing between components */}
+                <GraphPayment />
+              </div>
 
-  {/* GraphExpending: Takes full width on small screens, half on large screens */}
-  <div className="w-full lg:w-1/2 p-4"> {/* Add padding to create spacing between components */}
-    <GraphExpending />
-  </div>
-  <div className="w-full p-4"> {/* Add padding to create spacing between components */}
-    <GraphAnalysis />
-  </div>
-</div>
+              {/* GraphExpending: Takes full width on small screens, half on large screens */}
+              <div className="w-full lg:w-1/2 p-4"> {/* Add padding to create spacing between components */}
+                <GraphExpending />
+              </div>
+              <div className="w-full p-4"> {/* Add padding to create spacing between components */}
+                <GraphAnalysis />
+              </div>
+            </div>
 
 
           </div>

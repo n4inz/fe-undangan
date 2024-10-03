@@ -13,7 +13,7 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { BiArrowToRight, BiDotsVertical, BiLink, BiMoneyWithdraw, BiPlusCircle, BiRightArrow } from 'react-icons/bi';
 import StatusSelect from './StatusSelect';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from './ui/tooltip';
+// import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from './ui/tooltip';
 import { Popover, PopoverContent, PopoverTrigger } from './ui/popover';
 import { DialogModalPayment } from './admin/DialogModalPayment';
 import { DialogModalLinkUndangan } from './admin/DialogModalLinkUndangan';
@@ -29,7 +29,7 @@ const DataTableForm = ({ initialStatus, onDataUpdate }) => {
   const [status, setStatus] = useState(initialStatus);
 
   const [updatedStatus, setUpdatedStatus] = useState(null);
-  const [showTooltip, setShowTooltip] = useState(false);
+  // const [showTooltip, setShowTooltip] = useState(false);
 
 
   const [selectedRow, setSelectedRow] = useState({ id: null, paymentAmount: null });

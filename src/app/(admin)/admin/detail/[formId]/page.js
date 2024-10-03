@@ -8,10 +8,21 @@ import { Textarea } from '@/components/ui/textarea';
 import axios from "axios";
 import { Button } from "@/components/ui/button";
 import { Loader2 } from "lucide-react";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { BiDotsVertical, BiPencil } from "react-icons/bi";
+import { DropdownMenuItem } from "@radix-ui/react-dropdown-menu";
+import { useRouter, useSearchParams } from "next/navigation";
+import { toast } from "@/components/ui/use-toast";
 
 // import { BiX } from "react-icons/bi";
 
 const Detail = ({ params }) => {
+
+  const router = useRouter(); // Initialize the router
+
+  const searchParams = useSearchParams()
+
+  const success = searchParams.get('success')
 
   const [formData, setFormData] = useState({});
   const [listImages, setListImages] = useState([]);
@@ -23,7 +34,7 @@ const Detail = ({ params }) => {
   const fetchData = async () => {
     try {
       const response = await axios.get(process.env.NEXT_PUBLIC_API_URL + `/forms/${params.formId}`, {
-        withCredentials: true 
+        withCredentials: true
       });
       setFormData(response.data.form);
       setIsAdmin(response.data.isAdmin);
@@ -32,7 +43,7 @@ const Detail = ({ params }) => {
       console.error('Error fetching data:', error);
     }
   };
-  
+
 
   const fetchImage = async () => {
     const response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/image-order/${params.formId}`);
@@ -56,6 +67,20 @@ const Detail = ({ params }) => {
     console.log("ListImages:", listImages)
   }, [listImages]);
 
+  useEffect(() => {
+    if (success === 'true') {
+      toast({
+        description: "Form Data Updated."
+      });
+      console.log("TESTSTSTTST")
+      // Replace URL to remove the success parameter
+      const url = new URL(window.location);
+      url.searchParams.delete('success');
+      router.replace(url.toString(), { scroll: false });
+    }
+
+  }, [success, router]);
+
   return (
     <>
       <div className="h-10 bg-white border-b w-full"></div>
@@ -67,23 +92,46 @@ const Detail = ({ params }) => {
 
         {/* Main Content */}
         <div className="flex flex-col flex-grow w-full md:pl-24">
-          <div className="p-4">
-            Detail : ID {params.formId}
+          <div className="flex items-center justify-between p-4">
+            <div>
+              Detail : ID {params.formId}
+            </div>
+            {isAdmin === 1 && (
+              <DropdownMenu>
+                <DropdownMenuTrigger className='ml-4' asChild>
+                  <span className="cursor-pointer"><BiDotsVertical className="h-4 w-4" /></span>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent className="w-56">
+                  <DropdownMenuItem onClick={() => {
+                    router.push(`/admin/detail/${params.formId}/edit`);
+                  }}
+                    className="text-center cursor-pointer" // Add cursor-pointer class
+                    style={{ padding: "6px 12px" }}>
+                    <span className="flex items-center">
+                      <BiPencil className="mr-2 h-4 w-4" />
+                      <span>Edit</span>
+                    </span>
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+
+              </DropdownMenu>
+            )}
           </div>
+
           {isAdmin === 1 && ( // Show only if isAdmin is 1
+            <div className="mb-4">
+              <label className="block text-gray-700">Nomor Whatsapp Customer<span className='text-red-500'>*</span></label>
+              <Input
+                type="text"
+                name="nomorWa"
+                value={formData.nomorWa}
+                className="mt-1 p-2 w-full border border-gray-300 rounded-lg"
+                inputMode="numeric"
+              />
+            </div>
+          )}
           <div className="mb-4">
-            <label className="block text-gray-700">Nomor Whatsapp Anda<span className='text-red-500'>*</span></label>
-            <Input
-              type="text"
-              name="nomorWa"
-              value={formData.nomorWa}
-              className="mt-1 p-2 w-full border border-gray-300 rounded-lg"
-              inputMode="numeric"
-            />
-          </div>
-           )}
-          <div className="mb-4">
-            <label className="block text-gray-700">Nama Anda <span className='text-red-500'>*</span></label>
+            <label className="block text-gray-700">Nama Customer <span className='text-red-500'>*</span></label>
             <Input
               type="text"
               name="name"
@@ -268,7 +316,7 @@ const Detail = ({ params }) => {
             <Input
               type="text"
               name="linkSherlokAkad"
-              value={formData.alamatAkad}
+              value={formData.opsiAkad}
 
               className="mt-1 p-2 w-full border border-gray-300 rounded-lg"
             />
@@ -285,7 +333,7 @@ const Detail = ({ params }) => {
             <Input
               type="text"
               name="linkSherlokAkad"
-              value={formData.alamatResepsi}
+              value={formData.opsiResepsi}
 
               className="mt-1 p-2 w-full border border-gray-300 rounded-lg"
             />

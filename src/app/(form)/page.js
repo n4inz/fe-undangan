@@ -221,6 +221,7 @@ const Home = () => {
         if (firstErrorField) {
           firstErrorField.scrollIntoView({ behavior: 'smooth', block: 'center' });
         }
+        console.log(fieldErrors)
         // console.log(fieldErrors);
       } else {
         console.error('An unexpected error occurred:', error);
