@@ -18,6 +18,15 @@ import { Popover, PopoverContent, PopoverTrigger } from './ui/popover';
 import { DialogModalPayment } from './admin/DialogModalPayment';
 import { DialogModalLinkUndangan } from './admin/DialogModalLinkUndangan';
 import { toast } from './ui/use-toast';
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectLabel,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
 
 const DataTableForm = ({ initialStatus, onDataUpdate }) => {
 
@@ -27,6 +36,7 @@ const DataTableForm = ({ initialStatus, onDataUpdate }) => {
   const [currentPage, setCurrentPage] = useState(1);
   const [search, setSearch] = useState('');
   const [status, setStatus] = useState(initialStatus);
+  const [filterStatusForm, setFilterStatusForm] = useState(null);
 
   const [updatedStatus, setUpdatedStatus] = useState(null);
   // const [showTooltip, setShowTooltip] = useState(false);
@@ -39,13 +49,13 @@ const DataTableForm = ({ initialStatus, onDataUpdate }) => {
   const [isAdmin, setIsAdmin] = useState(0);
 
   useEffect(() => {
-    fetchData(currentPage, perPage, search);
-  }, [currentPage, perPage, search]);
+    fetchData(currentPage, perPage, search, filterStatusForm);
+  }, [currentPage, perPage, search, filterStatusForm]);
 
-  const fetchData = useCallback(async (page, limit, searchQuery) => {
+  const fetchData = useCallback(async (page, limit, searchQuery, statusForm) => {
     try {
       const response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/forms`, {
-        params: { page, limit, search: searchQuery, status: status },
+        params: { page, limit, search: searchQuery, status: status, statusForm: statusForm },
         withCredentials: true, // Menambahkan kredensial
       });
       setData(response.data.data);
@@ -68,6 +78,13 @@ const DataTableForm = ({ initialStatus, onDataUpdate }) => {
   const handlePerRowsChange = async (newPerPage, page) => {
     setPerPage(newPerPage);
     fetchData(page, newPerPage);
+  };
+
+  const handleFilterStatusChange = (value) => {
+    // If "All Status" is selected, set the filter to an empty string
+    const statusValue = value === null ? '' : value;
+    setFilterStatusForm(statusValue);
+    console.log(statusValue);  // Logging to ensure it's properly set
   };
 
   const columns = [
@@ -131,7 +148,7 @@ const DataTableForm = ({ initialStatus, onDataUpdate }) => {
         </>
       ) : '-',
       wrap: true,
-    },    
+    },
 
     ...(isAdmin === 1 ? [
       {
@@ -223,7 +240,7 @@ const DataTableForm = ({ initialStatus, onDataUpdate }) => {
 
       if (response.status === 200) {
         // Only fetch data if the request was successful
-        fetchData(currentPage, perPage, search);
+        fetchData(currentPage, perPage, search, filterStatusForm);
         if (onDataUpdate && typeof onDataUpdate === 'function') {
           onDataUpdate(response.data.message);
         }
@@ -235,7 +252,7 @@ const DataTableForm = ({ initialStatus, onDataUpdate }) => {
 
   const handleStatusUpdate = (updatedStatus) => {
     setUpdatedStatus(updatedStatus);
-    fetchData(currentPage, perPage, search); // Refetch the data with the updated status
+    fetchData(currentPage, perPage, search, filterStatusForm); // Refetch the data with the updated status
   };
 
   // const handlePayment = async (row) => {
@@ -305,7 +322,7 @@ const DataTableForm = ({ initialStatus, onDataUpdate }) => {
   }
 
   const handleDataUpdate = (msg) => {
-    fetchData(currentPage, perPage, search); // Re-fetch the data after it has been updated
+    fetchData(currentPage, perPage, search, filterStatusForm); // Re-fetch the data after it has been updated
     onDataUpdate(msg);
   };
 
@@ -313,14 +330,34 @@ const DataTableForm = ({ initialStatus, onDataUpdate }) => {
     <>
       <DialogModalPayment open={open} onOpenChange={setOpen} row={selectedRow} onDataUpdate={handleDataUpdate} />
       <DialogModalLinkUndangan open={openLink} onOpenChange={setOpenLink} row={selectedRow} onDataUpdate={handleDataUpdate} />
-      <DebounceInput
-        minLength={2}
-        debounceTimeout={300}
-        placeholder="Search"
-        value={search}
-        onChange={handleSearch}
-        className="border border-gray-300 rounded-md p-2 w-1/2" // {{ edit_1 }} Adjusted width to be shorter
-      />
+      <div className="flex gap-4"> {/* Add a flex container to arrange elements side by side */}
+        <DebounceInput
+          minLength={2}
+          debounceTimeout={500}
+          placeholder="Search"
+          value={search}
+          onChange={handleSearch}
+          className="border border-gray-300 rounded-md p-2 w-1/2"
+        />
+        <Select
+          value={filterStatusForm}  // Bind the state to the Select component
+          onValueChange={handleFilterStatusChange}  // Use onValueChange instead of onChange
+        >
+          <SelectTrigger className="w-[180px]">
+            <SelectValue placeholder="All Status" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectGroup>
+              <SelectLabel>Status</SelectLabel>
+              <SelectItem value={null}>All Status</SelectItem>
+              <SelectItem value="0">Todo</SelectItem>
+              <SelectItem value="1">In progress</SelectItem>
+              <SelectItem value="2">Review</SelectItem>
+              <SelectItem value="3">Done</SelectItem>
+            </SelectGroup>
+          </SelectContent>
+        </Select>
+      </div>
       <DataTable
         columns={columns}
         data={data}
