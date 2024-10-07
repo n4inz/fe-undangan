@@ -33,8 +33,7 @@ const EditDetail = ({ params }) => {
     const router = useRouter();
 
     // Set initial state for formData
-    const [formData, setFormData] = useState({
-    });
+    const [formData, setFormData] = useState({});
 
     const [errors, setErrors] = useState({});
 
@@ -100,7 +99,7 @@ const EditDetail = ({ params }) => {
             const response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/forms/${params.formId}`, {
                 withCredentials: true
             });
-            const fetchedFormData = response.data.form;
+            const fetchedFormData = response.data.form || {};
 
             // Initialize new formData based on fetched data
             let updatedFormData = { ...fetchedFormData };
@@ -109,7 +108,7 @@ const EditDetail = ({ params }) => {
             if (fetchedFormData.opsiAkad !== 'Pria' && fetchedFormData.opsiAkad !== 'Wanita') {
                 updatedFormData = {
                     ...updatedFormData,
-                    opsiAkad: "Lainnya",
+                    opsiAkad: 'Lainnya',
                     LainnyaInputAkad: fetchedFormData.opsiAkad
                 };
             }
@@ -118,7 +117,7 @@ const EditDetail = ({ params }) => {
             if (fetchedFormData.opsiResepsi !== 'Pria' && fetchedFormData.opsiResepsi !== 'Wanita') {
                 updatedFormData = {
                     ...updatedFormData,
-                    opsiResepsi: "Lainnya",
+                    opsiResepsi: 'Lainnya',
                     LainnyaInputResepsi: fetchedFormData.opsiResepsi
                 };
             }
@@ -127,21 +126,19 @@ const EditDetail = ({ params }) => {
             if (fetchedFormData.pilihanTema !== 'Admin') {
                 updatedFormData = {
                     ...updatedFormData,
-                    pilihanTema: "Lainnya",
+                    pilihanTema: 'Lainnya',
                     LainnyaPilihanTema: fetchedFormData.pilihanTema
                 };
             }
 
             // Set the updated form data in a single setFormData call
             setFormData(updatedFormData);
-
         } catch (error) {
             console.error('Error fetching data:', error);
         } finally {
             setIsLoading(false); // Ensure loading is stopped
         }
     };
-
 
     const fetchOptions = async () => {
         try {
@@ -154,20 +151,22 @@ const EditDetail = ({ params }) => {
             setIsLoadingOptions(false); // Stop loading state for options
         }
     };
+
     useEffect(() => {
         setMounted(true); // Indicate that the component has mounted
-
     }, []);
 
     useEffect(() => {
         if (mounted) {
-            fetchOptions();
-            fetchData();
+            const fetchDataAndOptions = async () => {
+                await Promise.all([fetchData(), fetchOptions()]);
+            };
+            fetchDataAndOptions();
         }
     }, [mounted]);
 
-    if (!mounted) {
-        return null;
+    if (!mounted || isLoading || isLoadingOptions) {
+        return <div>Loading...</div>;
     }
 
     return (
