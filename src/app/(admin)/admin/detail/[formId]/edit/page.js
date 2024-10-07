@@ -42,6 +42,7 @@ const EditDetail = ({ params }) => {
     const [isLoadingOptions, setIsLoadingOptions] = useState(true);
 
     const [options, setOptions] = useState([]); // Store options for the Select component
+    const [mounted, setMounted] = useState(false); // Track if component is mounted
 
     const handleChange = (e) => {
         const { name, value } = e.target;
@@ -153,11 +154,21 @@ const EditDetail = ({ params }) => {
             setIsLoadingOptions(false); // Stop loading state for options
         }
     };
+    useEffect(() => {
+        setMounted(true); // Indicate that the component has mounted
+
+    }, []);
 
     useEffect(() => {
-        fetchOptions();
-        fetchData();
-    }, []);
+        if (mounted) {
+            fetchOptions();
+            fetchData();
+        }
+    }, [mounted]);
+
+    if (!mounted) {
+        return null;
+    }
 
     return (
         <>
