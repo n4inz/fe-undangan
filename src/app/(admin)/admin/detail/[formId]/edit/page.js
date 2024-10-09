@@ -88,7 +88,6 @@ const EditDetail = ({ params }) => {
                 // Handle any other unexpected errors
                 console.error('An unexpected error occurred:', error);
             }
-        } finally {
             setIsLoading(false); // Ensure this runs in both success and error cases
         }
     };
@@ -165,7 +164,7 @@ const EditDetail = ({ params }) => {
         }
     }, [mounted]);
 
-    if (!mounted || isLoading || isLoadingOptions) {
+    if (!mounted || isLoadingOptions) {
         return <div>Loading...</div>;
     }
 

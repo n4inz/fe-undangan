@@ -19,8 +19,8 @@ export const mainSchema = z.object({
     .string()
     .regex(/^[\d+\s-]+$/, { message: "Nomor telepon mengharuskan angka" })
     .refine((val) => val !== "", { message: "Nomor telepon harus diisi" }),
-  tglLahirPria: requeiredTgl,
-  tglLahirWanita: requeiredTgl,
+  // tglLahirPria: requeiredTgl,
+  // tglLahirWanita: requeiredTgl,
   datetimeAkad: requeiredTgl,
   datetimeResepsi: requeiredTgl,
 })

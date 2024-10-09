@@ -346,7 +346,7 @@ const Home = () => {
             {errors.tempatLahirPria && <p className="text-red-500 text-sm mt-1">{errors.tempatLahirPria}</p>}
           </div>
           <div className="mb-4">
-            <label className="block text-gray-700">Tanggal Lahir Mempelai Pria <span className='text-red-500'>*</span></label>
+            <label className="block text-gray-700">Tanggal Lahir Mempelai Pria</label>
             <input
               type="date"
               name="tglLahirPria"
@@ -354,8 +354,18 @@ const Home = () => {
               onChange={handleChange}
               className="mt-1 p-2 w-full border border-gray-300 rounded-lg"
             />
-            {errors.tglLahirPria && <p className="text-red-500 text-sm mt-1">{errors.tglLahirPria}</p>}
+            {/* {errors.tglLahirPria && <p className="text-red-500 text-sm mt-1">{errors.tglLahirPria}</p>} */}
           </div>
+          {/* <div className="mb-4">
+            <label className="block text-gray-700">Alamat Mempelai Pria</label>
+            <Input
+              type="text"
+              name="alamatPria"
+              value={formData.alamatPria}
+              onChange={handleChange}
+              className="mt-1 p-2 w-full border border-gray-300 rounded-lg"
+            />
+          </div> */}
           {/* Mempelai Wanita */}
           <div className="mb-4">
             <label className="block text-gray-700">Nama Lengkap Mempelai Wanita
@@ -404,10 +414,10 @@ const Home = () => {
               onChange={handleChange}
               className="mt-1 p-2 w-full border border-gray-300 rounded-lg"
             />
-            {errors.tempatLahirWanita && <p className="text-red-500 text-sm mt-1">{errors.tempatLahirWanita}</p>}
+            {/* {errors.tempatLahirWanita && <p className="text-red-500 text-sm mt-1">{errors.tempatLahirWanita}</p>} */}
           </div>
           <div className="mb-4">
-            <label className="block text-gray-700">Tanggal Lahir Mempelai Wanita <span className='text-red-500'>*</span></label>
+            <label className="block text-gray-700">Tanggal Lahir Mempelai Wanita</label>
             <input
               type="date"
               name="tglLahirWanita"
@@ -417,6 +427,16 @@ const Home = () => {
             />
             {errors.tglLahirWanita && <p className="text-red-500 text-sm mt-1">{errors.tglLahirWanita}</p>}
           </div>
+          {/* <div className="mb-4">
+            <label className="block text-gray-700">Alamat Mempelai Wanita</label>
+            <Input
+              type="text"
+              name="alamatWanita"
+              value={formData.alamatWanita}
+              onChange={handleChange}
+              className="mt-1 p-2 w-full border border-gray-300 rounded-lg"
+            />
+          </div> */}
           {/* Acara */}
           <div className="mb-4">
             <label className="block text-gray-700">
