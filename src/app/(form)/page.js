@@ -356,6 +356,19 @@ const Home = () => {
             />
             {errors.tglLahirPria && <p className="text-red-500 text-sm mt-1">{errors.tglLahirPria}</p>}
           </div>
+          <div className="mb-4">
+            <label className="block text-gray-700">Alamat Mempelai Pria
+              <br />
+              Ex: Jl Jambu  Selatan No 123
+            </label>
+            <Input
+              type="text"
+              name="alamatPria"
+              value={formData.alamatPria}
+              onChange={handleChange}
+              className="mt-1 p-2 w-full border border-gray-300 rounded-lg"
+            />
+          </div>
           {/* Mempelai Wanita */}
           <div className="mb-4">
             <label className="block text-gray-700">Nama Lengkap Mempelai Wanita
@@ -416,6 +429,20 @@ const Home = () => {
               className="mt-1 p-2 w-full border border-gray-300 rounded-lg"
             />
             {errors.tglLahirWanita && <p className="text-red-500 text-sm mt-1">{errors.tglLahirWanita}</p>}
+          </div>
+          <div className="mb-4">
+            <label className="block text-gray-700">Alamat Mempelai Wanita
+
+            <br />
+              Ex: Jl Jambu  Selatan No 123
+            </label>
+            <Input
+              type="text"
+              name="alamatWanita"
+              value={formData.alamatWanita}
+              onChange={handleChange}
+              className="mt-1 p-2 w-full border border-gray-300 rounded-lg"
+            />
           </div>
           {/* Acara */}
           <div className="mb-4">
