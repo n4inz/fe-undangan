@@ -30,6 +30,8 @@ const Detail = ({ params }) => {
   const [loading, setLoading] = useState(false);
   const [isAdmin, setIsAdmin] = useState(null); // Initialize isAdmin
 
+  const [orderImageStatus, setOrderImageStatus] = useState(false);
+
 
   const fetchData = async () => {
     try {
@@ -48,8 +50,7 @@ const Detail = ({ params }) => {
   const fetchImage = async () => {
     const response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/image-order/${params.formId}`);
     setListImages(response.data.images);
-
-
+    setOrderImageStatus(response.data.order);
   };
 
   const downloadImage = () => {
@@ -492,7 +493,7 @@ const Detail = ({ params }) => {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
             {listImages.map((src, index) => (
               <div key={index} className="flex items-center">
-                {index % 2 === 0 && (
+                {orderImageStatus && index % 2 === 0 && (
                   <div className="text-4xl font-bold text-gray-700 mr-4">
                     {Math.floor(index / 2) + 1}
                   </div>
@@ -509,6 +510,7 @@ const Detail = ({ params }) => {
               </div>
             ))}
           </div>
+
 
 
         </div>
