@@ -212,9 +212,11 @@ const DataTableForm = ({ initialStatus, onDataUpdate }) => {
               <PopoverTrigger>
                 <BiMoneyWithdraw className="mr-2 h-4 w-4 text-green-600" />
               </PopoverTrigger>
-              <PopoverContent className="w-20 p-2 text-xs text-center">
-                {row.paymentAmount}
-              </PopoverContent>
+              {isAdmin === 1 && (
+                <PopoverContent className="w-20 p-2 text-xs text-center">
+                  {row.paymentAmount}
+                </PopoverContent>
+              )}
             </Popover>
           )}
         </>

@@ -49,6 +49,8 @@ const Home = () => {
         namaPanggilanWanita: '',
         namaOrtuWanita: '',
         tglLahirWanita: '',
+        tempatLahirPria: '',
+        tempatLahirWanita: '',
         datetimeAkad: '',
         datetimeResepsi: '',
         alamatAkad: "",
@@ -414,7 +416,7 @@ const Home = () => {
               onChange={handleChange}
               className="mt-1 p-2 w-full border border-gray-300 rounded-lg"
             />
-            {/* {errors.tempatLahirWanita && <p className="text-red-500 text-sm mt-1">{errors.tempatLahirWanita}</p>} */}
+            {errors.tempatLahirWanita && <p className="text-red-500 text-sm mt-1">{errors.tempatLahirWanita}</p>}
           </div>
           <div className="mb-4">
             <label className="block text-gray-700">Tanggal Lahir Mempelai Wanita</label>
@@ -425,7 +427,7 @@ const Home = () => {
               onChange={handleChange}
               className="mt-1 p-2 w-full border border-gray-300 rounded-lg"
             />
-            {errors.tglLahirWanita && <p className="text-red-500 text-sm mt-1">{errors.tglLahirWanita}</p>}
+            {/* {errors.tglLahirWanita && <p className="text-red-500 text-sm mt-1">{errors.tglLahirWanita}</p>} */}
           </div>
           {/* <div className="mb-4">
             <label className="block text-gray-700">Alamat Mempelai Wanita</label>
@@ -687,46 +689,46 @@ const Home = () => {
             </label>
 
             <RadioGroup
-  value={formData.pilihanTema}
-  name="pilihanTema"
-  onValueChange={(value) => handleChange({ target: { name: 'pilihanTema', value } })}
->
-  <div className="flex items-center space-x-2">
-    <RadioGroupItem value="Admin" id="PilihanAdmin" />
-    <Label htmlFor="PilihanAdmin">Admin Pilihkan</Label>
-  </div>
+              value={formData.pilihanTema}
+              name="pilihanTema"
+              onValueChange={(value) => handleChange({ target: { name: 'pilihanTema', value } })}
+            >
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="Admin" id="PilihanAdmin" />
+                <Label htmlFor="PilihanAdmin">Admin Pilihkan</Label>
+              </div>
 
-  <div className="flex items-center space-x-2">
-    <RadioGroupItem value="Lainnya" id="LainnyaPilihanTema" />
-    <Label htmlFor="LainnyaPilihanTema">Lainnya</Label>
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="Lainnya" id="LainnyaPilihanTema" />
+                <Label htmlFor="LainnyaPilihanTema">Lainnya</Label>
 
-    <Select
-      value={formData.LainnyaPilihanTema || ''} // Add a value binding to ensure controlled input
-      name='LainnyaPilihanTema'
-      onValueChange={(value) => handleChange({ target: { name: 'LainnyaPilihanTema', value } })} // Update the value in formData when changed
-      disabled={formData.pilihanTema !== "Lainnya"}
-      className="w-full h-6 border border-gray-300 rounded-lg"
-    >
-      <SelectTrigger>
-        <SelectValue placeholder="Pilih Tema" />
-      </SelectTrigger>
+                <Select
+                  value={formData.LainnyaPilihanTema || ''} // Add a value binding to ensure controlled input
+                  name='LainnyaPilihanTema'
+                  onValueChange={(value) => handleChange({ target: { name: 'LainnyaPilihanTema', value } })} // Update the value in formData when changed
+                  disabled={formData.pilihanTema !== "Lainnya"}
+                  className="w-full h-6 border border-gray-300 rounded-lg"
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Pilih Tema" />
+                  </SelectTrigger>
 
-      <SelectContent>
-        {isLoadingOptions ? (
-          <SelectItem value="loading" disabled>Loading...</SelectItem>
-        ) : options.length > 0 ? (
-          options.map((option) => (
-            <SelectItem key={option.id} value={option.name}>
-              {option.name}
-            </SelectItem>
-          ))
-        ) : (
-          <SelectItem value="no-options" disabled>No options available</SelectItem>
-        )}
-      </SelectContent>
-    </Select>
-  </div>
-</RadioGroup>
+                  <SelectContent>
+                    {isLoadingOptions ? (
+                      <SelectItem value="loading" disabled>Loading...</SelectItem>
+                    ) : options.length > 0 ? (
+                      options.map((option) => (
+                        <SelectItem key={option.id} value={option.name}>
+                          {option.name}
+                        </SelectItem>
+                      ))
+                    ) : (
+                      <SelectItem value="no-options" disabled>No options available</SelectItem>
+                    )}
+                  </SelectContent>
+                </Select>
+              </div>
+            </RadioGroup>
 
             {/* {errors.alamatResepsi && <p className="text-red-500 text-sm mt-1">{errors.alamatResepsi}</p>} */}
           </div>

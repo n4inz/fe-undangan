@@ -32,6 +32,8 @@ const Detail = ({ params }) => {
 
   const [orderImageStatus, setOrderImageStatus] = useState(false);
 
+  const [fileName, setFileName] = useState('');
+
 
   const fetchData = async () => {
     try {
@@ -40,6 +42,10 @@ const Detail = ({ params }) => {
       });
       setFormData(response.data.form);
       setIsAdmin(response.data.isAdmin);
+
+      if (response.data.form.fileZip != null) {
+        setFileName(response.data.form.fileZip);
+    }
       // console.log(response.data);
     } catch (error) {
       console.error('Error fetching data:', error);
@@ -58,6 +64,11 @@ const Detail = ({ params }) => {
     const downloadUrl = `${process.env.NEXT_PUBLIC_API_URL}/download-images/${params.formId}`;
     window.open(downloadUrl, '_blank');
   };
+  const downloadZip = () => {
+    // Open the download link in a new tab
+    const downloadUrl = `${process.env.NEXT_PUBLIC_API_URL}/download-zip/${params.formId}`;
+    window.open(downloadUrl, '_blank');
+  };
 
   useEffect(() => {
     fetchData();
@@ -73,7 +84,6 @@ const Detail = ({ params }) => {
       toast({
         description: "Form Data Updated."
       });
-      console.log("TESTSTSTTST")
       // Replace URL to remove the success parameter
       const url = new URL(window.location);
       url.searchParams.delete('success');
@@ -474,6 +484,37 @@ const Detail = ({ params }) => {
             />
 
             {/* {errors.alamatResepsi && <p className="text-red-500 text-sm mt-1">{errors.alamatResepsi}</p>} */}
+          </div>
+
+          <div className="mb-4">
+            <label className="block text-gray-700">
+              Upload ZIP File (Max 1)
+            </label>
+
+            {fileName && (
+              <div className="relative max-w-[150px] rounded border border-gray-300 overflow-hidden">
+                {/* Remove button */}
+
+                <div className="flex justify-center p-2">
+                  <Image
+                    src="/images/icon-zip.png"
+                    alt="Image description"
+                    width={40}
+                    height={40}
+                    className="rounded-full"
+                  />
+                </div>
+                <div className="px-4 py-2">
+                  <p className="text-gray-700 text-xs">
+                    {fileName || 'file_name.zip'}
+                  </p>
+                  {/* Progress bar */}
+                  <div className="relative pt-1 text-center">
+                    <Button className="text-xs" onClick={() => downloadZip()}>Downlod ZIP</Button>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
 
           <div className="mb-4">

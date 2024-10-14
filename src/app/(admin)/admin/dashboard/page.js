@@ -40,7 +40,9 @@ const Dashboard = () => {
   const [chartData, setChartData] = useState([]);
 
   const fetchData = async () => {
-    const response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/count-form`);
+    const response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/count-form`, {
+      withCredentials: true, // Include credentials (cookies, authentication) with the request
+  });
     setChartData(response.data);
   };
 

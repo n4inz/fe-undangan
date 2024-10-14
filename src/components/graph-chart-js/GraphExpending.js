@@ -30,7 +30,7 @@ const GraphExpending = () => {
     const [periods, setPeriods] = useState(4); // Default number of periods to fetch
 
     const fetchExpendingData = async () => {
-        const response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/expend-graph?range=${range}&periods=${periods}`);
+        const response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/expend-graph?range=${range}&periods=${periods}`, { withCredentials: true });
         setExpendingData(response.data);
     };
 
@@ -69,69 +69,69 @@ const GraphExpending = () => {
 
 
             {/* Line Chart for Expending Data */}
-            
-                <Card>
-                    <CardHeader>
-                        <CardTitle>Expending Graph</CardTitle>
-                        <CardDescription>
-                            Total spending for the selected periods.
-                        </CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                        {/* Range selection */}
-                        <div className="flex justify-center items-center mb-4 space-x-4">
-                            <div>
-                                <label className="block text-gray-700 mb-2">Select Range: </label>
-                                <Select
-                                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring focus:ring-indigo-200"
-                                    value={range}
-                                    onValueChange={(value) => setRange(value)} // Correct the onChange to onValueChange for Radix 
-                                >
-                                    <SelectTrigger>
-                                        <SelectValue placeholder="Select Range" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        <SelectItem value="weekly">Weekly</SelectItem>
-                                        <SelectItem value="monthly">Monthly</SelectItem>
-                                        <SelectItem value="yearly">Yearly</SelectItem>
-                                    </SelectContent>
-                                </Select>
-                            </div>
 
-                            {/* Number of periods */}
-                            <div>
-                                <label className="block text-gray-700 mb-2">Select Number of Periods: </label>
-                                <Input
-                                    type="number"
-                                    value={periods}
-                                    onChange={(e) => setPeriods(e.target.value)}
-                                    min="1"
-                                    max="52"
-                                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring focus:ring-indigo-200"
-                                />
-                            </div>
+            <Card>
+                <CardHeader>
+                    <CardTitle>Expending Graph</CardTitle>
+                    <CardDescription>
+                        Total spending for the selected periods.
+                    </CardDescription>
+                </CardHeader>
+                <CardContent>
+                    {/* Range selection */}
+                    <div className="flex justify-center items-center mb-4 space-x-4">
+                        <div>
+                            <label className="block text-gray-700 mb-2">Select Range: </label>
+                            <Select
+                                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring focus:ring-indigo-200"
+                                value={range}
+                                onValueChange={(value) => setRange(value)} // Correct the onChange to onValueChange for Radix 
+                            >
+                                <SelectTrigger>
+                                    <SelectValue placeholder="Select Range" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="weekly">Weekly</SelectItem>
+                                    <SelectItem value="monthly">Monthly</SelectItem>
+                                    <SelectItem value="yearly">Yearly</SelectItem>
+                                </SelectContent>
+                            </Select>
                         </div>
 
-                        {/* Line chart displaying the expending data */}
-                        <div className="bg-white p-6 rounded-lg shadow-md w-full"> {/* Make the container full width */}
-                            <Line
-                                data={lineChartData}
-                                options={{
-                                    responsive: true, // Ensure the chart is responsive
-                                    maintainAspectRatio: false, // Disable aspect ratio to allow dynamic resizing
-                                    plugins: {
-                                        title: {
-                                            display: true,
-                                            text: `Total Spending for Last ${periods} ${range.charAt(0).toUpperCase() + range.slice(1)} Periods`,
-                                        },
-                                    },
-                                }}
-                                height={400} // You can adjust the height as needed
+                        {/* Number of periods */}
+                        <div>
+                            <label className="block text-gray-700 mb-2">Select Number of Periods: </label>
+                            <Input
+                                type="number"
+                                value={periods}
+                                onChange={(e) => setPeriods(e.target.value)}
+                                min="1"
+                                max="52"
+                                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring focus:ring-indigo-200"
                             />
                         </div>
+                    </div>
 
-                    </CardContent>
-                </Card>
+                    {/* Line chart displaying the expending data */}
+                    <div className="bg-white p-6 rounded-lg shadow-md w-full"> {/* Make the container full width */}
+                        <Line
+                            data={lineChartData}
+                            options={{
+                                responsive: true, // Ensure the chart is responsive
+                                maintainAspectRatio: false, // Disable aspect ratio to allow dynamic resizing
+                                plugins: {
+                                    title: {
+                                        display: true,
+                                        text: `Total Spending for Last ${periods} ${range.charAt(0).toUpperCase() + range.slice(1)} Periods`,
+                                    },
+                                },
+                            }}
+                            height={400} // You can adjust the height as needed
+                        />
+                    </div>
+
+                </CardContent>
+            </Card>
         </>
     );
 };
