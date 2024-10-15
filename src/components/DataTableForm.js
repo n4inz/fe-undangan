@@ -166,7 +166,22 @@ const DataTableForm = ({ initialStatus, onDataUpdate }) => {
         ),
         wrap: true, // Allows text to wrap and avoid overflow
       }
-    ] : []),
+    ] : [
+      {
+        name: 'Status',
+        cell: row => (
+          <select value={row.statusForm} disabled> 
+            {/* Add options for different status values */}
+            <option value="0">Todo</option>
+            <option value="1">In Progress</option>
+            <option value="2">Review</option>
+            <option value="3">Done</option>
+            {/* ... more options */}
+          </select>
+        ),
+        wrap: true, // Allows text to wrap and avoid overflow
+      }
+    ]),
     {
       name: 'Action',
       cell: row => (
