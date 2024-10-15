@@ -41,8 +41,12 @@ const Login = () => {
       // Cookies.set('token', response.data.token, { expires: 30 }); // Adjust according to your token structure
       if (response.status === 200) {
         Cookies.set('client_token', response.data.token, { expires: 7 });
-
-        router.push(`/admin/dashboard`);
+        if(response.data.isAdmin == 1){
+          router.push(`/admin/dashboard`);
+        }else{
+          router.push(`/admin/list`);
+        }
+        
       } else {
         setStatus(true); // Handle login failure
       }

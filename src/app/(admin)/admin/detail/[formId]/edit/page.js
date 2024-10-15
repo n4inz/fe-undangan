@@ -1,5 +1,5 @@
 "use client"
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import Image from 'next/image';
 import { z } from 'zod';
 // import LoadingSpinner from '../components/LoadingSpinner'; // Adjust the path as needed
@@ -12,14 +12,12 @@ import { Button } from '@/components/ui/button';
 import { ClipLoader } from 'react-spinners'; // Import the spinner
 import { useRouter } from 'next/navigation';
 // import { XMarkIcon } from '@heroicons/react/24/solid';
-import { BiLeftArrow, BiLeftArrowAlt, BiX } from "react-icons/bi";
+import { BiLeftArrowAlt, BiX } from "react-icons/bi";
 import { mainSchema } from '@/lib/validation'
 import { Loader2 } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger } from '@/components/ui/select';
 import { getTema } from '@/lib/tema';
 import { SelectValue } from '@radix-ui/react-select';
-import { DropdownMenuItem } from '@radix-ui/react-dropdown-menu';
-import { toast } from '@/components/ui/use-toast';
 
 const formatDateTime = (datetime) => {
     if (!datetime) return '';
@@ -43,12 +41,81 @@ const EditDetail = ({ params }) => {
     const [options, setOptions] = useState([]); // Store options for the Select component
     const [mounted, setMounted] = useState(false); // Track if component is mounted
 
+    const [selectedFile, setSelectedFile] = useState(null);
+    const [progress, setProgress] = useState(0);
+    const [fileName, setFileName] = useState('');
+    const [isUploading, setIsUploading] = useState(false);
+    const [uploadComplete, setUploadComplete] = useState(false); // Track if upload is complete
+
+    const handleFileChange = async (event) => {
+        const file = event.target.files[0]; // Get only the first file
+        if (file) {
+            setSelectedFile(file);
+            setFileName(file.name); // Set the file name to be displayed
+            await handleUpload(file); // Automatically trigger upload
+        }
+    };
+
+    const handleUpload = async (file) => {
+        if (!file) {
+            console.error('No file selected for upload.');
+            return;
+        }
+
+        const zipData = new FormData();
+        zipData.append('file', file); // Make sure the file is valid
+
+        setIsUploading(true); // Set uploading state to true
+
+        try {
+            setUploadComplete(true);
+            const response = await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/upload-zip`, zipData, {
+                headers: {
+                    'Content-Type': 'multipart/form-data',
+                },
+                onUploadProgress: (progressEvent) => {
+                    const percentCompleted = Math.round(
+                        (progressEvent.loaded * 100) / progressEvent.total
+                    );
+                    setProgress(percentCompleted); // Update progress state
+                },
+                withCredentials: true, // Include credentials with the request
+            });
+
+
+            // Safely set formData to include the uploaded file
+            setFormData((prevFormData) => ({
+                ...prevFormData,
+                fileZip: response.data.file, // Assuming the server returns the uploaded file's name/path in `response.data.file`
+            }));
+        } catch (error) {
+            console.error('There was an error uploading the file:', error);
+            setUploadComplete(true);
+        } finally {
+            setIsUploading(false); // Reset uploading state
+        }
+    };
+
+
     const handleChange = (e) => {
         const { name, value } = e.target;
         setFormData({
             ...formData,
             [name]: value,
         });
+    };
+
+    const handleRemoveZip = () => {
+        // Reset states related to the uploaded file
+        setSelectedFile(null);
+        setFileName('');
+        setProgress(0);
+        setUploadComplete(false);
+
+        setFormData((prevFormData) => ({
+            ...prevFormData,
+            fileZip: null, // Set fileZip to null
+        }));
     };
 
 
@@ -58,7 +125,7 @@ const EditDetail = ({ params }) => {
 
         try {
             // Validate the form data using your schema
-            console.log(formData);
+            console.log("submitted formData: ", formData);
             mainSchema.parse(formData);
             setErrors({}); // Reset errors if validation passes
 
@@ -131,6 +198,12 @@ const EditDetail = ({ params }) => {
             }
 
             // Set the updated form data in a single setFormData call
+            if (fetchedFormData.fileZip != null) {
+                setSelectedFile(fetchedFormData.fileZip);
+                setFileName(fetchedFormData.fileZip);
+                setUploadComplete(true);
+                setProgress(100);
+            }
             setFormData(updatedFormData);
         } catch (error) {
             console.error('Error fetching data:', error);
@@ -164,9 +237,15 @@ const EditDetail = ({ params }) => {
         }
     }, [mounted]);
 
+    useEffect(() => {
+        console.log("Updated formData: ", formData);
+    }, [formData]);
+
     if (!mounted || isLoadingOptions) {
         return <div>Loading...</div>;
     }
+
+
 
     return (
         <>
@@ -631,6 +710,66 @@ const EditDetail = ({ params }) => {
                             {/* {errors.alamatResepsi && <p className="text-red-500 text-sm mt-1">{errors.alamatResepsi}</p>} */}
                         </div>
 
+                        <div className="mb-4">
+                            <label className="block text-gray-700">
+                                Upload ZIP File (Max 1)
+                            </label>
+                            {!uploadComplete && (
+                                <input
+                                    type="file"
+                                    accept=".zip"
+                                    onChange={handleFileChange}
+                                    multiple={false} // Prevent multiple file selection
+                                />
+                            )}
+
+                            {selectedFile && (
+                                <div className="relative max-w-[150px] rounded border border-gray-300 overflow-hidden">
+                                    {/* Remove button */}
+                                    {uploadComplete && (
+                                        <button
+                                            type="button"
+                                            onClick={() => handleRemoveZip()} // Add this function to remove image
+                                            className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1 hover:bg-red-600 z-50"
+                                            aria-label="Remove image"
+                                        >
+                                            <BiX className="h-4 w-4" />
+                                        </button>
+                                    )}
+                                    <div className="flex justify-center p-2">
+                                        <Image
+                                            src="/images/icon-zip.png"
+                                            alt="Image description"
+                                            width={40}
+                                            height={40}
+                                            className="rounded-full"
+                                        />
+                                    </div>
+                                    <div className="px-4 py-2">
+                                        <p className="text-gray-700 text-xs">
+                                            {fileName || 'file_name.zip'}
+                                        </p>
+                                        {/* Progress bar */}
+                                        <div className="relative pt-1">
+                                            <div className="overflow-hidden h-2 mb-1 text-xs flex rounded bg-gray-200">
+                                                <div
+                                                    className="shadow-none flex flex-col text-center whitespace-nowrap text-white justify-center bg-blue-500"
+                                                    style={{ width: `${progress}%` }} // Set progress percentage dynamically
+                                                ></div>
+                                            </div>
+                                            <p className="text-gray-500 text-xs text-right">{progress}%</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+
+
+                            {isUploading && <p>Uploading...</p>} {/* Show status if uploading */}
+                        </div>
+
+
+
+
 
 
                         <Button type="submit" className="bg-blue-500 text-white px-4 py-2 rounded-lg" disabled={isLoading}>
@@ -647,8 +786,8 @@ const EditDetail = ({ params }) => {
                         {Object.keys(errors).length > 0 && <p className="text-red-500 text-sm mt-1">Semua Form (<span className="text-lg">*</span>) harus diisi</p>}
                     </form>
 
-                </div>
-            </div>
+                </div >
+            </div >
         </>
     );
 

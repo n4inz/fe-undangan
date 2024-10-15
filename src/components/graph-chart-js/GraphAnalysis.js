@@ -26,7 +26,10 @@ const AnalysisGraph = () => {
         // Fetch analysis data from API
         const fetchData = async () => {
             try {
-                const response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/analysis-graph?range=${range}&periods=${periods}`);
+                const response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/analysis-graph?range=${range}&periods=${periods}`,
+                    {
+                        withCredentials: true, // Include credentials (cookies, authentication) with the request
+                    });
                 setAnalysisData(response.data);
             } catch (error) {
                 console.error('Error fetching analysis data:', error);
@@ -51,9 +54,9 @@ const AnalysisGraph = () => {
                     .map((item) => item.difference),
                 fill: false,
                 borderColor: analysisData
-                .slice()
-                .reverse()
-                .map((item) => item.difference < 0 ? 'red' : 'green'),
+                    .slice()
+                    .reverse()
+                    .map((item) => item.difference < 0 ? 'red' : 'green'),
                 tension: 0.1,
                 segment: {
                     borderColor: (ctx) => {
@@ -63,8 +66,8 @@ const AnalysisGraph = () => {
                 },
             }
         ],
-    };    
-    
+    };
+
 
     return (
         <Card>

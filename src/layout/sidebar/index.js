@@ -106,7 +106,9 @@ export default function Sidebar({ authenticated }) {
                     </Link>
                 </div>
                 <div className="flex flex-col">
-                    <MenuItem name="Dashboard" route="/admin/dashboard" icon={<SlHome />} />
+                    {isAdmin === 1 &&
+                        <MenuItem name="Dashboard" route="/admin/dashboard" icon={<SlHome />} />
+                    }
                     <MenuItem name="List" route="/admin/list" icon={<FaListUl />} />
                     <MenuItem name="MyList" route="/admin/mylist" icon={<FaClipboardList />} />
                     {isAdmin === 1 &&
