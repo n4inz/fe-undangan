@@ -4,7 +4,7 @@ import Link from "next/link";
 import { redirect, useRouter } from "next/navigation";
 import { SlHome } from "react-icons/sl";
 import { FaListUl, FaClipboardList } from "react-icons/fa";
-import { BiLogOut, BiUser, BiMenu, BiMoney } from "react-icons/bi";
+import { BiLogOut, BiUser, BiMenu, BiMoney, BiHeartSquare } from "react-icons/bi";
 import Image from "next/image";
 
 import logo from "../../../public/logo/Sewa.png";
@@ -34,7 +34,7 @@ export default function Sidebar({ authenticated }) {
 
     useEffect(() => {
         fetchUserStatus();
-        console.log("CHECK: " + authenticated)
+        console.log("CHECK: " + authenticated);
     }, []);
 
     // Define base class for sidebar
@@ -73,7 +73,7 @@ export default function Sidebar({ authenticated }) {
     const handleLogout = async () => {
         try {
             await axios.get(process.env.NEXT_PUBLIC_API_URL + "/logout", { withCredentials: true });
-            Cookies.remove('client_token')
+            Cookies.remove('client_token');
             router.push("/login");
         } catch (error) {
             console.error("Logout failed:", error);
@@ -105,7 +105,8 @@ export default function Sidebar({ authenticated }) {
                         />
                     </Link>
                 </div>
-                <div className="flex flex-col">
+                {/* Scrollable menu items */}
+                <div className="flex flex-col overflow-y-auto max-h-[calc(100vh-150px)]">
                     {isAdmin === 1 &&
                         <MenuItem name="Dashboard" route="/admin/dashboard" icon={<SlHome />} />
                     }
@@ -115,6 +116,7 @@ export default function Sidebar({ authenticated }) {
                         <>
                             <MenuItem name="Staff" route="/admin/staff" icon={<BiUser />} />
                             <MenuItem name="Expending" route="/admin/expending" icon={<BiMoney />} />
+                            <MenuItem name="Tema" route="/admin/tema" icon={<BiHeartSquare />} />
                         </>
                     }
                     <MenuItem name="Logout" route="#logout" icon={<BiLogOut />} onClick={handleLogout} />

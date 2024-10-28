@@ -47,3 +47,8 @@ export const expendSchema = z.object({
     .regex(/^[\d+\s-]+$/, { message: "Total spending mengharuskan angka" })
     .refine((val) => val !== "", { message: "Total spending harus diisi" }),
 });
+
+export const themeSchema = z.object({
+  name: requeiredInput,
+  link: requeiredInput,
+})
