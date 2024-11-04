@@ -1,29 +1,27 @@
 'use client';
 import React, { useState, useEffect } from "react";
 import { z } from 'zod';
-// import LoadingSpinner from '../components/LoadingSpinner'; // Adjust the path as needed
 import { Input } from '@/components/ui/input';
 import axios from "axios";
 import { Button } from "@/components/ui/button";
 import { Loader2 } from "lucide-react";
-import { themeSchema } from '@/lib/validation'
+import { themeSchema } from '@/lib/validation';
 import { useRouter } from "next/navigation";
 import { toast } from "@/components/ui/use-toast";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
-
-// import { BiX } from "react-icons/bi";
+import Image from "next/image";
 
 const FormTema = ({ params }) => {
-
   const router = useRouter();
-
   const [formData, setFormData] = useState({
     name: '',
     link: '',
   });
-  const [isLoading, setIsLoading] = useState(false); // Add loading state
+  const [isLoading, setIsLoading] = useState(false);
   const [errors, setErrors] = useState({});
+  const [coverImage, setCoverImage] = useState(null); // State to hold selected cover image
+  const [subcoverImage, setSubcoverImage] = useState(null); // State to hold selected subcover image
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -31,46 +29,62 @@ const FormTema = ({ params }) => {
       ...formData,
       [name]: value,
     });
-    // console.log(formData.datetimeAkad)
+  };
+
+  const handleImageChange = (e) => {
+    const { name, files } = e.target;
+    const file = files[0];
+    if (file) {
+      const imageUrl = URL.createObjectURL(file);
+      if (name === 'cover') {
+        setCoverImage(imageUrl); // Set cover image URL
+      } else if (name === 'subcover') {
+        setSubcoverImage(imageUrl); // Set subcover image URL
+      }
+    }
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsLoading(true);
+
     try {
-      themeSchema.parse(formData);
+      themeSchema.parse(formData); // Validate the form data
       setErrors({});
 
-      let response;
+      const data = new FormData(); // Create a new FormData instance
+      data.append("name", formData.name);
+      data.append("link", formData.link);
+      data.append("totalWeddingPhoto", formData.totalWeddingPhoto);
 
+      // Append cover and subcover images if they exist
+      if (coverImage) data.append("cover", document.querySelector("input[name='cover']").files[0]);
+      if (subcoverImage) data.append("subcover", document.querySelector("input[name='subcover']").files[0]);
+
+      let response;
       switch (params.action) {
         case 'add':
-          response = await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/add-tema`, formData, {
+          response = await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/add-tema`, data, {
             withCredentials: true,
+            headers: { 'Content-Type': 'multipart/form-data' }
           });
-          toast({
-            title: "Theme Added",
-          });
+          toast({ title: "Theme Added" });
           break;
-
         case 'edit':
-          response = await axios.put(`${process.env.NEXT_PUBLIC_API_URL}/tema/${params.dataId}`, formData, {
+          response = await axios.put(`${process.env.NEXT_PUBLIC_API_URL}/tema/${params.dataId}`, data, {
             withCredentials: true,
+            headers: { 'Content-Type': 'multipart/form-data' }
           });
-          toast({
-            title: "Theme Updated",
-          });
+          toast({ title: "Theme Updated" });
           break;
-
         default:
           throw new Error('Invalid action');
       }
 
       setIsLoading(false);
-      router.push('/admin/tema')
+      router.push('/admin/tema');
     } catch (error) {
-      setIsLoading(false)
-      // } catch (error) {
+      setIsLoading(false);
       if (error instanceof z.ZodError) {
         const fieldErrors = {};
         error.errors.forEach(err => {
@@ -81,19 +95,32 @@ const FormTema = ({ params }) => {
         if (firstErrorField) {
           firstErrorField.scrollIntoView({ behavior: 'smooth', block: 'center' });
         }
-        // console.log(fieldErrors);
       } else {
         console.error('An unexpected error occurred:', error);
       }
     }
-  }
+  };
 
   const fetchData = async () => {
     try {
       const response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/tema/${params.dataId}`, {
-        withCredentials: true, // Correct way to include credentials
+        withCredentials: true,
       });
-      setFormData(response.data.tema);
+      const data = response.data.data;
+
+      // Convert totalWeddingPhoto to a string
+      setFormData({
+        ...data,
+        totalWeddingPhoto: String(data.totalWeddingPhoto), // Ensure it's a string
+      });
+
+      // Set cover and subcover images if available
+      if (data.ssCover) {
+        setCoverImage(`${process.env.NEXT_PUBLIC_API_URL}/images/${data.ssCover}`);
+      }
+      if (data.ssSubcover) {
+        setSubcoverImage(`${process.env.NEXT_PUBLIC_API_URL}/images/${data.ssSubcover}`);
+      }
     } catch (error) {
       console.error('Error fetching data:', error);
     }
@@ -103,22 +130,13 @@ const FormTema = ({ params }) => {
     if (params.action === 'edit') {
       fetchData();
     }
-  }, []); // Include params.action and params.userId as dependencies
-
-  useEffect(() => {
-    console.log(formData); // Log formData whenever it changes
-  }, [formData]);
+  }, []);
 
   return (
     <>
       <div className="h-10 bg-white border-b w-full"></div>
       <div className="flex min-h-screen mx-4">
-        {/* Sidebar */}
-        <div className="fixed md:relative z-40 w-64 h-full bg-gray-800 md:block hidden">
-          {/* <Sidebar /> */}
-        </div>
-
-        {/* Main Content */}
+        <div className="fixed md:relative z-40 w-64 h-full bg-gray-800 md:block hidden"></div>
         <div className="flex flex-col flex-grow w-full md:pl-24">
           <h1 className="my-4">
             {params.action === 'edit' ? 'Edit Tema' : 'Tambah Tema'}
@@ -153,8 +171,19 @@ const FormTema = ({ params }) => {
                 name="cover"
                 accept="image/*"
                 className="mt-1 p-2 w-full border border-gray-300 rounded-lg"
+                onChange={handleImageChange} // Handle cover image change
               />
             </div>
+            {coverImage && (
+              <div className="mt-4">
+                <Image
+                  src={coverImage}
+                  alt="Selected Cover"
+                  width={100}
+                  height={100}
+                  className="w-64 h-64 object-contain border mt-2 mb-4" />
+              </div>
+            )}
             <div className="mb-4">
               <label className="block text-gray-700">Screenshot Subcover</label>
               <Input
@@ -162,23 +191,31 @@ const FormTema = ({ params }) => {
                 name="subcover"
                 accept="image/*"
                 className="mt-1 p-2 w-full border border-gray-300 rounded-lg"
+                onChange={handleImageChange} // Handle subcover image change
               />
             </div>
+            {subcoverImage && (
+              <div className="mt-4">
+                <Image src={subcoverImage}
+                  alt="Selected Subcover"
+                  width={100}
+                  height={100}
+                  className="w-64 h-64 object-contain border mt-2 mb-4" />
+              </div>
+            )}
             <div className="mb-4">
-            <label className="block text-gray-700">
-              Jumlah Foto Mempelai
-            </label>
-            <RadioGroup defaultValue={'2'} name="jumlahFotoMempelai">
-              <div className="flex items-center space-x-2">
-                <RadioGroupItem value="1" id="1" />
-                <Label htmlFor="1">1 Foto</Label>
-              </div>
-              <div className="flex items-center space-x-2">
-                <RadioGroupItem value="2" id="2" />
-                <Label htmlFor="2">2 Foto</Label>
-              </div>
-            </RadioGroup>
-          </div>
+              <label className="block text-gray-700">Jumlah Foto Mempelai</label>
+              <RadioGroup value={formData.totalWeddingPhoto} name="totalWeddingPhoto" onValueChange={(value) => handleChange({ target: { name: 'totalWeddingPhoto', value } })}>
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="1" id="1" />
+                  <Label htmlFor="1">1 Foto</Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="2" id="2" />
+                  <Label htmlFor="2">2 Foto</Label>
+                </div>
+              </RadioGroup>
+            </div>
             <div className="flex justify-start">
               <Button
                 type="submit"
@@ -200,8 +237,6 @@ const FormTema = ({ params }) => {
       </div>
     </>
   );
-
-
 }
 
 export default FormTema;
