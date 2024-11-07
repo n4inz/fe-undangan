@@ -41,9 +41,9 @@ const Success = ({params}) => {
         </div>
         <div className='flex mt-4 items-center'>
 
-          <Link type="button" href={pathname+'/share-my-detail-acara'} className="bg-slate-500 hover:bg-slate-700 text-white font-bold py-2 px-4 rounded-full flex items-center">
+          <Link type="button" href={pathname+'/atur-foto-v2'} className="bg-slate-500 hover:bg-slate-700 text-white font-bold py-2 px-4 rounded-full flex items-center">
             <BiPhotoAlbum className="h-6 w-6 mr-2" />
-            Atur Urutan Foto
+            Atur Foto
           </Link>
 
           

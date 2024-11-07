@@ -3,6 +3,8 @@ import { z } from 'zod';
 const requeiredInput = z.string().min(1, { message: "Form harus diisi" });
 const requeiredTgl = z.string().min(1, { message: "Date is required" }).refine(val => !isNaN(Date.parse(val)), { message: "Invalid date" });
 
+const optionalField = z.string().optional();
+
 export const mainSchema = z.object({
   name: requeiredInput,
   namaLengkapPria: requeiredInput,
@@ -26,7 +28,8 @@ export const mainSchema = z.object({
 })
 
 export const schema = z.object({
-...mainSchema.shape,
+  ...mainSchema.shape,
+  idTema: z.string().or(z.number()).optional(), // Accepts either string or number, making it optional
 }).catchall(z.string()); // Allow additional fields of type string
 
 

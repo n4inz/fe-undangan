@@ -1,10 +1,12 @@
+// AWAL KETEMU
 import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import { Button } from "../ui/button";
 import axios from "axios";
 import { useParams } from "next/navigation";
+import placeholder from "../../../public/images/placeholder.png";
 
-const StepOne = ({ nextStep, formData, setFormData, onFormChange, partName }) => {
+const StepG = ({ number, nextStep, formData, setFormData, onFormChange, partName }) => {
   const params = useParams();
   const [uploading, setUploading] = useState(false);
   const [selectedImage, setSelectedImage] = useState(formData.imageUrl || null);
@@ -70,11 +72,9 @@ const StepOne = ({ nextStep, formData, setFormData, onFormChange, partName }) =>
             "Content-Type": "multipart/form-data",
           },
         });
-
         setSelectedImage(null);
         setFile(null);
         onFormChange();
-
         nextStep();
       } catch (error) {
         console.error("Error uploading the image", error);
@@ -94,16 +94,23 @@ const StepOne = ({ nextStep, formData, setFormData, onFormChange, partName }) =>
 
       const imagesData = response.data.data;
 
-      if (imagesData && imagesData.length > 0) {
-        const imageUrl = `${process.env.NEXT_PUBLIC_API_URL}/images/${imagesData[0].fileImage}`;
+      if (imagesData && Array.isArray(imagesData) && imagesData.length > 0) {
+        let imageUrl;
+        if (imagesData[0].fileImage) {
+          imageUrl = `${process.env.NEXT_PUBLIC_API_URL}/images/${imagesData[0].fileImage}`;
+        } else {
+          console.error('Image data does not contain expected fields');
+          return;
+        }
+
         console.log(imageUrl);
         setSelectedImage(imageUrl);
-        setUploading(false); // Ensure uploading state is reset properly
-        setFile(1)
-        onFormChange(); // Ensure this function does what you intend after state updates
+        setUploading(false);
+        setFile(1);
+        onFormChange();
       } else {
         console.error('No images found');
-        setUploading(false); // Reset uploading state in case of no images
+        setUploading(false);
       }
     } catch (error) {
       console.error('Error fetching data:', error);
@@ -119,17 +126,16 @@ const StepOne = ({ nextStep, formData, setFormData, onFormChange, partName }) =>
 
   return (
     <div className="p-4 text-center flex-grow">
-      <h2 className="text-xl font-semibold">{partName}</h2>
+      <h2 className="text-xl font-semibold">{number}. {partName}</h2>
 
       <div className="flex items-center justify-center mb-4">
         <Image
-          src={selectedImage ? selectedImage : `https://fakeimg.pl/150x200?text=${partName}`}
+          src={selectedImage ? selectedImage : `${placeholder.src}`}
           alt="Cover"
           width={300}
           height={350}
           className="mt-4"
         />
-
       </div>
 
       <div className="flex justify-center gap-x-4">
@@ -152,4 +158,4 @@ const StepOne = ({ nextStep, formData, setFormData, onFormChange, partName }) =>
   );
 };
 
-export default StepOne;
+export default StepG;

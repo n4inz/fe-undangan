@@ -58,7 +58,8 @@ const Home = () => {
         opsiAkad: 'Wanita',
         opsiResepsi: 'Wanita',
         penempatanTulisan: 'Wanita',
-        pilihanTema: 'Admin'
+        pilihanTema: 'Admin',
+        idTema: null, // For storing the selected theme ID
       };
     } else {
       return {}; // Fallback for server-side rendering
@@ -103,72 +104,6 @@ const Home = () => {
     });
   };
 
-  const handleImageChange = async (e) => {
-    setIsLoading(true)
-    setIsLoadingImage(true);
-    const newFiles = Array.from(e.target.files);
-
-    const nonImageFiles = newFiles.filter(file => !file.type.startsWith('image/'));
-
-    if (nonImageFiles.length > 0) {
-      setErrors({ ...errors, images: "Only image files are allowed" });
-      setIsLoadingImage(false);
-      setIsLoading(false)
-      return;
-    }
-
-    // Limit to 20 images (including previously displayed images)
-    if (images.length + newFiles.length > 20) {
-      setErrors({ ...errors, images: "Maksimal upload adalah 20 foto" });
-      setIsLoadingImage(false);
-      setIsLoading(false)
-      return;
-    }
-
-    // Add new files to displayed images
-    setImages([...images, ...newFiles]);
-    setNewFiles(newFiles); // Set newFiles for uploading
-    setErrors({ ...errors, images: undefined });
-
-    const fd = new FormData();
-    newFiles.forEach((file) => {
-      fd.append('files', file);
-    });
-
-    try {
-      const response = await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/forms-upload-temp`, fd, {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
-      });
-      console.log('Files uploaded successfully:', response);
-      setFilePath(prevFilePaths => [...prevFilePaths, ...response.data.filePaths]);
-      // Redirect to /[formId]/[phoneNumber]/success
-      // router.push(`/${response.data.id}/${response.data.nomorWa}/success`);
-    } catch (error) {
-      console.error('Error uploading files:', error);
-    } finally {
-      setIsLoadingImage(false);
-      setIsLoading(false)
-      // e.target.value = '';
-    }
-  };
-
-
-  const handleRemoveImage = (index) => {
-    setIsLoadingImage(true);
-    setImages(prev => {
-      const updatedImages = [...prev]; // Create a copy of the current images
-      updatedImages.splice(index, 1); // Remove the image at the specified index
-      setErrors({ ...errors, images: undefined });
-      return updatedImages;
-    });
-    setFilePath(prev => {
-      const updatedFilePaths = [...prev];
-      updatedFilePaths.splice(index, 1);
-      return updatedFilePaths;
-    });
-  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -183,16 +118,7 @@ const Home = () => {
       // Combine formData, images, and filePaths into a single object
 
       fd.append('data', JSON.stringify(formData))
-      fd.append('images', JSON.stringify(filePath))
 
-      // //   console.log("FormData:", formData);
-      // // console.log("Images:", images);
-      // console.log("FilePaths:", filePath);
-      // // console.log("Combined Data:", combinedData);
-      // // console.log("FormData object entries:");
-      // for (let [key, value] of fd.entries()) {
-      //   console.log(key, value);
-      // }
       const response = await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/forms`, fd, {
         headers: {
           'Content-Type': 'application/json',
@@ -211,35 +137,42 @@ const Home = () => {
           setIsLoading(false)
         });
     } catch (error) {
-      setIsLoading(false)
-      // } catch (error) {
       if (error instanceof z.ZodError) {
         const fieldErrors = {};
         error.errors.forEach(err => {
           fieldErrors[err.path[0]] = err.message;
         });
+        console.log('Validation errors:', fieldErrors); // Log specific validation errors
         setErrors(fieldErrors);
         const firstErrorField = document.querySelector(`[name="${error.errors[0].path[0]}"]`);
         if (firstErrorField) {
           firstErrorField.scrollIntoView({ behavior: 'smooth', block: 'center' });
         }
-        console.log(fieldErrors)
-        // console.log(fieldErrors);
       } else {
         console.error('An unexpected error occurred:', error);
       }
     }
+
   };
 
-  const handleRadioChange = (group, value) => {
-    setFormData((prevValues) => ({
-      ...prevValues,
-      [group]: value,
+  const [selectedTema, setSelectedTema] = useState(formData.idTema ? { id: formData.idTema, name: formData.pilihanTema } : null);
+
+  const handleSelectChange = (id, name) => {
+    setSelectedTema({ id, name }); // Store the selected theme in selectedTema
+    setFormData((prevData) => ({
+      ...prevData,
+      idTema: String(id), // Convert idTema to a string here
     }));
   };
 
-  const handleSelectChange = (value) => {
-    setFormData({ ...formData, pilihanTema: value });
+  const handleRadioChange = (value) => {
+    setFormData((prevData) => ({
+      ...prevData,
+      pilihanTema: value,
+    }));
+    if (value !== "Lainnya") {
+      setSelectedTema(null); // Clear selectedTema if "Lainnya" is not selected
+    }
   };
 
   useEffect(() => {
@@ -435,7 +368,7 @@ const Home = () => {
           <div className="mb-4">
             <label className="block text-gray-700">Alamat Mempelai Wanita
 
-            <br />
+              <br />
               Ex: Jl Jambu  Selatan No 123
             </label>
             <Input
@@ -583,9 +516,9 @@ const Home = () => {
 
           </div>
           <div className="mb-4">
-            <label className="block text-gray-700">
+            <Label className="block text-gray-700">
               Username Instagram (Pria & Wanita)
-            </label>
+            </Label>
             <Input
               type="text"
               name="usernameIg"
@@ -595,9 +528,9 @@ const Home = () => {
             />
           </div>
           <div className="mb-4">
-            <label className="block text-gray-700">
+            <Label className="block text-gray-700">
               Nomor Rekening Jika ada tamu ingin kirim hadiah (Nama Bank Dan atas nama rekening)
-            </label>
+            </Label>
             <Input
               type="text"
               name="noRek"
@@ -607,9 +540,9 @@ const Home = () => {
             />
           </div>
           <div className="mb-4">
-            <label className="block text-gray-700">
+            <Label className="block text-gray-700">
               Alamat Rumah Jika ada Pengiriman Hadiah Dari tamu Undangan
-            </label>
+            </Label>
             <Input
               type="text"
               name="alamatHadiah"
@@ -619,7 +552,7 @@ const Home = () => {
             />
           </div>
           <div className="mb-4">
-            <label className="block text-gray-700">Ceritakan awal bertemu</label>
+            <Label className="block text-gray-700">Ceritakan awal bertemu</Label>
             <Textarea
               name="ceritaAwal"
               value={formData.ceritaAwal}
@@ -628,7 +561,7 @@ const Home = () => {
             />
           </div>
           <div className="mb-4">
-            <label className="block text-gray-700">Ceritakan awal jadian</label>
+            <Label className="block text-gray-700">Ceritakan awal jadian</Label>
             <Textarea
               name="ceritaJadian"
               value={formData.ceritaJadian}
@@ -637,7 +570,7 @@ const Home = () => {
             />
           </div>
           <div className="mb-4">
-            <label className="block text-gray-700">Ceritakan awal lamaran</label>
+            <Label className="block text-gray-700">Ceritakan awal lamaran</Label>
             <Textarea
               name="ceritaLamaran"
               value={formData.ceritaLamaran}
@@ -646,9 +579,9 @@ const Home = () => {
             />
           </div>
           <div className="mb-4">
-            <label className="block text-gray-700">
+            <Label className="block text-gray-700">
               Link Maps / Sharelok lokasi acara (Akad/Pemberkatan)
-            </label>
+            </Label>
             <Input
               type="text"
               name="linkSherlokAkad"
@@ -687,18 +620,18 @@ const Home = () => {
             </RadioGroup>
           </div>
           <div className="mb-4">
-            <label className="block text-gray-700">
+            <Label className="block text-gray-700">
               Pilihan Thema Ceknya di{' '}
               <a href='https://sewaundangan.com/#chat_me' target='_blank' rel='noopener noreferrer' className="text-blue-500 hover:underline">
                 Sewaundangan.com
               </a>
               <span className='text-red-500'>*</span>
-            </label>
+            </Label>
 
             <RadioGroup
               value={formData.pilihanTema}
               name="pilihanTema"
-              onValueChange={(value) => handleChange({ target: { name: 'pilihanTema', value } })}
+              onValueChange={(value) => handleRadioChange(value)}
             >
               <div className="flex items-center space-x-2">
                 <RadioGroupItem value="Admin" id="PilihanAdmin" />
@@ -710,22 +643,25 @@ const Home = () => {
                 <Label htmlFor="LainnyaPilihanTema">Lainnya</Label>
 
                 <Select
-                  value={formData.LainnyaPilihanTema || ''} // Add a value binding to ensure controlled input
-                  name='LainnyaPilihanTema'
-                  onValueChange={(value) => handleChange({ target: { name: 'LainnyaPilihanTema', value } })} // Update the value in formData when changed
+                  value={selectedTema ? selectedTema.id : ''}
+                  onValueChange={(value) => {
+                    const selectedOption = options.find((option) => option.id === value);
+                    if (selectedOption) {
+                      handleSelectChange(selectedOption.id, selectedOption.name);
+                    }
+                  }}
                   disabled={formData.pilihanTema !== "Lainnya"}
                   className="w-full h-6 border border-gray-300 rounded-lg"
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="Pilih Tema" />
                   </SelectTrigger>
-
                   <SelectContent>
                     {isLoadingOptions ? (
                       <SelectItem value="loading" disabled>Loading...</SelectItem>
                     ) : options.length > 0 ? (
                       options.map((option) => (
-                        <SelectItem key={option.id} value={option.name}>
+                        <SelectItem key={option.id} value={option.id}>
                           {option.name}
                         </SelectItem>
                       ))
@@ -739,89 +675,6 @@ const Home = () => {
 
             {/* {errors.alamatResepsi && <p className="text-red-500 text-sm mt-1">{errors.alamatResepsi}</p>} */}
           </div>
-
-          <div className="mb-4">
-            <label className="block text-gray-700">Upload Foto Yang Ingin Di Tampilkan (Max. 20)</label>
-            <input
-              type="file"
-              name="images"
-              multiple
-              accept="image/*"
-              onChange={handleImageChange}
-              className="mt-1 p-2 w-full border border-gray-300 rounded-lg"
-            />
-            {errors.images && <p className="text-red-500 text-sm mt-1">{errors.images}</p>}
-          </div>
-          <div className="flex flex-wrap gap-2 mb-4">
-            {images.map((file, index) => (
-              <div key={index} className="relative w-24 h-24">
-                {isLoadingImage && (
-                  <div className="absolute inset-0 flex items-center justify-center bg-gray-200">
-                    <ClipLoader size={20} color="#000" /> {/* Spinner */}
-                  </div>
-                )}
-                <Image
-                  src={URL.createObjectURL(file)}
-                  alt={`Preview ${index}`}
-                  fill
-                  className="rounded-lg border border-gray-300"
-                  unoptimized
-                  onError={() => setIsLoadingImage(false)} // Hide spinner on error
-                  onLoad={() => setIsLoadingImage(true)} // Hide spinner when image loads
-                  // onLoadingComplete={() => setIsLoadingImage(false)} // Hide spinner when image loads
-                  quality={50}
-                />
-                <button
-                  type="button"
-                  onClick={() => handleRemoveImage(index)}
-                  className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1 hover:bg-red-600"
-                  aria-label="Remove image"
-                >
-                  <BiX className="h-4 w-4" />
-                </button>
-              </div>
-            ))}
-          </div>
-
-
-
-
-          {/* <div className="mb-4">
-            <label className="block text-gray-700">Phone Number:</label>
-            <input
-              type="text"
-              name="phone"
-              value={formData.phone}
-              onChange={handleChange}
-              className="mt-1 p-2 w-full border border-gray-300 rounded-lg"
-            />
-            {errors.phone && <p className="text-red-500 text-sm mt-1">{errors.phone}</p>}
-          </div>
-          <div className="mb-4">
-            <label className="block text-gray-700">Keterangan:</label>
-            <Textarea
-              name="keterangan"
-              value={formData.keterangan}
-              onChange={handleChange}
-              className="mt-1 p-2 w-full border border-gray-300 rounded-lg"
-            />
-            {errors.keterangan && <p className="text-red-500 text-sm mt-1">{errors.keterangan}</p>}
-          </div> */}
-
-          {/* <div className="flex flex-wrap gap-2 mb-4">
-            {formData.images.map((file, index) => (
-              <div key={index} className="relative w-24 h-24">
-                <Image
-                  src={URL.createObjectURL(file)}
-                  alt={`Preview ${index}`}
-                  layout="fill"
-                  objectFit="cover"
-                  className="rounded-lg border border-gray-300"
-                  unoptimized
-                />
-              </div>
-            ))}
-          </div> */}
 
           <Button type="submit" className="bg-blue-500 text-white px-4 py-2 rounded-lg" disabled={isLoading}>
             {isLoading ? (
