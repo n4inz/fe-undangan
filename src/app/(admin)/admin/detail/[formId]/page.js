@@ -385,7 +385,6 @@ const Detail = ({ params }) => {
               type="text"
               name="namaRekening"
               value={formData.namaRekening}
-              onChange={handleChange}
               className="mt-1 p-2 w-full border border-gray-300 rounded-lg"
             />
           </div>
@@ -397,7 +396,6 @@ const Detail = ({ params }) => {
               type="text"
               name="noRek"
               value={formData.noRek}
-              onChange={handleChange}
               className="mt-1 p-2 w-full border border-gray-300 rounded-lg"
             />
           </div>
