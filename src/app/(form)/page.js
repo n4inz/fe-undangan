@@ -59,7 +59,7 @@ const Home = () => {
         opsiResepsi: 'Wanita',
         penempatanTulisan: 'Wanita',
         pilihanTema: 'Admin',
-        idTema: null, // For storing the selected theme ID
+        idTema: null,
       };
     } else {
       return {}; // Fallback for server-side rendering
@@ -78,6 +78,7 @@ const Home = () => {
   const [filePath, setFilePath] = useState([]);
   // const [displayedImages, setDisplayedImages] = useState([]);
   const [options, setOptions] = useState([]); // Store options for the Select component
+  const [selectedTema, setSelectedTema] = useState(null);
 
   // Only run this after the component has mounted (client-side)
   useEffect(() => {
@@ -125,7 +126,6 @@ const Home = () => {
         },
       })
         .then(response => {
-          console.log('Files uploaded successfully:', response);
           //redirect to /[formId]/[phoneNumber]/success
           localStorage.removeItem('formData');
           // setFormData(null); // Update state to reflect the change
@@ -137,6 +137,7 @@ const Home = () => {
           setIsLoading(false)
         });
     } catch (error) {
+      setIsLoading(false)
       if (error instanceof z.ZodError) {
         const fieldErrors = {};
         error.errors.forEach(err => {
@@ -155,13 +156,12 @@ const Home = () => {
 
   };
 
-  const [selectedTema, setSelectedTema] = useState(formData.idTema ? { id: formData.idTema, name: formData.pilihanTema } : null);
 
   const handleSelectChange = (id, name) => {
     setSelectedTema({ id, name }); // Store the selected theme in selectedTema
     setFormData((prevData) => ({
       ...prevData,
-      idTema: String(id), // Convert idTema to a string here
+      idTema: id, // Convert idTema to a string here
     }));
   };
 
@@ -181,11 +181,21 @@ const Home = () => {
     }));
   }, []);
 
+  // Fetch the options first, then set the selected tema based on formData.idTema
   useEffect(() => {
     const fetchOptions = async () => {
       try {
         const data = await getTema();
-        setOptions(data || []); // Ensure data is an array, even if it's undefined
+        setOptions(data || []); 
+
+        // Set selectedTema after options are loaded
+        if (formData.idTema) {
+          const theme = data.find((option) => option.id === formData.idTema);
+          if (theme) {
+            setSelectedTema({ id: theme.id, name: theme.name });
+          }
+        }
+
       } catch (error) {
         console.error('Error fetching tema options:', error);
         setOptions([]); // Ensure options remains an array in case of error
