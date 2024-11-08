@@ -539,7 +539,20 @@ const Home = () => {
           </div>
           <div className="mb-4">
             <Label className="block text-gray-700">
-              Nomor Rekening Jika ada tamu ingin kirim hadiah (Nama Bank Dan atas nama rekening)
+              Nama Rekening Jika ada tamu ingin kirim hadiah (Nama Bank Dan atas nama rekening)
+            </Label>
+            <Input
+              type="text"
+              name="namaRekening"
+              value={formData.namaRekening}
+              onChange={handleChange}
+              className="mt-1 p-2 w-full border border-gray-300 rounded-lg"
+              placeholder="Nama Bank a/n Nasabah"
+            />
+          </div>
+          <div className="mb-4">
+            <Label className="block text-gray-700">
+              Nomor Rekening
             </Label>
             <Input
               type="text"
@@ -547,6 +560,7 @@ const Home = () => {
               value={formData.noRek}
               onChange={handleChange}
               className="mt-1 p-2 w-full border border-gray-300 rounded-lg"
+              placeholder="012345xxxx"
             />
           </div>
           <div className="mb-4">

@@ -45,7 +45,7 @@ const Detail = ({ params }) => {
 
       if (response.data.form.fileZip != null) {
         setFileName(response.data.form.fileZip);
-    }
+      }
       // console.log(response.data);
     } catch (error) {
       console.error('Error fetching data:', error);
@@ -379,13 +379,25 @@ const Detail = ({ params }) => {
           </div>
           <div className="mb-4">
             <label className="block text-gray-700">
-              Nomor Rekening Jika ada tamu ingin kirim hadiah (Nama Bank Dan atas nama rekening)
+              Nama Rekening Jika ada tamu ingin kirim hadiah (Nama Bank Dan atas nama rekening)
+            </label>
+            <Input
+              type="text"
+              name="namaRekening"
+              value={formData.namaRekening}
+              onChange={handleChange}
+              className="mt-1 p-2 w-full border border-gray-300 rounded-lg"
+            />
+          </div>
+          <div className="mb-4">
+            <label className="block text-gray-700">
+              Nomor Rekening
             </label>
             <Input
               type="text"
               name="noRek"
               value={formData.noRek}
-
+              onChange={handleChange}
               className="mt-1 p-2 w-full border border-gray-300 rounded-lg"
             />
           </div>
@@ -547,13 +559,13 @@ const Detail = ({ params }) => {
                     className="rounded-lg border border-gray-300 object-cover"
                     unoptimized
                   />
+                  <div className="absolute bottom-0 left-0 w-full bg-black bg-opacity-50 p-2">
+                    <p className="text-white text-sm font-bold">{src.partName}</p>
+                  </div>
                 </div>
               </div>
             ))}
           </div>
-
-
-
         </div>
       </div>
     </>

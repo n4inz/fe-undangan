@@ -566,7 +566,19 @@ const EditDetail = ({ params }) => {
                         </div>
                         <div className="mb-4">
                             <label className="block text-gray-700">
-                                Nomor Rekening Jika ada tamu ingin kirim hadiah (Nama Bank Dan atas nama rekening)
+                                Nama Rekening Jika ada tamu ingin kirim hadiah (Nama Bank Dan atas nama rekening)
+                            </label>
+                            <Input
+                                type="text"
+                                name="namaRekening"
+                                value={formData.namaRekening}
+                                onChange={handleChange}
+                                className="mt-1 p-2 w-full border border-gray-300 rounded-lg"
+                            />
+                        </div>
+                        <div className="mb-4">
+                            <label className="block text-gray-700">
+                                Nomor Rekening
                             </label>
                             <Input
                                 type="text"
