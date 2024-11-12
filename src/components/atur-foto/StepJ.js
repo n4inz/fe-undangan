@@ -115,7 +115,7 @@ const StepJ = ({ number, nextStep, formData, setFormData, onFormChange, partName
   return (
     <div className="p-4 text-center flex-grow">
       <h2 className="text-xl font-semibold">
-        {number}. {partName}
+        {number}. {partName} (Max. 5 Foto)
       </h2>
 
       <div className="flex flex-wrap items-center justify-center mb-4 gap-4">
@@ -162,7 +162,7 @@ const StepJ = ({ number, nextStep, formData, setFormData, onFormChange, partName
           multiple
         />
         <Button onClick={() => fileInputRef.current.click()} disabled={uploading}>
-          {images.length > 0 ? "Change Photos" : "Upload Photos"}
+          {images.length > 0 ? "Ganti Foto" : "Upload Photos"}
         </Button>
         <Button onClick={handleUploadClick} disabled={uploading || (images.length === 0 && newFiles.length === 0)}>
           {uploading ? "Uploading..." : "Selanjutnya"}

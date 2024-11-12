@@ -186,7 +186,7 @@ const Home = () => {
     const fetchOptions = async () => {
       try {
         const data = await getTema();
-        setOptions(data || []); 
+        setOptions(data || []);
 
         // Set selectedTema after options are loaded
         if (formData.idTema) {
@@ -511,6 +511,35 @@ const Home = () => {
             {/* {errors.alamatResepsi && <p className="text-red-500 text-sm mt-1">{errors.alamatResepsi}</p>} */}
           </div>
 
+          <div className="mb-4">
+            <label className="block text-gray-700">
+              Masukkan Nama Provinsi
+              <br></br>
+              Ex: DKI Jakarta
+            </label>
+            <Input
+              type="text"
+              name="provinsi"
+              value={formData.provinsi}
+              onChange={handleChange}
+              className="mt-1 p-2 w-full border border-gray-300 rounded-lg"
+            />
+          </div>
+          <div className="mb-4">
+            <label className="block text-gray-700">
+              Masukkan Nama Kota / Kabupaten
+              <br></br>
+              Ex: Jakarta Pusat
+            </label>
+            <Input
+              type="text"
+              name="kota"
+              value={formData.kota}
+              onChange={handleChange}
+              className="mt-1 p-2 w-full border border-gray-300 rounded-lg"
+            />
+          </div>
+
           {/* OPTIONAL */}
           <div className="mb-4">
             <label className="block text-gray-700">
@@ -526,9 +555,9 @@ const Home = () => {
 
           </div>
           <div className="mb-4">
-            <Label className="block text-gray-700">
+            <label className="block text-gray-700">
               Username Instagram (Pria & Wanita)
-            </Label>
+            </label>
             <Input
               type="text"
               name="usernameIg"
@@ -538,9 +567,9 @@ const Home = () => {
             />
           </div>
           <div className="mb-4">
-            <Label className="block text-gray-700">
+            <label className="block text-gray-700">
               Nama Rekening Jika ada tamu ingin kirim hadiah (Nama Bank Dan atas nama rekening)
-            </Label>
+            </label>
             <Input
               type="text"
               name="namaRekening"
@@ -551,9 +580,9 @@ const Home = () => {
             />
           </div>
           <div className="mb-4">
-            <Label className="block text-gray-700">
+            <label className="block text-gray-700">
               Nomor Rekening
-            </Label>
+            </label>
             <Input
               type="text"
               name="noRek"
@@ -564,9 +593,9 @@ const Home = () => {
             />
           </div>
           <div className="mb-4">
-            <Label className="block text-gray-700">
+            <label className="block text-gray-700">
               Alamat Rumah Jika ada Pengiriman Hadiah Dari tamu Undangan
-            </Label>
+            </label>
             <Input
               type="text"
               name="alamatHadiah"
@@ -576,7 +605,9 @@ const Home = () => {
             />
           </div>
           <div className="mb-4">
-            <Label className="block text-gray-700">Ceritakan awal bertemu</Label>
+            <label className="block text-gray-700">
+              Ceritakan awal bertemu
+            </label>
             <Textarea
               name="ceritaAwal"
               value={formData.ceritaAwal}
@@ -585,7 +616,7 @@ const Home = () => {
             />
           </div>
           <div className="mb-4">
-            <Label className="block text-gray-700">Ceritakan awal jadian</Label>
+            <label className="block text-gray-700">Ceritakan awal jadian</label>
             <Textarea
               name="ceritaJadian"
               value={formData.ceritaJadian}
@@ -594,7 +625,7 @@ const Home = () => {
             />
           </div>
           <div className="mb-4">
-            <Label className="block text-gray-700">Ceritakan awal lamaran</Label>
+            <label className="block text-gray-700">Ceritakan awal lamaran</label>
             <Textarea
               name="ceritaLamaran"
               value={formData.ceritaLamaran}
@@ -603,9 +634,9 @@ const Home = () => {
             />
           </div>
           <div className="mb-4">
-            <Label className="block text-gray-700">
+            <label className="block text-gray-700">
               Link Maps / Sharelok lokasi acara (Akad/Pemberkatan)
-            </Label>
+            </label>
             <Input
               type="text"
               name="linkSherlokAkad"
@@ -644,13 +675,13 @@ const Home = () => {
             </RadioGroup>
           </div>
           <div className="mb-4">
-            <Label className="block text-gray-700">
+            <label className="block text-gray-700">
               Pilihan Thema Ceknya di{' '}
               <a href='https://sewaundangan.com/#chat_me' target='_blank' rel='noopener noreferrer' className="text-blue-500 hover:underline">
                 Sewaundangan.com
               </a>
               <span className='text-red-500'>*</span>
-            </Label>
+            </label>
 
             <RadioGroup
               value={formData.pilihanTema}

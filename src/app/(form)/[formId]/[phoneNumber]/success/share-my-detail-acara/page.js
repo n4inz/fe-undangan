@@ -139,26 +139,26 @@ const DetailAcara = ({ params }) => {
               </p>
 
               <div className="grid grid-cols-2 gap-4 mb-4 mt-2">
-              {listImages.map((file, index) => (
-                <div
-                  key={index}
-                  className={`w-full max-w-xs rounded-lg border border-gray-300 ${selectedImageIndex.includes(index) ? 'ring-4 ring-blue-500 ring-offset-2 ring-offset-blue-200 shadow-lg shadow-blue-500/50' : ''}`}
-                  onClick={() => handleImageClick(index, file.fileImage, file.id)}
-                >
-                  <Image
-                    src={`${process.env.NEXT_PUBLIC_API_URL}/images/${file.fileImage}`}
-                    alt={`Image ${index}`}
-                    width={250}
-                    height={150}
-                    className="rounded-lg object-cover"
-                    unoptimized
-                  />
-                </div>
-              ))}
-            </div>
+                {listImages.map((file, index) => (
+                  <div
+                    key={index}
+                    className={`w-full max-w-xs rounded-lg border border-gray-300 ${selectedImageIndex.includes(index) ? 'ring-4 ring-blue-500 ring-offset-2 ring-offset-blue-200 shadow-lg shadow-blue-500/50' : ''}`}
+                    onClick={() => handleImageClick(index, file.fileImage, file.id)}
+                  >
+                    <Image
+                      src={`${process.env.NEXT_PUBLIC_API_URL}/images/${file.fileImage}`}
+                      alt={`Image ${index}`}
+                      width={250}
+                      height={150}
+                      className="rounded-lg object-cover"
+                      unoptimized
+                    />
+                  </div>
+                ))}
+              </div>
             </div>
 
-            
+
 
             <div className="flex justify-center">
               <Link href={pathname + '/table'} className='my-4 text-blue-600 underline'>Skip</Link>

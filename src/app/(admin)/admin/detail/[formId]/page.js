@@ -350,6 +350,34 @@ const Detail = ({ params }) => {
             />
             {/* {errors.alamatResepsi && <p className="text-red-500 text-sm mt-1">{errors.alamatResepsi}</p>} */}
           </div>
+          <div className="mb-4">
+            <label className="block text-gray-700">
+              Mauskkan Nama Provinsi
+              <br></br>
+              Ex: DKI Jakarta
+            </label>
+            <Input
+              type="text"
+              name="provinsi"
+              value={formData.provinsi}
+
+              className="mt-1 p-2 w-full border border-gray-300 rounded-lg"
+            />
+          </div>
+          <div className="mb-4">
+            <label className="block text-gray-700">
+              Mauskkan Nama Kota / Kabupaten
+              <br></br>
+              Ex: Jakarta Pusat
+            </label>
+            <Input
+              type="text"
+              name="kota"
+              value={formData.kota}
+
+              className="mt-1 p-2 w-full border border-gray-300 rounded-lg"
+            />
+          </div>
 
           {/* OPTIONAL */}
           <div className="mb-4">
