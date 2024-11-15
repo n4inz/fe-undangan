@@ -59,7 +59,6 @@ const Home = () => {
         opsiResepsi: 'Wanita',
         penempatanTulisan: 'Wanita',
         pilihanTema: 'Admin',
-        idTema: null,
       };
     } else {
       return {}; // Fallback for server-side rendering

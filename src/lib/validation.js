@@ -29,8 +29,8 @@ export const mainSchema = z.object({
 
 export const schema = z.object({
   ...mainSchema.shape,
-  idTema: z.string().or(z.number()).optional(), // Accepts either string or number, making it optional
-}).catchall(z.string()); // Allow additional fields of type string
+  // idTema: z.string().or(z.number()).optional(), // Accepts either string or number, making it optional
+}).catchall(z.union([z.string(), z.number()])); // Allows additional fields of type string or number
 
 
 export const loginSchema = z.object({
