@@ -555,12 +555,24 @@ const Home = () => {
           </div>
           <div className="mb-4">
             <label className="block text-gray-700">
-              Username Instagram (Pria & Wanita)
+              Username Instagram (Pria)
             </label>
             <Input
               type="text"
-              name="usernameIg"
-              value={formData.usernameIg}
+              name="usernameIgPria"
+              value={formData.usernameIgPria}
+              onChange={handleChange}
+              className="mt-1 p-2 w-full border border-gray-300 rounded-lg"
+            />
+          </div>
+          <div className="mb-4">
+            <label className="block text-gray-700">
+              Username Instagram (Wanita)
+            </label>
+            <Input
+              type="text"
+              name="usernameIgWanita"
+              value={formData.usernameIgWanita}
               onChange={handleChange}
               className="mt-1 p-2 w-full border border-gray-300 rounded-lg"
             />

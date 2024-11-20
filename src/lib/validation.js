@@ -1,7 +1,7 @@
 import { z } from 'zod';
 
 const requeiredInput = z.string().min(1, { message: "Form harus diisi" });
-const requeiredTgl = z.string().min(1, { message: "Date is required" }).refine(val => !isNaN(Date.parse(val)), { message: "Invalid date" });
+const requeiredDate = z.string().min(1, { message: "Date is required" }).refine(val => !isNaN(Date.parse(val)), { message: "Invalid date" });
 
 const optionalField = z.string().optional();
 
@@ -21,10 +21,10 @@ export const mainSchema = z.object({
     .string()
     .regex(/^[\d+\s-]+$/, { message: "Nomor telepon mengharuskan angka" })
     .refine((val) => val !== "", { message: "Nomor telepon harus diisi" }),
-  // tglLahirPria: requeiredTgl,
-  // tglLahirWanita: requeiredTgl,
-  datetimeAkad: requeiredTgl,
-  datetimeResepsi: requeiredTgl,
+  // tglLahirPria: requeiredDate,
+  // tglLahirWanita: requeiredDate,
+  datetimeAkad: requeiredDate,
+  datetimeResepsi: requeiredDate,
 })
 
 export const schema = z.object({
