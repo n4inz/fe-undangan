@@ -643,6 +643,15 @@ const EditDetail = ({ params }) => {
                         </div>
                         <div className="mb-4">
                             <label className="block text-gray-700">Ceritakan awal bertemu</label>
+                            <div className="md:w-1/2">
+                                <Input
+                                    name="dateCeritaAwal"
+                                    type="month"
+                                    id="month"
+                                    value={formData.dateCeritaAwal}
+                                    onChange={handleChange}
+                                />
+                            </div>
                             <Textarea
                                 name="ceritaAwal"
                                 value={formData.ceritaAwal}
@@ -652,6 +661,15 @@ const EditDetail = ({ params }) => {
                         </div>
                         <div className="mb-4">
                             <label className="block text-gray-700">Ceritakan awal jadian</label>
+                            <div className="md:w-1/2">
+                                <Input
+                                    name="dateCeritaJadian"
+                                    type="month"
+                                    id="month"
+                                    value={formData.dateCeritaJadian}
+                                    onChange={handleChange}
+                                />
+                            </div>
                             <Textarea
                                 name="ceritaJadian"
                                 value={formData.ceritaJadian}
@@ -661,6 +679,15 @@ const EditDetail = ({ params }) => {
                         </div>
                         <div className="mb-4">
                             <label className="block text-gray-700">Ceritakan awal lamaran</label>
+                            <div className="md:w-1/2">
+                                <Input
+                                    name="dateCeritaLamaran"
+                                    type="month"
+                                    id="month"
+                                    value={formData.dateCeritaLamaran}
+                                    onChange={handleChange}
+                                />
+                            </div>
                             <Textarea
                                 name="ceritaLamaran"
                                 value={formData.ceritaLamaran}
@@ -712,32 +739,53 @@ const EditDetail = ({ params }) => {
                         <div className="mb-4">
                             <label className="block text-gray-700">
                                 Pilihan Thema Ceknya di{' '}
-                                <a href='https://sewaundangan.com/#chat_me' target='_blank' rel='noopener noreferrer' className="text-blue-500 hover:underline">
+                                <a
+                                    href="https://sewaundangan.com/#chat_me"
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="text-blue-500 hover:underline"
+                                >
                                     Sewaundangan.com
                                 </a>
-                                <span className='text-red-500'>*</span>
+                                <span className="text-red-500">*</span>
                             </label>
 
                             <RadioGroup
                                 value={formData.pilihanTema}
                                 name="pilihanTema"
-                                onValueChange={(value) => handleChange({ target: { name: 'pilihanTema', value } })}
+                                onValueChange={(value) => {
+                                    setFormData((prev) => ({
+                                        ...prev,
+                                        pilihanTema: value,
+                                        ...(value !== "Lainnya" && { idTema: "", LainnyaPilihanTema: "" }), // Clear idTema and LainnyaPilihanTema if not "Lainnya"
+                                    }));
+                                }}
                             >
+                                {/* Admin Option */}
                                 <div className="flex items-center space-x-2">
                                     <RadioGroupItem value="Admin" id="PilihanAdmin" />
                                     <Label htmlFor="PilihanAdmin">Admin Pilihkan</Label>
                                 </div>
 
+                                {/* Lainnya Option */}
                                 <div className="flex items-center space-x-2">
                                     <RadioGroupItem value="Lainnya" id="LainnyaPilihanTema" />
                                     <Label htmlFor="LainnyaPilihanTema">Lainnya</Label>
 
+                                    {/* Select Box */}
                                     <Select
-                                        value={formData.LainnyaPilihanTema || ''} // Add a value binding to ensure controlled input
-                                        name='LainnyaPilihanTema'
-                                        onValueChange={(value) => handleChange({ target: { name: 'LainnyaPilihanTema', value } })} // Update the value in formData when changed
+                                        value={formData.idTema || ""}
+                                        onValueChange={(value) => {
+                                            const selectedOption = options.find((option) => option.id === value);
+                                            setFormData((prev) => ({
+                                                ...prev,
+                                                idTema: value, // Save the idTema for backend
+                                                LainnyaPilihanTema: selectedOption ? selectedOption.name : "", // Optional: Save the name for display
+                                            }));
+                                        }}
                                         disabled={formData.pilihanTema !== "Lainnya"}
-                                        className="w-full h-6 border border-gray-300 rounded-lg"
+                                        className={`w-full h-8 border ${formData.pilihanTema === "Lainnya" ? "border-gray-300" : "border-gray-200 cursor-not-allowed"
+                                            } rounded-lg`}
                                     >
                                         <SelectTrigger>
                                             <SelectValue placeholder="Pilih Tema" />
@@ -745,23 +793,27 @@ const EditDetail = ({ params }) => {
 
                                         <SelectContent>
                                             {isLoadingOptions ? (
-                                                <SelectItem value="loading" disabled>Loading...</SelectItem>
+                                                <SelectItem value="loading" disabled>
+                                                    Loading...
+                                                </SelectItem>
                                             ) : options.length > 0 ? (
                                                 options.map((option) => (
-                                                    <SelectItem key={option.id} value={option.name}>
+                                                    <SelectItem key={option.id} value={option.id}>
                                                         {option.name}
                                                     </SelectItem>
                                                 ))
                                             ) : (
-                                                <SelectItem value="no-options" disabled>No options available</SelectItem>
+                                                <SelectItem value="no-options" disabled>
+                                                    No options available
+                                                </SelectItem>
                                             )}
                                         </SelectContent>
                                     </Select>
                                 </div>
                             </RadioGroup>
 
-                            {/* {errors.alamatResepsi && <p className="text-red-500 text-sm mt-1">{errors.alamatResepsi}</p>} */}
                         </div>
+
 
                         <div className="mb-4">
                             <label className="block text-gray-700">

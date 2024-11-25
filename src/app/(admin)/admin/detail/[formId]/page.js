@@ -452,6 +452,14 @@ const Detail = ({ params }) => {
           </div>
           <div className="mb-4">
             <label className="block text-gray-700">Ceritakan awal bertemu</label>
+            <div className="md:w-1/2">
+              <Input
+                name="dateCeritaAwal"
+                type="month"
+                id="month"
+                value={formData.dateCeritaAwal}
+              />
+            </div>
             <Textarea
               name="ceritaAwal"
               value={formData.ceritaAwal}
@@ -461,6 +469,14 @@ const Detail = ({ params }) => {
           </div>
           <div className="mb-4">
             <label className="block text-gray-700">Ceritakan awal jadian</label>
+            <div className="md:w-1/2">
+              <Input
+                name="dateCeritaJadian"
+                type="month"
+                id="month"
+                value={formData.dateCeritaJadian}
+              />
+            </div>
             <Textarea
               name="ceritaJadian"
               value={formData.ceritaJadian}
@@ -470,6 +486,14 @@ const Detail = ({ params }) => {
           </div>
           <div className="mb-4">
             <label className="block text-gray-700">Ceritakan awal lamaran</label>
+            <div className="md:w-1/2">
+              <Input
+                name="dateCeritaLamaran"
+                type="month"
+                id="month"
+                value={formData.dateCeritaLamaran}
+              />
+            </div>
             <Textarea
               name="ceritaLamaran"
               value={formData.ceritaLamaran}

@@ -19,9 +19,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger } from '@/components/u
 import { getTema } from '@/lib/tema';
 import { SelectValue } from '@radix-ui/react-select';
 
-// Define the key for localStorage
-const FORM_DATA_KEY = 'formData';
-
 const formatDateTime = (datetime) => {
   if (!datetime) return '';
   const date = new Date(datetime);
@@ -29,72 +26,105 @@ const formatDateTime = (datetime) => {
   return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
 };
 
+const FORM_DATA_KEY = "formData";
+
+const isLocalStorageAccessible = () => {
+  try {
+    const testKey = "__test__";
+    window.localStorage.setItem(testKey, testKey);
+    window.localStorage.removeItem(testKey);
+    return true;
+  } catch (error) {
+    console.warn("LocalStorage is not accessible:", error);
+    return false;
+  }
+};
+
 const Home = () => {
   const router = useRouter();
 
   const [mounted, setMounted] = useState(false); // Track if component is mounted
-  // Set initial state for formData
-  const [formData, setFormData] = useState(() => {
-    // On first render, try to load form data from localStorage
-    if (typeof window !== "undefined") {
-      const savedFormData = localStorage.getItem(FORM_DATA_KEY);
-      return savedFormData ? JSON.parse(savedFormData) : {
-        name: '',
-        nomorWa: '',
-        namaLengkapPria: '',
-        namaPanggilanPria: '',
-        namaOrtuPria: '',
-        namaLengkapWanita: '',
-        namaPanggilanWanita: '',
-        namaOrtuWanita: '',
-        tempatLahirPria: '',
-        tempatLahirWanita: '',
-        tglLahirPria : '',
-        tglLahirWanita : '',
-        datetimeAkad: '',
-        datetimeResepsi: '',
-        alamatAkad: "",
-        alamatResepsi: "",
-        opsiAkad: 'Wanita',
-        opsiResepsi: 'Wanita',
-        penempatanTulisan: 'Wanita',
-        pilihanTema: 'Admin',
-      };
-    } else {
-      return {}; // Fallback for server-side rendering
-    }
-  });
-
-  const [images, setImages] = useState([]);
-
+  const [formData, setFormData] = useState({}); // Default empty object
   const [errors, setErrors] = useState({});
-
-  const [isLoading, setIsLoading] = useState(false); // Add loading state
+  const [isLoading, setIsLoading] = useState(false);
+  const [isLocalStorageAccessibleState, setIsLocalStorageAccessibleState] = useState(true);
+  const [options, setOptions] = useState([]);
+  const [selectedTema, setSelectedTema] = useState(null);
   const [isLoadingOptions, setIsLoadingOptions] = useState(true);
 
-  const [isLoadingImage, setIsLoadingImage] = useState(Array(images.length).fill(false)); // Initialize loading state for each image
-  const [newFiles, setNewFiles] = useState([]);
-  const [filePath, setFilePath] = useState([]);
-  // const [displayedImages, setDisplayedImages] = useState([]);
-  const [options, setOptions] = useState([]); // Store options for the Select component
-  const [selectedTema, setSelectedTema] = useState(null);
-
-  // Only run this after the component has mounted (client-side)
   useEffect(() => {
-    setMounted(true); // Indicate that the component has mounted
+    setMounted(true);
 
-    const savedFormData = localStorage.getItem(FORM_DATA_KEY);
-    if (savedFormData) {
-      setFormData(JSON.parse(savedFormData));
+    const localStorageAvailable = isLocalStorageAccessible();
+    setIsLocalStorageAccessibleState(localStorageAvailable);
+
+    if (localStorageAvailable) {
+      try {
+        const savedFormData = window.localStorage.getItem(FORM_DATA_KEY);
+        setFormData(
+          savedFormData
+            ? JSON.parse(savedFormData)
+            : {
+                name: "",
+                nomorWa: "",
+                namaLengkapPria: "",
+                namaPanggilanPria: "",
+                namaOrtuPria: "",
+                namaLengkapWanita: "",
+                namaPanggilanWanita: "",
+                namaOrtuWanita: "",
+                tempatLahirPria: "",
+                tempatLahirWanita: "",
+                tglLahirPria: "",
+                tglLahirWanita: "",
+                datetimeAkad: "",
+                datetimeResepsi: "",
+                alamatAkad: "",
+                alamatResepsi: "",
+                opsiAkad: "Wanita",
+                opsiResepsi: "Wanita",
+                penempatanTulisan: "Wanita",
+                pilihanTema: "Admin",
+              }
+        );
+      } catch (error) {
+        console.warn("Error reading from localStorage:", error);
+      }
+    } else {
+      setFormData({
+        name: "",
+        nomorWa: "",
+        namaLengkapPria: "",
+        namaPanggilanPria: "",
+        namaOrtuPria: "",
+        namaLengkapWanita: "",
+        namaPanggilanWanita: "",
+        namaOrtuWanita: "",
+        tempatLahirPria: "",
+        tempatLahirWanita: "",
+        tglLahirPria: "",
+        tglLahirWanita: "",
+        datetimeAkad: "",
+        datetimeResepsi: "",
+        alamatAkad: "",
+        alamatResepsi: "",
+        opsiAkad: "Wanita",
+        opsiResepsi: "Wanita",
+        penempatanTulisan: "Wanita",
+        pilihanTema: "Admin",
+      });
     }
   }, []);
 
-  // Save form data to localStorage whenever formData changes
   useEffect(() => {
-    if (mounted) {
-      localStorage.setItem(FORM_DATA_KEY, JSON.stringify(formData));
+    if (mounted && isLocalStorageAccessibleState) {
+      try {
+        window.localStorage.setItem(FORM_DATA_KEY, JSON.stringify(formData));
+      } catch (error) {
+        console.warn("Error writing to localStorage:", error);
+      }
     }
-  }, [formData, mounted]);
+  }, [formData, mounted, isLocalStorageAccessibleState]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -104,57 +134,57 @@ const Home = () => {
     });
   };
 
-
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setIsLoading(true)
-    // console.log('Form submit triggered');
+    setIsLoading(true);
     try {
       schema.parse(formData);
 
-      setErrors({}); // Changed from setErrors([]) to setErrors({}) to match the initial state structure
+      setErrors({});
 
       const fd = new FormData();
-      // Combine formData, images, and filePaths into a single object
+      fd.append("data", JSON.stringify(formData));
 
-      fd.append('data', JSON.stringify(formData))
-
-      const response = await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/forms`, fd, {
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      })
-        .then(response => {
-          //redirect to /[formId]/[phoneNumber]/success
-          localStorage.removeItem('formData');
-          // setFormData(null); // Update state to reflect the change
-          router.push(`/${response.data.id}/${response.data.nomorWa}/success`)
-          // setIsLoading(false)
+      await axios
+        .post(`${process.env.NEXT_PUBLIC_API_URL}/forms`, fd, {
+          headers: {
+            "Content-Type": "application/json",
+          },
         })
-        .catch(error => {
-          console.error('Error uploading files:', error);
-          setIsLoading(false)
+        .then((response) => {
+          if (isLocalStorageAccessibleState) {
+            try {
+              window.localStorage.removeItem(FORM_DATA_KEY);
+            } catch (error) {
+              console.warn("Error removing localStorage item:", error);
+            }
+          }
+          router.push(`/${response.data.id}/${response.data.nomorWa}/success`);
+        })
+        .catch((error) => {
+          console.error("Error uploading files:", error);
+          setIsLoading(false);
         });
     } catch (error) {
-      setIsLoading(false)
+      setIsLoading(false);
       if (error instanceof z.ZodError) {
         const fieldErrors = {};
-        error.errors.forEach(err => {
+        error.errors.forEach((err) => {
           fieldErrors[err.path[0]] = err.message;
         });
-        console.log('Validation errors:', fieldErrors); // Log specific validation errors
+        console.log("Validation errors:", fieldErrors);
         setErrors(fieldErrors);
-        const firstErrorField = document.querySelector(`[name="${error.errors[0].path[0]}"]`);
+        const firstErrorField = document.querySelector(
+          `[name="${error.errors[0].path[0]}"]`
+        );
         if (firstErrorField) {
-          firstErrorField.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          firstErrorField.scrollIntoView({ behavior: "smooth", block: "center" });
         }
       } else {
-        console.error('An unexpected error occurred:', error);
+        console.error("An unexpected error occurred:", error);
       }
     }
-
   };
-
 
   const handleSelectChange = (id, name) => {
     setSelectedTema({ id, name }); // Store the selected theme in selectedTema
@@ -175,13 +205,6 @@ const Home = () => {
   };
 
   useEffect(() => {
-    setFormData((prevData) => ({
-      ...prevData,
-    }));
-  }, []);
-
-  // Fetch the options first, then set the selected tema based on formData.idTema
-  useEffect(() => {
     const fetchOptions = async () => {
       try {
         const data = await getTema();
@@ -194,9 +217,8 @@ const Home = () => {
             setSelectedTema({ id: theme.id, name: theme.name });
           }
         }
-
       } catch (error) {
-        console.error('Error fetching tema options:', error);
+        console.error("Error fetching tema options:", error);
         setOptions([]); // Ensure options remains an array in case of error
       } finally {
         setIsLoadingOptions(false);
@@ -204,12 +226,12 @@ const Home = () => {
     };
 
     fetchOptions();
-  }, []);
+  }, [formData.idTema]);
 
-  // If the component is not mounted, don't render anything (prevent SSR mismatch)
   if (!mounted) {
     return null;
   }
+
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-100">
