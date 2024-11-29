@@ -55,3 +55,6 @@ export const themeSchema = z.object({
   name: requeiredInput,
   link: requeiredInput,
 })
+export const assetSchema = z.object({
+  name: requeiredInput,
+})

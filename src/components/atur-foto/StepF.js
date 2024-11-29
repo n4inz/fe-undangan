@@ -1,4 +1,3 @@
-// GALLERY
 import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import { Button } from "../ui/button";
@@ -113,7 +112,15 @@ const StepF = ({ number, nextStep, formData, setFormData, onFormChange, partName
   }, []);
 
   return (
-    <div className="p-4 text-center flex-grow">
+    <div className="p-4 text-center flex-grow relative">
+      {/* Overlay when uploading */}
+      {uploading && (
+        <div className="absolute inset-0 bg-black bg-opacity-50 flex justify-center items-center z-10">
+          <div className="spinner"></div> {/* Spinner component */}
+          <span className="text-white text-xl ml-4">Uploading...</span>
+        </div>
+      )}
+
       <h2 className="text-xl font-semibold">
         {number}. {partName} (Max. 15 Foto)
       </h2>
@@ -167,7 +174,6 @@ const StepF = ({ number, nextStep, formData, setFormData, onFormChange, partName
         <Button onClick={handleUploadClick} disabled={uploading || (images.length === 0 && newFiles.length === 0)}>
           {uploading ? "Uploading..." : "Selanjutnya"}
         </Button>
-
       </div>
     </div>
   );

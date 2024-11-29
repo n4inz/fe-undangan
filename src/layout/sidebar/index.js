@@ -4,7 +4,7 @@ import Link from "next/link";
 import { redirect, useRouter } from "next/navigation";
 import { SlHome } from "react-icons/sl";
 import { FaListUl, FaClipboardList } from "react-icons/fa";
-import { BiLogOut, BiUser, BiMenu, BiMoney, BiHeartSquare } from "react-icons/bi";
+import { BiLogOut, BiUser, BiMenu, BiMoney, BiHeartSquare, BiImages } from "react-icons/bi";
 import Image from "next/image";
 
 import logo from "../../../public/logo/Sewa.png";
@@ -117,6 +117,7 @@ export default function Sidebar({ authenticated }) {
                             <MenuItem name="Staff" route="/admin/staff" icon={<BiUser />} />
                             <MenuItem name="Expending" route="/admin/expending" icon={<BiMoney />} />
                             <MenuItem name="Tema" route="/admin/tema" icon={<BiHeartSquare />} />
+                            <MenuItem name="Asset" route="/admin/asset" icon={<BiImages />} />
                         </>
                     }
                     <MenuItem name="Logout" route="#logout" icon={<BiLogOut />} onClick={handleLogout} />

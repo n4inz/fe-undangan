@@ -2,7 +2,7 @@
 import { useEffect, useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { BiEnvelope, BiEnvelopeOpen, BiPhone, BiX } from "react-icons/bi";
+import { BiEnvelope, BiPhone, BiX } from "react-icons/bi";
 import { usePathname } from 'next/navigation';
 import axios from 'axios';
 import DataTable from 'react-data-table-component';
@@ -22,6 +22,7 @@ const Result = ({ params }) => {
     const [isFullScreen, setIsFullScreen] = useState(false);
     const [fullScreenImage, setFullScreenImage] = useState(null);
     const [form, setForm] = useState([]);
+    const [loading, setLoading] = useState(false); // Loading state for full screen image
 
     const columns = [
         {
@@ -52,6 +53,7 @@ const Result = ({ params }) => {
     const handleImageClick = (imageUrl) => {
         setFullScreenImage(imageUrl);
         setIsFullScreen(true);
+        setLoading(true); // Start loading spinner when image is clicked
     };
 
     const handleCloseFullScreen = () => {
@@ -72,16 +74,13 @@ const Result = ({ params }) => {
         }
     };
 
+    const handleImageLoadComplete = () => {
+        setLoading(false); // Stop loading spinner once the image has loaded
+    };
+
     useEffect(() => {
         fetchData();
     }, []);
-
-    useEffect(() => {
-        if (form.slug) {
-            // The link will re-render whenever form.slug changes
-            console.log('form.slug changed:', form.slug); 
-        }
-    }, [form.slug]); // Dependency: form.slug
 
     return (
         <div className="flex items-center justify-center bg-gray-100">
@@ -113,12 +112,19 @@ const Result = ({ params }) => {
 
             {isFullScreen && (
                 <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-90 z-50">
+                    {/* Spinner appears while the image is loading */}
+                    {loading && (
+                        <div className="absolute flex items-center justify-center">
+                            <div className="w-12 h-12 border-4 border-t-4 border-gray-200 border-t-blue-600 rounded-full animate-spin"></div>
+                        </div>
+                    )}
                     <Image
                         src={fullScreenImage}
                         alt="Full Screen Image"
                         width={800}
                         height={800}
                         className="max-w-full max-h-full object-contain"
+                        onLoadingComplete={handleImageLoadComplete} // Trigger loading complete
                     />
                     <Button
                         onClick={handleCloseFullScreen}
