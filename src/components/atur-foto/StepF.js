@@ -79,17 +79,30 @@ const StepF = ({ number, nextStep, formData, setFormData, onFormChange, partName
     }
   };
 
-  const handleRemoveImage = async (idImage) => {
-    const updatedImages = images.filter(image => image.id !== idImage);
-    setImages(updatedImages);
-    setFormData((prev) => ({ ...prev, imageUrls: updatedImages.map(img => img.url) }));
-
+  const handleRemoveImage = async (id) => {
+    // Try to remove the image from the server first
     try {
-      await axios.delete(`${process.env.NEXT_PUBLIC_API_URL}/remove-image/${idImage}/${params.formId}/${params.phoneNumber}`);
+      const response = await axios.delete(`${process.env.NEXT_PUBLIC_API_URL}/remove-image/${id}`);
+      
+      // If the server deletion is successful, remove the image from the state
+      if (response.status === 200) {
+        const updatedImages = images.filter(image => image.id !== id);
+  
+        setImages(updatedImages);
+        setFormData((prev) => ({
+          ...prev,
+          imageUrls: updatedImages.map(img => img.url),
+        }));
+      } else {
+        // Handle unsuccessful server response
+        console.error("Failed to delete image on the server.");
+      }
     } catch (error) {
+      // Handle any errors that occur during the delete request
       console.error("Error removing image:", error);
     }
   };
+  
 
   const fetchData = async () => {
     try {
