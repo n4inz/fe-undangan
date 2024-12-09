@@ -15,6 +15,7 @@ const StepJ = ({ number, nextStep, formData, setFormData, onFormChange, partName
   const [images, setImages] = useState([]); // Store multiple images with URLs and IDs
   const [newFiles, setNewFiles] = useState([]); // Store files to upload
   const [errors, setErrors] = useState({});
+  const [remove, setRemove] = useState(false);
   const fileInputRef = useRef(null);
 
   const handleFileChange = (e) => {
@@ -82,13 +83,14 @@ const StepJ = ({ number, nextStep, formData, setFormData, onFormChange, partName
 
   const handleRemoveImage = async (id) => {
     // Try to remove the image from the server first
+    setRemove(true);
     try {
-      const response = await axios.delete(`${process.env.NEXT_PUBLIC_API_URL}/remove-image/${id}`);
-      
+      const response = await axios.delete(`${process.env.NEXT_PUBLIC_API_URL}/remove-image/${id}/${params.formId}/${params.phoneNumber}`);
+
       // If the server deletion is successful, remove the image from the state
       if (response.status === 200) {
         const updatedImages = images.filter(image => image.id !== id);
-  
+
         setImages(updatedImages);
         setFormData((prev) => ({
           ...prev,
@@ -101,6 +103,9 @@ const StepJ = ({ number, nextStep, formData, setFormData, onFormChange, partName
     } catch (error) {
       // Handle any errors that occur during the delete request
       console.error("Error removing image:", error);
+    }
+    finally{
+      setRemove(false);
     }
   };
   
@@ -147,13 +152,19 @@ const StepJ = ({ number, nextStep, formData, setFormData, onFormChange, partName
                 height={150}
                 className="rounded"
               />
+              {/* Conditionally render the spinner or the X button */}
               <button
                 type="button"
                 onClick={() => handleRemoveImage(image.id)}
                 className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1 hover:bg-red-600"
                 aria-label="Remove image"
+                disabled={uploading} // Disable the button when deleting
               >
-                <BiX className="h-4 w-4" />
+                {remove ? (
+                  <div className="w-4 h-4 border-4 border-t-transparent border-white rounded-full animate-spin"></div> // Spinner animation
+                ) : (
+                  <BiX className="h-4 w-4" />
+                )}
               </button>
             </div>
           ))
