@@ -136,11 +136,9 @@ const DataTableForm = ({ initialStatus, onDataUpdate }) => {
           <a
             href="#"
             onClick={(e) => {
-              e.preventDefault(); // Prevent opening a link
+              e.preventDefault();
               navigator.clipboard.writeText(row.linkUndangan);
-              toast({
-                title: "Link copied!",
-              });
+              toast({ title: "Link copied!" });
             }}
           >
             {row.linkUndangan}

@@ -1,3 +1,4 @@
+// GALLERY
 import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import { Button } from "../ui/button";
@@ -5,12 +6,14 @@ import axios from "axios";
 import { useParams } from "next/navigation";
 import placeholder from "../../../public/images/placeholder.png";
 import { BiX } from "react-icons/bi";
+import LoadingOverlay from "./LoadingOverlay"  // Import the LoadingOverlay component
 
 const StepF = ({ number, nextStep, formData, setFormData, onFormChange, partName }) => {
   const params = useParams();
   const [uploading, setUploading] = useState(false);
-  const [images, setImages] = useState([]); // Store multiple images with URLs and IDs
-  const [newFiles, setNewFiles] = useState([]); // Store files to upload
+  const [uploadProgress, setUploadProgress] = useState(0); // Track upload progress
+  const [images, setImages] = useState([]);
+  const [newFiles, setNewFiles] = useState([]);
   const [errors, setErrors] = useState({});
   const fileInputRef = useRef(null);
 
@@ -28,8 +31,8 @@ const StepF = ({ number, nextStep, formData, setFormData, onFormChange, partName
       return;
     }
 
-    setImages([...images, ...selectedFiles.map(file => ({ url: URL.createObjectURL(file), id: null }))]); // Add preview URLs with null IDs for new files
-    setNewFiles([...newFiles, ...selectedFiles]); // Add files to the upload list
+    setImages([...images, ...selectedFiles.map(file => ({ url: URL.createObjectURL(file), id: null }))]);
+    setNewFiles([...newFiles, ...selectedFiles]);
     setErrors({ ...errors, images: undefined });
   };
 
@@ -40,14 +43,13 @@ const StepF = ({ number, nextStep, formData, setFormData, onFormChange, partName
     }
 
     if (newFiles.length === 0 && images.length > 0) {
-      // Proceed to the next step if there are existing images but no new files
       nextStep();
       return;
     }
 
     setUploading(true);
     const fd = new FormData();
-    newFiles.forEach(file => fd.append("file", file)); // Ensure field name matches
+    newFiles.forEach(file => fd.append("file", file));
     fd.append('partName', partName);
 
     try {
@@ -57,6 +59,11 @@ const StepF = ({ number, nextStep, formData, setFormData, onFormChange, partName
         {
           headers: {
             "Content-Type": "multipart/form-data",
+          },
+          onUploadProgress: (progressEvent) => {
+            const { loaded, total } = progressEvent;
+            const percent = Math.floor((loaded / total) * 100);
+            setUploadProgress(percent);  // Update progress
           },
         }
       );
@@ -68,22 +75,17 @@ const StepF = ({ number, nextStep, formData, setFormData, onFormChange, partName
       console.error("Error uploading files:", error);
     } finally {
       setUploading(false);
+      setUploadProgress(0);  // Reset progress after upload
     }
   };
 
-  const handleRemoveImage = async (id) => {
-    // Remove the image URL from images using the ID
-    const updatedImages = images.filter(image => image.id !== id);
-
+  const handleRemoveImage = async (idImage) => {
+    const updatedImages = images.filter(image => image.id !== idImage);
     setImages(updatedImages);
-    setFormData((prev) => ({
-      ...prev,
-      imageUrls: updatedImages.map(img => img.url),
-    }));
+    setFormData((prev) => ({ ...prev, imageUrls: updatedImages.map(img => img.url) }));
 
-    // If you also want to remove it from the server, uncomment the lines below:
     try {
-      await axios.delete(`${process.env.NEXT_PUBLIC_API_URL}/remove-image/${id}`);
+      await axios.delete(`${process.env.NEXT_PUBLIC_API_URL}/remove-image/${idImage}/${params.formId}/${params.phoneNumber}`);
     } catch (error) {
       console.error("Error removing image:", error);
     }
@@ -92,14 +94,12 @@ const StepF = ({ number, nextStep, formData, setFormData, onFormChange, partName
   const fetchData = async () => {
     try {
       const response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/get-gallery/${params.formId}/${params.phoneNumber}`, {
-        params: {
-          partName: partName,
-        }
+        params: { partName }
       });
 
       const imagesData = response.data.data.map(item => ({
         url: `${process.env.NEXT_PUBLIC_API_URL}/images/${item.images.fileImage}`,
-        id: item.id // Assuming `id` is the key for image ID
+        id: item.id
       }));
       setImages(imagesData);
     } catch (error) {
@@ -112,14 +112,9 @@ const StepF = ({ number, nextStep, formData, setFormData, onFormChange, partName
   }, []);
 
   return (
-    <div className="p-4 text-center flex-grow relative">
-      {/* Overlay when uploading */}
-      {uploading && (
-        <div className="absolute inset-0 bg-black bg-opacity-50 flex justify-center items-center z-10">
-          <div className="spinner"></div> {/* Spinner component */}
-          <span className="text-white text-xl ml-4">Uploading...</span>
-        </div>
-      )}
+    <div className="relative min-h-screen p-4 text-center flex-grow">
+      {/* Use LoadingOverlay Component */}
+      {uploading && <LoadingOverlay progress={uploadProgress} />}
 
       <h2 className="text-xl font-semibold">
         {number}. {partName} (Max. 15 Foto)
@@ -129,13 +124,7 @@ const StepF = ({ number, nextStep, formData, setFormData, onFormChange, partName
         {images.length > 0 ? (
           images.map((image, index) => (
             <div key={image.id || index} className="relative mt-4">
-              <Image
-                src={image.url}
-                alt={`Preview ${index + 1}`}
-                width={150}
-                height={150}
-                className="rounded"
-              />
+              <Image src={image.url} alt={`Preview ${index + 1}`} width={150} height={150} className="rounded" />
               <button
                 type="button"
                 onClick={() => handleRemoveImage(image.id)}
@@ -147,19 +136,13 @@ const StepF = ({ number, nextStep, formData, setFormData, onFormChange, partName
             </div>
           ))
         ) : (
-          <Image
-            src={placeholder.src}
-            alt="Cover"
-            width={300}
-            height={350}
-            className="mt-4"
-          />
+          <Image src={placeholder.src} alt="Cover" width={300} height={350} className="mt-4" />
         )}
       </div>
 
       {errors.images && <p className="text-red-500">{errors.images}</p>}
 
-      <div className="flex justify-center gap-x-4">
+      <div className="flex justify-center gap-x-4 pb-4">
         <input
           type="file"
           ref={fileInputRef}

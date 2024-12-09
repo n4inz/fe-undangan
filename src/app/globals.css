@@ -127,4 +127,29 @@
     }
   }
 
+  @keyframes dotBlink {
+    0%, 100% {
+      opacity: 0;
+    }
+    50% {
+      opacity: 1;
+    }
+  }
+  
+  .dot {
+    display: inline-block;
+    animation: dotBlink 1.5s infinite step-start;
+  }
+  
+  .blink {
+    opacity: 0;
+  }
+  
+  .delay-200 {
+    animation-delay: 0.2s;
+  }
+  
+  .delay-400 {
+    animation-delay: 0.4s;
+  }
 

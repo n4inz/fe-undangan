@@ -80,6 +80,7 @@ const Asset = () => {
       selector: row => row.file,
       cell: row => (
         row.file ? (
+          <a href={`${process.env.NEXT_PUBLIC_API_URL}/asset/${row.file}`} target='_blank'>
           <Image
             src={`${process.env.NEXT_PUBLIC_API_URL}/asset/${row.file}`}
             alt={row.name}
@@ -87,6 +88,7 @@ const Asset = () => {
             height={50} // Set the height of the image
             style={{ objectFit: 'cover', marginRight: '10px' }} // Apply styles to the image
           />
+          </a>
         ) : (
           <span>No image</span>
         )

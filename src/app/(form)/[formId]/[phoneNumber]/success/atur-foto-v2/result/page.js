@@ -2,15 +2,15 @@
 import { useEffect, useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { BiEnvelope, BiPhone, BiX } from "react-icons/bi";
-import { usePathname } from 'next/navigation';
+import { BiEnvelope, BiPhone, BiX, BiArrowBack } from "react-icons/bi";
+import { useRouter } from 'next/navigation';  // Import the router hook
 import axios from 'axios';
 import DataTable from 'react-data-table-component';
 import { Button } from '@/components/ui/button';
 import { DialogModalForm } from '@/components/DialogModalForm';
 
 const Result = ({ params }) => {
-    const pathname = usePathname();
+    const router = useRouter();  // Initialize router
     const contactUrl = `https://wa.me/${process.env.NEXT_PUBLIC_WA_NUMBER}?text=Halo,%0ASaya%20ingin%20memesan%20undangan%20dengan%20kode%20id%20:%20${params.formId}`;
 
     const [data, setData] = useState([]);
@@ -22,7 +22,7 @@ const Result = ({ params }) => {
     const [isFullScreen, setIsFullScreen] = useState(false);
     const [fullScreenImage, setFullScreenImage] = useState(null);
     const [form, setForm] = useState([]);
-    const [loading, setLoading] = useState(false); // Loading state for full screen image
+    const [loading, setLoading] = useState(false);
 
     const columns = [
         {
@@ -46,14 +46,15 @@ const Result = ({ params }) => {
         },
         {
             name: 'Bagian',
-            cell: row => row.partName,
+            selector: row => row.partName,
+            sortable: true,
         },
     ];
 
     const handleImageClick = (imageUrl) => {
         setFullScreenImage(imageUrl);
         setIsFullScreen(true);
-        setLoading(true); // Start loading spinner when image is clicked
+        setLoading(true);
     };
 
     const handleCloseFullScreen = () => {
@@ -67,7 +68,7 @@ const Result = ({ params }) => {
             setData(response.data.images);
             setForm({
                 ...response.data.form,
-                slug: `${process.env.NEXT_PUBLIC_LINK_UNDANGAN}/${response.data.form.slug}` 
+                slug: `${process.env.NEXT_PUBLIC_LINK_UNDANGAN}/${response.data.form.slug}?to=Nama Tamu` 
             });
         } catch (error) {
             console.error('Error fetching data:', error);
@@ -75,26 +76,43 @@ const Result = ({ params }) => {
     };
 
     const handleImageLoadComplete = () => {
-        setLoading(false); // Stop loading spinner once the image has loaded
+        setLoading(false);
     };
 
     useEffect(() => {
         fetchData();
     }, []);
 
+    const handleBackButtonClick = () => {
+        // Navigate to the given URL when the back button is clicked
+        router.push(`/${params.formId}/${params.phoneNumber}/success/atur-foto-v2`);
+    };
+
     return (
         <div className="flex items-center justify-center bg-gray-100">
             <div className="h-full min-h-screen bg-white rounded-lg shadow-lg max-w-xl w-full flex items-center flex-col relative">
+                
+                {/* Back Button */}
+                <button 
+                    onClick={handleBackButtonClick} 
+                    className="absolute top-4 left-4 p-2 bg-gray-200 rounded-full text-gray-600 hover:bg-gray-300 focus:outline-none"
+                >
+                    <BiArrowBack className="h-6 w-6" />
+                </button>
+                
                 <DialogModalForm open={open} onOpenChange={setOpen} index={selectedIndex} row={selectedRow} formId={params.formId} onDataUpdate={fetchData} />
+                
                 <div className="top-0 p-4 text-center">
-                    <h1 className="text-3xl underline">Atur Foto</h1>
+                    <h1 className="text-3xl underline">Daftar Foto</h1>
                 </div>
+
                 {form.isPaid == 1 && (
-                <Link type="button" href={form.slug} target='_blank' className="bottom-4 rounded-full shadow-lg bg-blue-600 text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 p-4 my-4">
-                    <BiEnvelope className="h-6 w-6 mr-2 inline" />
-                    Link Undangan
-                </Link>
+                    <Link type="button" href={form.slug} target='_blank' className="bottom-4 rounded-full shadow-lg bg-blue-600 text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 p-4 my-4">
+                        <BiEnvelope className="h-6 w-6 mr-2 inline" />
+                        Link Undangan
+                    </Link>
                 )}
+
                 <DataTable
                     columns={columns}
                     data={data}
@@ -104,6 +122,7 @@ const Result = ({ params }) => {
                     onChangeRowsPerPage={setRowsPerPage}
                     className=""
                 />
+                
                 <Link type="button" href={contactUrl} target='_blank' className="bottom-4 rounded-full shadow-lg bg-blue-600 text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 p-4 my-4">
                     <BiPhone className="h-6 w-6 mr-2 inline" />
                     Hubungi Admin
@@ -112,7 +131,6 @@ const Result = ({ params }) => {
 
             {isFullScreen && (
                 <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-90 z-50">
-                    {/* Spinner appears while the image is loading */}
                     {loading && (
                         <div className="absolute flex items-center justify-center">
                             <div className="w-12 h-12 border-4 border-t-4 border-gray-200 border-t-blue-600 rounded-full animate-spin"></div>
@@ -124,7 +142,7 @@ const Result = ({ params }) => {
                         width={800}
                         height={800}
                         className="max-w-full max-h-full object-contain"
-                        onLoadingComplete={handleImageLoadComplete} // Trigger loading complete
+                        onLoadingComplete={handleImageLoadComplete}
                     />
                     <Button
                         onClick={handleCloseFullScreen}

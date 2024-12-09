@@ -166,7 +166,7 @@ const MultiStepForm = ({ onFormChange }) => {
           formData={formData}
           setFormData={setFormData}
           onFormChange={onFormChange}
-          partName="jadian"
+          partName="komitmen"
           number={7}
         />
       );

@@ -5,10 +5,12 @@ import { Button } from "../ui/button";
 import axios from "axios";
 import { useParams } from "next/navigation";
 import placeholder from "../../../public/images/placeholder.png";
+import LoadingOverlay from "./LoadingOverlay";
 
 const StepC = ({ number, nextStep, formData, setFormData, onFormChange, partName }) => {
   const params = useParams();
   const [uploading, setUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0); // Track upload progress
   const [selectedImage, setSelectedImage] = useState(formData.imageUrl || null);
   const [file, setFile] = useState(null);
   const [imageExist, setImageExist] = useState(false);
@@ -33,20 +35,27 @@ const StepC = ({ number, nextStep, formData, setFormData, onFormChange, partName
 
   const handleNextClick = async () => {
     setUploading(true);
-    if (!file) {  // Ensure a file is selected before uploading
+    if (!file) {
       alert("Please select a file first!");
+      setUploading(false);
       return;
-    } else if (file == 1) {
-      const uploadData = new FormData();  // Use FormData to handle file uploads
-      uploadData.append('partName', partName); // Add any additional data needed
-      uploadData.append('dataFile', file); // Add any additional data needed
+    } else if (file === 1) {
+      const uploadData = new FormData();
+      uploadData.append('partName', partName);
+      uploadData.append('dataFile', file);
+
       try {
         const response = await axios.post(
           `${process.env.NEXT_PUBLIC_API_URL}/upload-photo-v2/${params.formId}`,
-          uploadData,  // Pass the FormData object
+          uploadData,
           {
             headers: {
-              "Content-Type": "multipart/form-data",  // Specify multipart/form-data
+              "Content-Type": "multipart/form-data",
+            },
+            onUploadProgress: (progressEvent) => {
+              const { loaded, total } = progressEvent;
+              const percent = Math.floor((loaded / total) * 100);
+              setUploadProgress(percent);  // Update progress
             },
           }
         );
@@ -55,23 +64,31 @@ const StepC = ({ number, nextStep, formData, setFormData, onFormChange, partName
         nextStep();
       } catch (error) {
         console.error("Error uploading the image", error);
+      } finally {
+        setUploading(false);
+        setUploadProgress(0);
       }
-      return;
-    }
-
-    else {
-
-      const uploadData = new FormData();  // Rename to avoid conflict
-      uploadData.append('file', file); // Append file
-      uploadData.append('partName', partName); // Append file
-      // uploadData.append("formId", formId); // Append formId correctly
+    } else {
+      const uploadData = new FormData();
+      uploadData.append('file', file);
+      uploadData.append('partName', partName);
 
       try {
-        const response = await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/upload-photo-v2/${params.formId}`, uploadData, {
-          headers: {
-            "Content-Type": "multipart/form-data",
-          },
-        });
+        const response = await axios.post(
+          `${process.env.NEXT_PUBLIC_API_URL}/upload-photo-v2/${params.formId}`,
+          uploadData,
+          {
+            headers: {
+              "Content-Type": "multipart/form-data",
+            },
+            onUploadProgress: (progressEvent) => {
+              const { loaded, total } = progressEvent;
+              const percent = Math.floor((loaded / total) * 100);
+              setUploadProgress(percent);  // Update progress
+            },
+          }
+        );
+
         setSelectedImage(null);
         setFile(null);
         onFormChange();
@@ -80,8 +97,9 @@ const StepC = ({ number, nextStep, formData, setFormData, onFormChange, partName
         console.error("Error uploading the image", error);
       } finally {
         setUploading(false);
+        setUploadProgress(0);
       }
-    };
+    }
   };
 
   const fetchData = async () => {
@@ -125,7 +143,9 @@ const StepC = ({ number, nextStep, formData, setFormData, onFormChange, partName
   }, []);
 
   return (
-    <div className="p-4 text-center flex-grow">
+    <div className="relative min-h-screen p-4 text-center flex-grow">
+      {/* Use LoadingOverlay Component */}
+      {uploading && <LoadingOverlay progress={uploadProgress} />}
       <h2 className="text-xl font-semibold">{number}. {partName}</h2>
 
       <div className="flex items-center justify-center mb-4">
@@ -138,7 +158,7 @@ const StepC = ({ number, nextStep, formData, setFormData, onFormChange, partName
         />
       </div>
 
-      <div className="flex justify-center gap-x-4">
+      <div className="flex justify-center gap-x-4 pb-4">
         <input
           type="file"
           ref={fileInputRef}

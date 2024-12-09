@@ -5,10 +5,12 @@ import { Button } from "../ui/button";
 import axios from "axios";
 import { useParams } from "next/navigation";
 import placeholder from "../../../public/images/placeholder.png";
+import LoadingOverlay from "./LoadingOverlay";
 
 const StepA = ({ number, nextStep, formData, setFormData, onFormChange, partName }) => {
   const params = useParams();
   const [uploading, setUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0); // Track upload progress
   const [selectedImage, setSelectedImage] = useState(formData.imageUrl || null);
   const [file, setFile] = useState(null);
   const [imageExist, setImageExist] = useState(false);
@@ -50,6 +52,11 @@ const StepA = ({ number, nextStep, formData, setFormData, onFormChange, partName
             headers: {
               "Content-Type": "multipart/form-data",
             },
+            onUploadProgress: (progressEvent) => {
+              const { loaded, total } = progressEvent;
+              const percent = Math.floor((loaded / total) * 100);
+              setUploadProgress(percent);  // Update progress
+            },
           }
         );
         setImageExist(false);
@@ -59,6 +66,7 @@ const StepA = ({ number, nextStep, formData, setFormData, onFormChange, partName
         console.error("Error uploading the image", error);
       } finally {
         setUploading(false);
+        setUploadProgress(0);
       }
     } else {
       const uploadData = new FormData();
@@ -73,6 +81,11 @@ const StepA = ({ number, nextStep, formData, setFormData, onFormChange, partName
             headers: {
               "Content-Type": "multipart/form-data",
             },
+            onUploadProgress: (progressEvent) => {
+              const { loaded, total } = progressEvent;
+              const percent = Math.floor((loaded / total) * 100);
+              setUploadProgress(percent);  // Update progress
+            },
           }
         );
 
@@ -84,6 +97,7 @@ const StepA = ({ number, nextStep, formData, setFormData, onFormChange, partName
         console.error("Error uploading the image", error);
       } finally {
         setUploading(false);
+        setUploadProgress(0);
       }
     }
   };
@@ -132,7 +146,9 @@ const StepA = ({ number, nextStep, formData, setFormData, onFormChange, partName
   }, []);
 
   return (
-    <div className="p-4 text-center flex-grow">
+    <div className="relative min-h-screen p-4 text-center flex-grow">
+      {/* Use LoadingOverlay Component */}
+      {uploading && <LoadingOverlay progress={uploadProgress} />}
       <h2 className="text-xl font-semibold">{number}. {partName}</h2>
 
       <div className="flex items-center justify-center mb-4">
@@ -145,7 +161,7 @@ const StepA = ({ number, nextStep, formData, setFormData, onFormChange, partName
         />
       </div>
 
-      <div className="flex justify-center gap-x-4">
+      <div className="flex justify-center gap-x-4 pb-4">
         <input
           type="file"
           ref={fileInputRef}

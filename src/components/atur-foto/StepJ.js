@@ -6,10 +6,12 @@ import axios from "axios";
 import { useParams } from "next/navigation";
 import placeholder from "../../../public/images/placeholder.png";
 import { BiX } from "react-icons/bi";
+import LoadingOverlay from "./LoadingOverlay"  // Import the LoadingOverlay component
 
 const StepJ = ({ number, nextStep, formData, setFormData, onFormChange, partName }) => {
   const params = useParams();
   const [uploading, setUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0); // Track upload progress
   const [images, setImages] = useState([]); // Store multiple images with URLs and IDs
   const [newFiles, setNewFiles] = useState([]); // Store files to upload
   const [errors, setErrors] = useState({});
@@ -59,6 +61,11 @@ const StepJ = ({ number, nextStep, formData, setFormData, onFormChange, partName
           headers: {
             "Content-Type": "multipart/form-data",
           },
+          onUploadProgress: (progressEvent) => {
+            const { loaded, total } = progressEvent;
+            const percent = Math.floor((loaded / total) * 100);
+            setUploadProgress(percent);  // Update progress
+          },
         }
       );
       console.log("Files uploaded successfully:", response);
@@ -69,6 +76,7 @@ const StepJ = ({ number, nextStep, formData, setFormData, onFormChange, partName
       console.error("Error uploading files:", error);
     } finally {
       setUploading(false);
+      setUploadProgress(0); // Reset progress
     }
   };
 
@@ -113,7 +121,10 @@ const StepJ = ({ number, nextStep, formData, setFormData, onFormChange, partName
   }, []);
 
   return (
-    <div className="p-4 text-center flex-grow">
+    <div className="relative min-h-screen p-4 text-center flex-grow">
+      {/* Use LoadingOverlay Component */}
+      {uploading && <LoadingOverlay progress={uploadProgress} />}
+
       <h2 className="text-xl font-semibold">
         {number}. {partName} (Max. 5 Foto)
       </h2>
@@ -152,7 +163,7 @@ const StepJ = ({ number, nextStep, formData, setFormData, onFormChange, partName
 
       {errors.images && <p className="text-red-500">{errors.images}</p>}
 
-      <div className="flex justify-center gap-x-4">
+      <div className="flex justify-center gap-x-4 pb-4">
         <input
           type="file"
           ref={fileInputRef}
