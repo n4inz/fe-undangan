@@ -52,6 +52,7 @@ const Home = () => {
   const [options, setOptions] = useState([]);
   const [selectedTema, setSelectedTema] = useState(null);
   const [isLoadingOptions, setIsLoadingOptions] = useState(true);
+  const [maxStep, setMaxStep] = useState(14);
 
   useEffect(() => {
     setMounted(true);
@@ -146,7 +147,7 @@ const Home = () => {
   };
 
   const handleNext = () => {
-    if (currentStep < 13) {
+    if (currentStep < maxStep) {
       setCurrentStep(currentStep + 1);
     }
   };
@@ -163,10 +164,10 @@ const Home = () => {
     try {
       schema.parse(formData);
       setErrors({});
-  
+
       const fd = new FormData();
       fd.append("data", JSON.stringify(formData));
-  
+
       await axios
         .post(`${process.env.NEXT_PUBLIC_API_URL}/forms`, fd, {
           headers: {
@@ -192,17 +193,17 @@ const Home = () => {
       if (error instanceof z.ZodError) {
         const fieldErrors = {};
         let lowestErrorStep = Infinity; // Track the lowest step with an error
-  
+
         error.errors.forEach((err) => {
           fieldErrors[err.path[0]] = err.message;
           const step = getStepFromFieldName(err.path[0]); // New function
           lowestErrorStep = Math.min(lowestErrorStep, step);
         });
-  
+
         console.log("Validation errors:", fieldErrors);
         setErrors(fieldErrors);
         setCurrentStep(lowestErrorStep); // Jump to the step with the lowest error
-  
+
         const firstErrorField = document.querySelector(
           `[name="${error.errors[0].path[0]}"]`
         );
@@ -254,7 +255,7 @@ const Home = () => {
         return 6;
       // ...and so on for all your steps.
       case "pilihanTema":
-        return 13;
+        return 14;
       default:
         return 1; // Default to step 1 if field name is not found
     }
@@ -312,7 +313,7 @@ const Home = () => {
       <div className="bg-white p-8 rounded-lg shadow-lg max-w-lg w-full">
         <h1 className="text-2xl font-bold mb-2">SewaUndangan</h1>
         <h2 className="text-2xl font-medium mb-4"> {/* Add classes for size and alignment */}
-          {currentStep}/13  {/* Assuming 3 steps */}
+          {currentStep}/{maxStep}  {/* Assuming 3 steps */}
         </h2>
         <form onSubmit={handleSubmit} encType='multipart/form-data'>
           {currentStep === 1 && (
@@ -868,6 +869,19 @@ const Home = () => {
           {currentStep === 13 && (
             <>
               <div className="mb-4">
+                <label className="block text-gray-700">Turut Mengundang</label>
+                <Textarea
+                  name="ceritaJadian"
+                  value={formData.turutMengundang}
+                  onChange={handleChange}
+                  className="mt-1 p-2 w-full border border-gray-300 rounded-lg"
+                />
+              </div>
+            </>
+          )}
+          {currentStep === maxStep && (
+            <>
+              <div className="mb-4">
                 <label className="block text-gray-700">
                   Pilihan Thema Ceknya di{' '}
                   <a href='https://sewaundangan.com/#chat_me' target='_blank' rel='noopener noreferrer' className="text-blue-500 hover:underline">
@@ -931,7 +945,7 @@ const Home = () => {
                 Kembali
               </button>
             )}
-            {currentStep < 13 ? (
+            {currentStep < maxStep ? (
               <button type="button" onClick={handleNext} className="px-4 py-2 bg-blue-500 text-white rounded-md">
                 Selanjutnya
               </button>

@@ -369,6 +369,7 @@ const DataTableForm = ({ initialStatus, onDataUpdate }) => {
               <SelectItem value="1">In progress</SelectItem>
               <SelectItem value="2">Review</SelectItem>
               <SelectItem value="3">Done</SelectItem>
+              <SelectItem value="4">Cancel</SelectItem>
             </SelectGroup>
           </SelectContent>
         </Select>

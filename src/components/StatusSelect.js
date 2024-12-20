@@ -1,6 +1,6 @@
 import { createPortal } from 'react-dom';
 import { useState, useEffect, useRef } from 'react';
-import { FaCheckCircle, FaSpinner, FaClipboardList, FaClipboardCheck } from 'react-icons/fa';
+import { FaCheckCircle, FaSpinner, FaClipboardList, FaClipboardCheck, FaWindowClose } from 'react-icons/fa';
 import axios from 'axios';
 
 const statusOptions = [
@@ -8,6 +8,7 @@ const statusOptions = [
   { value: '1', label: 'Progress', icon: <FaSpinner className="inline-block mr-2 animate-spin" />, color: 'text-blue-500' },
   { value: '2', label: 'Review', icon: <FaClipboardCheck className="inline-block mr-2" />, color: 'text-orange-500' },
   { value: '3', label: 'Done', icon: <FaCheckCircle className="inline-block mr-2" />, color: 'text-green-500' },
+  { value: '4', label: 'Cancel', icon: <FaWindowClose className="inline-block mr-2" />, color: 'text-red-500' },
 ];
 
 const StatusSelect = ({ status, onDataUpdate }) => {
@@ -15,8 +16,8 @@ const StatusSelect = ({ status, onDataUpdate }) => {
   const [selectedStatus, setSelectedStatus] = useState(initialStatus);
   const [isOpen, setIsOpen] = useState(false);
   const [dropdownPosition, setDropdownPosition] = useState({ top: 0, left: 0 }); // Track exact position
-  const dropdownRef = useRef(null); 
-  const buttonRef = useRef(null); 
+  const dropdownRef = useRef(null);
+  const buttonRef = useRef(null);
 
   const handleSelect = async (option) => {
     setSelectedStatus(option);
@@ -86,10 +87,10 @@ const StatusSelect = ({ status, onDataUpdate }) => {
     >
       {statusOptions.map((option) => (
         <li
-        key={option.value}
-        className={`p-1 hover:bg-gray-100 cursor-pointer flex items-center text-sm ${option.color}`}
-        onClick={() => handleSelect(option)}
-      >
+          key={option.value}
+          className={`p-1 hover:bg-gray-100 cursor-pointer flex items-center text-sm ${option.color}`}
+          onClick={() => handleSelect(option)}
+        >
           {option.icon} {option.label}
         </li>
       ))}
@@ -98,16 +99,16 @@ const StatusSelect = ({ status, onDataUpdate }) => {
 
   return (
     <div className="relative w-full">
-<button
-  onClick={toggleDropdown}
-  ref={buttonRef}
-  className={`block w-full bg-gray-100 border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-blue-500 text-left ${selectedStatus.color}`}
->
-  <span className="flex items-center">
-    {selectedStatus.icon}
-    <span className="truncate max-w-full">{selectedStatus.label}</span>
-  </span>
-</button>
+      <button
+        onClick={toggleDropdown}
+        ref={buttonRef}
+        className={`block w-full bg-gray-100 border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-blue-500 text-left ${selectedStatus.color}`}
+      >
+        <span className="flex items-center">
+          {selectedStatus.icon}
+          <span className="truncate max-w-full">{selectedStatus.label}</span>
+        </span>
+      </button>
 
 
       {isOpen && createPortal(dropdownMenu, document.body)}
