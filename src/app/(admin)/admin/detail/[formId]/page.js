@@ -207,6 +207,19 @@ const Detail = ({ params }) => {
               className="mt-1 p-2 w-full border border-gray-300 rounded-lg"
             />
           </div>
+          <div className="mb-4">
+            <label className="block text-gray-700">
+              Anak Ke Berapa (Mempelai Pria)
+              <br />
+              Ex: Pertama, Kedua, Bungsu, Sulung, dan lain-lain
+            </label>
+            <Input
+              type="text"
+              name="anakKeberapaPria"
+              value={formData.anakKeberapaPria}
+              className="mt-1 p-2 w-full border border-gray-300 rounded-lg"
+            />
+          </div>
           {/* Mempelai Wanita */}
           <div className="mb-4">
             <label className="block text-gray-700">Nama Lengkap Mempelai Wanita
@@ -260,6 +273,19 @@ const Detail = ({ params }) => {
               name="tglLahirWanita"
               value={formData.tglLahirWanita}
 
+              className="mt-1 p-2 w-full border border-gray-300 rounded-lg"
+            />
+          </div>
+          <div className="mb-4">
+            <label className="block text-gray-700">
+              Anak Ke Berapa (Mempelai Wanita)
+              <br />
+              Ex: Pertama, Kedua, Bungsu, Sulung, dan lain-lain
+            </label>
+            <Input
+              type="text"
+              name="anakKeberapaWanita"
+              value={formData.anakKeberapaWanita}
               className="mt-1 p-2 w-full border border-gray-300 rounded-lg"
             />
           </div>
@@ -537,7 +563,14 @@ const Detail = ({ params }) => {
               value={formData.penempatanTulisan}
               className="mt-1 p-2 w-full border border-gray-300 rounded-lg"
             />
-
+          </div>
+          <div className="mb-4">
+            <label className="block text-gray-700">Turut Mengundang</label>
+            <Textarea
+              name="turutMengundang"
+              value={formData.turutMengundang}
+              className="mt-1 p-2 w-full border border-gray-300 rounded-lg"
+            />
           </div>
           <div className="mb-4">
             <label className="block text-gray-700">

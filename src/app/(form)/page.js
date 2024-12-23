@@ -118,6 +118,10 @@ const Home = () => {
     }
   }, []);
 
+  const [rekeningList, setRekeningList] = useState([
+    { namaRekening: "", noRekening: "" },
+  ]);
+
   useEffect(() => {
     if (mounted && isLocalStorageAccessibleState) {
       try {
@@ -128,12 +132,33 @@ const Home = () => {
     }
   }, [formData, mounted, isLocalStorageAccessibleState]);
 
-  const handleChange = (e) => {
+  const handleChange = (e, index = null) => {
     const { name, value } = e.target;
-    setFormData({
-      ...formData,
-      [name]: value,
-    });
+
+    if (index !== null) {
+      // If index is provided, update the corresponding dynamic field in rekeningList
+      setRekeningList((prevRekeningList) =>
+        prevRekeningList.map((item, i) =>
+          i === index ? { ...item, [name]: value } : item
+        )
+      );
+    } else {
+      // If index is not provided, update the static fields in formData
+      setFormData({
+        ...formData,
+        [name]: value,
+      });
+    }
+  };
+
+  const handleAddRekening = () => {
+    setRekeningList([...rekeningList, { namaRekening: "", noRekening: "" }]);
+  };
+
+  const handleRemoveRekening = (index) => {
+    setRekeningList((prevRekeningList) =>
+      prevRekeningList.filter((_, i) => i !== index)
+    );
   };
 
   const validate = () => {
@@ -162,18 +187,19 @@ const Home = () => {
     e.preventDefault();
     setIsLoading(true);
     try {
+      // Validate `formData` using Zod schema
       schema.parse(formData);
       setErrors({});
 
       const fd = new FormData();
       fd.append("data", JSON.stringify(formData));
+      fd.append("rekeningList", JSON.stringify(rekeningList)); // Add rekeningList to FormData
 
-      await axios
-        .post(`${process.env.NEXT_PUBLIC_API_URL}/forms`, fd, {
-          headers: {
-            "Content-Type": "application/json",
-          },
-        })
+      await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/forms`, fd, {
+        headers: {
+          "Content-Type": "application/json",
+        },
+      })
         .then((response) => {
           if (isLocalStorageAccessibleState) {
             try {
@@ -215,6 +241,7 @@ const Home = () => {
       }
     }
   };
+
 
   const getStepFromFieldName = (fieldName) => {
     // Map field names to their corresponding steps.  Adjust this mapping to match your form structure.
@@ -407,6 +434,20 @@ const Home = () => {
                 {/* {errors.tglLahirPria && <p className="text-red-500 text-sm mt-1">{errors.tglLahirPria}</p>} */}
               </div>
               <div className="mb-4">
+                <label className="block text-gray-700">
+                  Anak Ke Berapa (Mempelai Pria)
+                  <br />
+                  Ex: Pertama, Kedua, Bungsu, Sulung, dan lain-lain
+                </label>
+                <Input
+                  type="text"
+                  name="anakKeberapaPria"
+                  value={formData.anakKeberapaPria}
+                  onChange={handleChange}
+                  className="mt-1 p-2 w-full border border-gray-300 rounded-lg"
+                />
+              </div>
+              <div className="mb-4">
                 <label className="block text-gray-700">Alamat Mempelai Pria
                   <br />
                   Ex: Jl Jambu  Selatan No 123
@@ -483,6 +524,20 @@ const Home = () => {
                   className="mt-1 p-2 w-full border border-gray-300 rounded-lg"
                 />
                 {/* {errors.tglLahirWanita && <p className="text-red-500 text-sm mt-1">{errors.tglLahirWanita}</p>} */}
+              </div>
+              <div className="mb-4">
+                <label className="block text-gray-700">
+                  Anak Ke Berapa (Mempelai Wanita)
+                  <br />
+                  Ex: Pertama, Kedua, Bungsu, Sulung, dan lain-lain
+                </label>
+                <Input
+                  type="text"
+                  name="anakKeberapaWanita"
+                  value={formData.anakKeberapaWanita}
+                  onChange={handleChange}
+                  className="mt-1 p-2 w-full border border-gray-300 rounded-lg"
+                />
               </div>
               <div className="mb-4">
                 <label className="block text-gray-700">Alamat Mempelai Wanita
@@ -700,37 +755,57 @@ const Home = () => {
               </div>
             </>
           )}
-
-
           {currentStep === 7 && (
             <>
-              {/* OPTIONAL */}
-
+              {/* Dynamic Fields */}
               <div className="mb-4">
-                <label className="block text-gray-700">
-                  Nama Rekening Jika ada tamu ingin kirim hadiah (Nama Bank Dan atas nama rekening)
-                </label>
-                <Input
-                  type="text"
-                  name="namaRekening"
-                  value={formData.namaRekening}
-                  onChange={handleChange}
-                  className="mt-1 p-2 w-full border border-gray-300 rounded-lg"
-                  placeholder="Nama Bank a/n Nasabah"
-                />
-              </div>
-              <div className="mb-4">
-                <label className="block text-gray-700">
-                  Nomor Rekening
-                </label>
-                <Input
-                  type="text"
-                  name="noRek"
-                  value={formData.noRek}
-                  onChange={handleChange}
-                  className="mt-1 p-2 w-full border border-gray-300 rounded-lg"
-                  placeholder="012345xxxx"
-                />
+                {rekeningList.map((rekening, index) => (
+                  <div
+                    key={index}
+                    className="mb-4 relative border border-gray-300 rounded-lg p-4"
+                  >
+                    {/* Show Close Button for Second Input and Beyond */}
+                    {index > 0 && (
+                      <button
+                        type="button"
+                        onClick={() => handleRemoveRekening(index)}
+                        className="absolute top-2 right-2 text-red-500 hover:text-red-700"
+                        title="Hapus Rekening"
+                      >
+                        ✖
+                      </button>
+                    )}
+                    <label className="block text-gray-700">
+                      Nama Rekening {index + 1}
+                    </label>
+                    <Input
+                      type="text"
+                      name="namaRekening"
+                      value={rekening.namaRekening}
+                      onChange={(e) => handleChange(e, index)}
+                      className="mt-1 p-2 w-full border border-gray-300 rounded-lg"
+                      placeholder={`Nama Bank a/n Nasabah`}
+                    />
+                    <label className="block text-gray-700 mt-2">
+                      Nomor Rekening {index + 1}
+                    </label>
+                    <Input
+                      type="text"
+                      name="noRekening"
+                      value={rekening.noRekening}
+                      onChange={(e) => handleChange(e, index)}
+                      className="mt-1 p-2 w-full border border-gray-300 rounded-lg"
+                      placeholder={`012345xxxx`}
+                    />
+                  </div>
+                ))}
+                <Button
+                  type="button"
+                  onClick={handleAddRekening}
+                  className="mt-2 px-4 py-2 bg-blue-500 text-white rounded-lg"
+                >
+                  + Tambah Rekening
+                </Button>
               </div>
               <div className="mb-4">
                 <label className="block text-gray-700">
@@ -871,7 +946,7 @@ const Home = () => {
               <div className="mb-4">
                 <label className="block text-gray-700">Turut Mengundang</label>
                 <Textarea
-                  name="ceritaJadian"
+                  name="turutMengundang"
                   value={formData.turutMengundang}
                   onChange={handleChange}
                   className="mt-1 p-2 w-full border border-gray-300 rounded-lg"

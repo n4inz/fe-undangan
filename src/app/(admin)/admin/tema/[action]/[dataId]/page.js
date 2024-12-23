@@ -11,23 +11,25 @@ import { toast } from "@/components/ui/use-toast";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import Image from "next/image";
+import { Checkbox } from "@/components/ui/checkbox";
 
 const FormTema = ({ params }) => {
   const router = useRouter();
   const [formData, setFormData] = useState({
     name: '',
     link: '',
+    loveStory: false, // Add loveStory with default value
   });
   const [isLoading, setIsLoading] = useState(false);
   const [errors, setErrors] = useState({});
-  const [coverImage, setCoverImage] = useState(null); // State to hold selected cover image
-  const [subcoverImage, setSubcoverImage] = useState(null); // State to hold selected subcover image
+  const [coverImage, setCoverImage] = useState(null);
+  const [subcoverImage, setSubcoverImage] = useState(null);
 
   const handleChange = (e) => {
-    const { name, value } = e.target;
+    const { name, value, type, checked } = e.target;
     setFormData({
       ...formData,
-      [name]: value,
+      [name]: type === 'checkbox' ? checked : value, // Handle checkbox value
     });
   };
 
@@ -37,9 +39,9 @@ const FormTema = ({ params }) => {
     if (file) {
       const imageUrl = URL.createObjectURL(file);
       if (name === 'cover') {
-        setCoverImage(imageUrl); // Set cover image URL
+        setCoverImage(imageUrl);
       } else if (name === 'subcover') {
-        setSubcoverImage(imageUrl); // Set subcover image URL
+        setSubcoverImage(imageUrl);
       }
     }
   };
@@ -49,15 +51,15 @@ const FormTema = ({ params }) => {
     setIsLoading(true);
 
     try {
-      themeSchema.parse(formData); // Validate the form data
+      themeSchema.parse(formData);
       setErrors({});
 
-      const data = new FormData(); // Create a new FormData instance
+      const data = new FormData();
       data.append("name", formData.name);
       data.append("link", formData.link);
+      data.append("loveStory", formData.loveStory); // Add loveStory to the form data
       data.append("totalWeddingPhoto", formData.totalWeddingPhoto);
 
-      // Append cover and subcover images if they exist
       if (coverImage) data.append("cover", document.querySelector("input[name='cover']").files[0]);
       if (subcoverImage) data.append("subcover", document.querySelector("input[name='subcover']").files[0]);
 
@@ -108,19 +110,19 @@ const FormTema = ({ params }) => {
       });
       const data = response.data.data;
 
-      // Convert totalWeddingPhoto to a string
       setFormData({
         ...data,
-        totalWeddingPhoto: String(data.totalWeddingPhoto), // Ensure it's a string
+        totalWeddingPhoto: String(data.totalWeddingPhoto),
+        loveStory: data.loveStory || false, // Ensure loveStory is a boolean
       });
 
-      // Set cover and subcover images if available
       if (data.ssCover) {
         setCoverImage(`${process.env.NEXT_PUBLIC_API_URL}/images/${data.ssCover}`);
       }
       if (data.ssSubcover) {
         setSubcoverImage(`${process.env.NEXT_PUBLIC_API_URL}/images/${data.ssSubcover}`);
       }
+
     } catch (error) {
       console.error('Error fetching data:', error);
     }
@@ -215,6 +217,18 @@ const FormTema = ({ params }) => {
                   <Label htmlFor="2">2 Foto</Label>
                 </div>
               </RadioGroup>
+            </div>
+            <div className="mb-4">
+              <label className="block text-gray-700">Love Story Ada?</label>
+              <div className="flex items-center space-x-2">
+                <Checkbox
+                  id="loveStory"
+                  name="loveStory"
+                  checked={formData.loveStory === true}
+                  onCheckedChange={(checked) => handleChange({ target: { name: 'loveStory', value: checked } })}
+                />
+                <label htmlFor="loveStory">Yes</label>
+              </div>
             </div>
             <div className="flex justify-start">
               <Button

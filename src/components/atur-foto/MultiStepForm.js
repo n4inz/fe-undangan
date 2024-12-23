@@ -58,10 +58,27 @@ const MultiStepForm = ({ onFormChange }) => {
       console.error("Error checking foto mempelai:", error);
     }
   };
+  const checkFotoLoveStory = async () => {
+    try {
+      const response = await axios.get(
+        `${process.env.NEXT_PUBLIC_API_URL}/check-foto-mempelai/${params.formId}/${params.phoneNumber}`
+      );
+
+      const { data } = response.data;
+      if (data && data.loveStory == false) {
+        setStep(10);
+      }
+    } catch (error) {
+      console.error("Error checking foto mempelai:", error);
+    }
+  };
 
   useEffect(() => {
     if (step === 3) {
       checkFotoMempelai();
+    }
+    if (step === 7) {
+      checkFotoLoveStory();
     }
     console.log("STEP:", step);
   }, [step]);

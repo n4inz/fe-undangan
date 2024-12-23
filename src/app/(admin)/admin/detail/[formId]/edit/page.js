@@ -357,6 +357,20 @@ const EditDetail = ({ params }) => {
                             />
                             {errors.tglLahirPria && <p className="text-red-500 text-sm mt-1">{errors.tglLahirPria}</p>}
                         </div>
+                        <div className="mb-4">
+                            <label className="block text-gray-700">
+                                Anak Ke Berapa (Mempelai Pria)
+                                <br />
+                                Ex: Pertama, Kedua, Bungsu, Sulung, dan lain-lain
+                            </label>
+                            <Input
+                                type="text"
+                                name="anakKeberapaPria"
+                                value={formData.anakKeberapaPria}
+                                onChange={handleChange}
+                                className="mt-1 p-2 w-full border border-gray-300 rounded-lg"
+                            />
+                        </div>
                         {/* Mempelai Wanita */}
                         <div className="mb-4">
                             <label className="block text-gray-700">Nama Lengkap Mempelai Wanita
@@ -417,6 +431,20 @@ const EditDetail = ({ params }) => {
                                 className="mt-1 p-2 w-full border border-gray-300 rounded-lg"
                             />
                             {errors.tglLahirWanita && <p className="text-red-500 text-sm mt-1">{errors.tglLahirWanita}</p>}
+                        </div>
+                        <div className="mb-4">
+                            <label className="block text-gray-700">
+                                Anak Ke Berapa (Mempelai Wanita)
+                                <br />
+                                Ex: Pertama, Kedua, Bungsu, Sulung, dan lain-lain
+                            </label>
+                            <Input
+                                type="text"
+                                name="anakKeberapaWanita"
+                                value={formData.anakKeberapaWanita}
+                                onChange={handleChange}
+                                className="mt-1 p-2 w-full border border-gray-300 rounded-lg"
+                            />
                         </div>
                         {/* Acara */}
                         <div className="mb-4">
@@ -735,6 +763,15 @@ const EditDetail = ({ params }) => {
                                     <Label htmlFor="PriaDulu">Pria Dulu</Label>
                                 </div>
                             </RadioGroup>
+                        </div>
+                        <div className="mb-4">
+                            <label className="block text-gray-700">Turut Mengundang</label>
+                            <Textarea
+                                name="turutMengundang"
+                                value={formData.turutMengundang}
+                                onChange={handleChange}
+                                className="mt-1 p-2 w-full border border-gray-300 rounded-lg"
+                            />
                         </div>
                         <div className="mb-4">
                             <label className="block text-gray-700">
