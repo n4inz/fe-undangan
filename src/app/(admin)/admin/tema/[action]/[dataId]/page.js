@@ -25,12 +25,24 @@ const FormTema = ({ params }) => {
   const [coverImage, setCoverImage] = useState(null);
   const [subcoverImage, setSubcoverImage] = useState(null);
 
+  const [slug, setSlug] = useState(''); // State for the slug
+
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
     setFormData({
       ...formData,
-      [name]: type === 'checkbox' ? checked : value, // Handle checkbox value
+      [name]: type === 'checkbox' ? checked : value,
     });
+
+    // Update the slug dynamically when the name changes
+    if (name === 'name') {
+      const generatedSlug = value
+        .toLowerCase()
+        .trim()
+        .replace(/[^a-z0-9]+/g, '-') // Replace spaces or special characters with hyphens
+        .replace(/^-+|-+$/g, ''); // Remove leading or trailing hyphens
+      setSlug(generatedSlug);
+    }
   };
 
   const handleImageChange = (e) => {
@@ -153,6 +165,7 @@ const FormTema = ({ params }) => {
                 onChange={handleChange}
                 className="mt-1 p-2 w-full border border-gray-300 rounded-lg"
               />
+              {slug && <p className="text-gray-500 text-sm mt-1">Slug: {slug}</p>}
               {errors.name && <p className="text-red-500 text-sm mt-1">{errors.name}</p>}
             </div>
             <div className="mb-4">
@@ -219,7 +232,7 @@ const FormTema = ({ params }) => {
               </RadioGroup>
             </div>
             <div className="mb-4">
-              <label className="block text-gray-700">Love Story Ada?</label>
+              <label className="block text-gray-700">Foto Love Story Ada?</label>
               <div className="flex items-center space-x-2">
                 <Checkbox
                   id="loveStory"
