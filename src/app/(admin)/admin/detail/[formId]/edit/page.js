@@ -46,6 +46,7 @@ const EditDetail = ({ params }) => {
     const [fileName, setFileName] = useState('');
     const [isUploading, setIsUploading] = useState(false);
     const [uploadComplete, setUploadComplete] = useState(false); // Track if upload is complete
+    const [selectedTema, setSelectedTema] = useState(null);
 
     const handleFileChange = async (event) => {
         const file = event.target.files[0]; // Get only the first file
@@ -159,6 +160,14 @@ const EditDetail = ({ params }) => {
         }
     };
 
+    const handleSelectChange = (id, name) => {
+        setSelectedTema({ id, name }); // Store the selected theme in selectedTema
+        setFormData((prevData) => ({
+          ...prevData,
+          idTema: id, // Convert idTema to a string here
+        }));
+      };
+
 
     const fetchData = async () => {
         try {
@@ -212,17 +221,29 @@ const EditDetail = ({ params }) => {
         }
     };
 
-    const fetchOptions = async () => {
-        try {
+    useEffect(() => {
+        const fetchOptions = async () => {
+          try {
             const data = await getTema();
-            setOptions(data || []); // Ensure data is an array
-        } catch (error) {
-            console.error('Error fetching tema options:', error);
-            setOptions([]); // Ensure options is an array in case of error
-        } finally {
-            setIsLoadingOptions(false); // Stop loading state for options
-        }
-    };
+            setOptions(data || []);
+    
+            // Set selectedTema after options are loaded
+            if (formData.idTema) {
+              const theme = data.find((option) => option.id === formData.idTema);
+              if (theme) {
+                setSelectedTema({ id: theme.id, name: theme.name });
+              }
+            }
+          } catch (error) {
+            console.error("Error fetching tema options:", error);
+            setOptions([]); // Ensure options remains an array in case of error
+          } finally {
+            setIsLoadingOptions(false);
+          }
+        };
+    
+        fetchOptions();
+      }, [formData.idTema]);
 
     useEffect(() => {
         setMounted(true); // Indicate that the component has mounted
@@ -231,7 +252,7 @@ const EditDetail = ({ params }) => {
     useEffect(() => {
         if (mounted) {
             const fetchDataAndOptions = async () => {
-                await Promise.all([fetchData(), fetchOptions()]);
+                await Promise.all([fetchData()]);
             };
             fetchDataAndOptions();
         }
@@ -811,18 +832,15 @@ const EditDetail = ({ params }) => {
 
                                     {/* Select Box */}
                                     <Select
-                                        value={formData.idTema || ""}
+                                        value={selectedTema ? selectedTema.id : ''}
                                         onValueChange={(value) => {
                                             const selectedOption = options.find((option) => option.id === value);
-                                            setFormData((prev) => ({
-                                                ...prev,
-                                                idTema: value, // Save the idTema for backend
-                                                LainnyaPilihanTema: selectedOption ? selectedOption.name : "", // Optional: Save the name for display
-                                            }));
+                                            if (selectedOption) {
+                                                handleSelectChange(selectedOption.id, selectedOption.name);
+                                            }
                                         }}
                                         disabled={formData.pilihanTema !== "Lainnya"}
-                                        className={`w-full h-8 border ${formData.pilihanTema === "Lainnya" ? "border-gray-300" : "border-gray-200 cursor-not-allowed"
-                                            } rounded-lg`}
+                                        className="w-full h-6 border border-gray-300 rounded-lg"
                                     >
                                         <SelectTrigger>
                                             <SelectValue placeholder="Pilih Tema" />

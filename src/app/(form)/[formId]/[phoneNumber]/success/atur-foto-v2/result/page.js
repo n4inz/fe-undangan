@@ -68,7 +68,7 @@ const Result = ({ params }) => {
             setData(response.data.images);
             setForm({
                 ...response.data.form,
-                slug: `${process.env.NEXT_PUBLIC_LINK_UNDANGAN}/${response.data.form.slug}?to=Nama Tamu` 
+                slug: `${process.env.NEXT_PUBLIC_LINK_UNDANGAN}/${response.data.form.slug}?to=Nama Tamu`
             });
         } catch (error) {
             console.error('Error fetching data:', error);
@@ -91,27 +91,31 @@ const Result = ({ params }) => {
     return (
         <div className="flex items-center justify-center bg-gray-100">
             <div className="h-full min-h-screen bg-white rounded-lg shadow-lg max-w-xl w-full flex items-center flex-col relative">
-                
+
                 {/* Back Button */}
-                <button 
-                    onClick={handleBackButtonClick} 
+                <Button
+                    onClick={handleBackButtonClick}
                     className="absolute top-4 left-4 p-2 bg-gray-200 rounded-full text-gray-600 hover:bg-gray-300 focus:outline-none"
                 >
                     <BiArrowBack className="h-6 w-6" />
-                </button>
-                
+                </Button>
+
                 <DialogModalForm open={open} onOpenChange={setOpen} index={selectedIndex} row={selectedRow} formId={params.formId} onDataUpdate={fetchData} />
-                
+
                 <div className="top-0 p-4 text-center">
                     <h1 className="text-3xl underline">Daftar Foto</h1>
                 </div>
 
                 {form.isPaid == 1 && (
-                    <Link type="button" href={form.slug} target='_blank' className="bottom-4 rounded-full shadow-lg bg-blue-600 text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 p-4 my-4">
+                    <Link type="button" href={form.slug} target='_blank' className="bottom-4 rounded-full shadow-lg bg-blue-600 text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 p-4 my-2">
                         <BiEnvelope className="h-6 w-6 mr-2 inline" />
                         Link Undangan
                     </Link>
                 )}
+                <Link type="button" href={contactUrl} target='_blank' className="bottom-4 rounded-full shadow-lg bg-blue-600 text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 p-4 my-2">
+                    <BiPhone className="h-6 w-6 mr-2 inline" />
+                    Hubungi Admin
+                </Link>
 
                 <DataTable
                     columns={columns}
@@ -120,13 +124,9 @@ const Result = ({ params }) => {
                     paginationTotalRows={data.length}
                     onChangePage={setCurrentPage}
                     onChangeRowsPerPage={setRowsPerPage}
-                    className=""
+                    className="mb-8"
                 />
-                
-                <Link type="button" href={contactUrl} target='_blank' className="bottom-4 rounded-full shadow-lg bg-blue-600 text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 p-4 my-4">
-                    <BiPhone className="h-6 w-6 mr-2 inline" />
-                    Hubungi Admin
-                </Link>
+
             </div>
 
             {isFullScreen && (
