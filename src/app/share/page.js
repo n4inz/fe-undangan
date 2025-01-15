@@ -2,16 +2,9 @@
 import React, { useState, useEffect } from "react";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
-import {
-    Dialog,
-    DialogContent,
-    DialogDescription,
-    DialogFooter,
-    DialogHeader,
-    DialogTitle,
-} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { BiCopyAlt, BiLogoWhatsapp, BiMobile, BiPencil } from "react-icons/bi";
+import EditTemplateModal from "./EditTemplateModal";
 
 // Helper function to check localStorage support
 const isLocalStorageSupported = () => {
@@ -23,6 +16,34 @@ const isLocalStorageSupported = () => {
     } catch (error) {
         return false;
     }
+};
+
+const allowedDomains = [
+    'sewaundangan.com',
+    'bukaundangan.com',
+    'buka.undanganku.store',
+    'undanganku.store'
+];
+
+const isValidDomain = (url) => {
+    try {
+        const { hostname } = new URL(url);
+        return allowedDomains.some(domain => hostname.endsWith(domain));
+    } catch (error) {
+        return false;
+    }
+};
+
+const debounce = (func, delay) => {
+    let timeoutId;
+    return (...args) => {
+        if (timeoutId) {
+            clearTimeout(timeoutId);
+        }
+        timeoutId = setTimeout(() => {
+            func(...args);
+        }, delay);
+    };
 };
 
 export default function Share() {
@@ -48,6 +69,7 @@ Terima Kasih`;
     const [link, setLink] = useState('');
     const [isDialogOpen, setIsDialogOpen] = useState(false);
     const [supportsLocalStorage, setSupportsLocalStorage] = useState(false);
+    const [linkError, setLinkError] = useState('');
 
     useEffect(() => {
         // Check if localStorage is supported
@@ -90,8 +112,22 @@ Terima Kasih`;
         }
     };
 
+    const validateLink = (value) => {
+        if (isValidDomain(value)) {
+            setLink(value);
+            setLinkError('');
+        } else {
+            setLink(''); // Clear link if invalid
+            setLinkError('Link Undangan tidak valid. Harus menggunakan salah satu domain yang diizinkan.');
+        }
+    };
+
+    const debouncedValidateLink = debounce(validateLink, 1000);
+
     const handleLinkChange = (e) => {
-        setLink(e.target.value);
+        const value = e.target.value;
+        setLink(value);
+        debouncedValidateLink(value);
     };
 
     const handleSaveTemplate = () => {
@@ -144,10 +180,11 @@ Terima Kasih`;
                     <Input
                         type="url"
                         placeholder="Link Undangan"
-                        className="w-full border p-2 rounded"
+                        className={`w-full border px-2 rounded ${linkError ? 'border-red-500' : ''}`}
                         value={link}
                         onChange={handleLinkChange}
                     />
+                    {linkError && <p className="text-red-500 text-sm">{linkError}</p>}
                     <Input
                         type="text"
                         placeholder="Nama Tamu"
@@ -185,28 +222,13 @@ Terima Kasih`;
                 </div>
             </div>
 
-            {/* Dialog for Editing Template */}
-            <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-                <DialogContent>
-                    <DialogHeader>
-                        <DialogTitle>Edit Template</DialogTitle>
-                        <DialogDescription>
-                            Gunakan placeholder <code>{'{{' + 'nama_tamu' + '}}'}</code> untuk nama tamu dan <code>{'{{' + 'link' + '}}'}</code> untuk link undangan.
-                        </DialogDescription>
-                    </DialogHeader>
-                    <Textarea
-                        value={template}
-                        className="h-60"
-                        onChange={handleTemplateChange}
-                    />
-                    <DialogFooter>
-                        <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
-                            Cancel
-                        </Button>
-                        <Button onClick={handleSaveTemplate}>Save Template</Button>
-                    </DialogFooter>
-                </DialogContent>
-            </Dialog>
+            <EditTemplateModal
+                isOpen={isDialogOpen}
+                onClose={() => setIsDialogOpen(false)}
+                template={template}
+                onTemplateChange={handleTemplateChange}
+                onSaveTemplate={handleSaveTemplate}
+            />
         </>
     );
 }
