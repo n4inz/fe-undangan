@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { BiCopyAlt, BiLogoWhatsapp, BiMobile, BiPencil, BiPaste } from "react-icons/bi";
 import EditTemplateModal from "./EditTemplateModal";
+import { useSearchParams } from "next/navigation";
 
 const isLocalStorageSupported = () => {
     try {
@@ -51,10 +52,13 @@ Merupakan suatu kebahagiaan bagi kami apabila Bapak/Ibu/Saudara/i berkenan untuk
 
 Terima Kasih`;
 
+    const searchParams = useSearchParams();
+    const initialUri = searchParams.get('uri') || ''; // Get the 'uri' from the search params
+
     const [template, setTemplate] = useState(defaultTemplate);
     const [isTemplateEdited, setIsTemplateEdited] = useState(false);
     const [namaTamu, setNamaTamu] = useState('');
-    const [link, setLink] = useState('');
+    const [link, setLink] = useState(initialUri);
     const [isDialogOpen, setIsDialogOpen] = useState(false);
     const [supportsLocalStorage, setSupportsLocalStorage] = useState(false);
     const [linkError, setLinkError] = useState('');
@@ -80,12 +84,17 @@ Terima Kasih`;
         setNamaTamu(value);
         try {
             const url = new URL(link || 'https://example.com');
-            value ? url.searchParams.set('to', encodeURIComponent(value)) : url.searchParams.delete('to');
+            if (value) {
+                url.searchParams.set('to', value); // Do not use encodeURIComponent here
+            } else {
+                url.searchParams.delete('to');
+            }
             setLink(url.toString());
         } catch (error) {
             console.error('Invalid link format:', error);
         }
     };
+
 
     const validateLink = (value) => {
         if (isValidDomain(value)) {
@@ -156,17 +165,19 @@ Terima Kasih`;
         <>
             <div className="flex flex-col space-y-5 justify-center items-center mx-4">
                 <div className="w-full sm:max-w-[20rem] space-y-2 my-4 flex flex-col items-center">
-                    <div className="relative w-full">
+                    <div className="relative w-full flex">
                         <Input
                             type="url"
                             placeholder="Link Undangan"
-                            className={`w-full border px-2 rounded ${linkError ? 'border-red-500' : ''}`}
+                            className={`flex-grow border px-2 ${linkError ? 'border-red-500' : ''}`}
                             value={link}
                             onChange={handleLinkChange}
+                            style={{ borderTopRightRadius: 0, borderBottomRightRadius: 0 }}
                         />
                         <Button
-                            className="absolute right-0 top-0 h-full bg-gray-500 border-l rounded-r"
+                            className="bg-gray-500 border-l"
                             onClick={handlePasteLink}
+                            style={{ borderTopLeftRadius: 0, borderBottomLeftRadius: 0 }}
                         >
                             <BiPaste className="inline-block text-lg" />
                         </Button>
