@@ -63,15 +63,6 @@ Terima Kasih`;
     const [supportsLocalStorage, setSupportsLocalStorage] = useState(false);
     const [linkError, setLinkError] = useState('');
 
-    useEffect(() => {
-        const supported = isLocalStorageSupported();
-        setSupportsLocalStorage(supported);
-        if (supported) {
-            const savedTemplate = localStorage.getItem('template');
-            if (savedTemplate) setTemplate(savedTemplate);
-        }
-    }, []);
-
     const handleTemplateChange = (e) => {
         const value = e.target.value;
         setTemplate(value);
@@ -160,6 +151,22 @@ Terima Kasih`;
     };
 
     const renderedTemplate = template.replace(/{{nama_tamu}}/g, namaTamu || '...').replace(/{{link}}/g, link || '...');
+
+    useEffect(() => {
+        const supported = isLocalStorageSupported();
+        setSupportsLocalStorage(supported);
+        if (supported) {
+            const savedTemplate = localStorage.getItem('template');
+            if (savedTemplate) setTemplate(savedTemplate);
+        }
+    }, []);
+
+    useEffect(() => {
+        if (initialUri && !isValidDomain(initialUri)) {
+            setLinkError('Link Undangan tidak valid. Harus menggunakan salah satu domain yang diizinkan.');
+            setLink('');
+        }
+    }, [initialUri]);
 
     return (
         <>
