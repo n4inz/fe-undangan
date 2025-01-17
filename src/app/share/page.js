@@ -3,33 +3,26 @@ import React, { useState, useEffect } from "react";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { BiCopyAlt, BiLogoWhatsapp, BiMobile, BiPencil } from "react-icons/bi";
+import { BiCopyAlt, BiLogoWhatsapp, BiMobile, BiPencil, BiPaste } from "react-icons/bi";
 import EditTemplateModal from "./EditTemplateModal";
+import { useSearchParams } from "next/navigation";
 
-// Helper function to check localStorage support
 const isLocalStorageSupported = () => {
     try {
-        const testKey = "__test__";
-        localStorage.setItem(testKey, "1");
-        localStorage.removeItem(testKey);
+        localStorage.setItem("__test__", "1");
+        localStorage.removeItem("__test__");
         return true;
-    } catch (error) {
+    } catch {
         return false;
     }
 };
 
-const allowedDomains = [
-    'sewaundangan.com',
-    'bukaundangan.com',
-    'buka.undanganku.store',
-    'undanganku.store'
-];
+const allowedDomains = ['sewaundangan.com', 'bukaundangan.com', 'buka.undanganku.store', 'undanganku.store'];
 
 const isValidDomain = (url) => {
     try {
-        const { hostname } = new URL(url);
-        return allowedDomains.some(domain => hostname.endsWith(domain));
-    } catch (error) {
+        return allowedDomains.some(domain => new URL(url).hostname.endsWith(domain));
+    } catch {
         return false;
     }
 };
@@ -37,12 +30,8 @@ const isValidDomain = (url) => {
 const debounce = (func, delay) => {
     let timeoutId;
     return (...args) => {
-        if (timeoutId) {
-            clearTimeout(timeoutId);
-        }
-        timeoutId = setTimeout(() => {
-            func(...args);
-        }, delay);
+        clearTimeout(timeoutId);
+        timeoutId = setTimeout(() => func(...args), delay);
     };
 };
 
@@ -63,46 +52,40 @@ Merupakan suatu kebahagiaan bagi kami apabila Bapak/Ibu/Saudara/i berkenan untuk
 
 Terima Kasih`;
 
+    const searchParams = useSearchParams();
+    const initialUri = searchParams.get('uri') || ''; // Get the 'uri' from the search params
+
     const [template, setTemplate] = useState(defaultTemplate);
     const [isTemplateEdited, setIsTemplateEdited] = useState(false);
     const [namaTamu, setNamaTamu] = useState('');
-    const [link, setLink] = useState('');
+    const [link, setLink] = useState(initialUri);
     const [isDialogOpen, setIsDialogOpen] = useState(false);
     const [supportsLocalStorage, setSupportsLocalStorage] = useState(false);
     const [linkError, setLinkError] = useState('');
 
     useEffect(() => {
-        // Check if localStorage is supported
         const supported = isLocalStorageSupported();
         setSupportsLocalStorage(supported);
-
         if (supported) {
             const savedTemplate = localStorage.getItem('template');
-            if (savedTemplate) {
-                setTemplate(savedTemplate);
-            }
+            if (savedTemplate) setTemplate(savedTemplate);
         }
     }, []);
 
     const handleTemplateChange = (e) => {
-        setTemplate(e.target.value);
-        if (supportsLocalStorage) {
-            const savedTemplate = localStorage.getItem('template') || defaultTemplate;
-            setIsTemplateEdited(e.target.value !== savedTemplate);
-        } else {
-            setIsTemplateEdited(e.target.value !== defaultTemplate);
-        }
+        const value = e.target.value;
+        setTemplate(value);
+        const savedTemplate = supportsLocalStorage ? localStorage.getItem('template') || defaultTemplate : defaultTemplate;
+        setIsTemplateEdited(value !== savedTemplate);
     };
 
     const handleNamaTamuChange = (e) => {
         const value = e.target.value;
         setNamaTamu(value);
-
-        // Update link dynamically with ?to=nama_tamu
         try {
-            const url = new URL(link || 'https://example.com'); // Use a placeholder URL if link is empty
+            const url = new URL(link || 'https://example.com');
             if (value) {
-                url.searchParams.set('to', encodeURIComponent(value));
+                url.searchParams.set('to', value); // Do not use encodeURIComponent here
             } else {
                 url.searchParams.delete('to');
             }
@@ -112,12 +95,13 @@ Terima Kasih`;
         }
     };
 
+
     const validateLink = (value) => {
         if (isValidDomain(value)) {
             setLink(value);
             setLinkError('');
         } else {
-            setLink(''); // Clear link if invalid
+            setLink('');
             setLinkError('Link Undangan tidak valid. Harus menggunakan salah satu domain yang diizinkan.');
         }
     };
@@ -138,22 +122,18 @@ Terima Kasih`;
             alert("Browser Anda tidak mendukung penyimpanan template.");
         }
         setIsTemplateEdited(false);
-        setIsDialogOpen(false); // Close modal after saving
+        setIsDialogOpen(false);
     };
 
     const handleCopyText = () => {
-        const dynamicTemplate = template
-            .replace(/{{nama_tamu}}/g, namaTamu || '...')
-            .replace(/{{link}}/g, link || '...');
+        const dynamicTemplate = template.replace(/{{nama_tamu}}/g, namaTamu || '...').replace(/{{link}}/g, link || '...');
         navigator.clipboard.writeText(dynamicTemplate)
             .then(() => alert("Teks telah berhasil disalin"))
             .catch((err) => console.error("Gagal menyalin teks: ", err));
     };
 
     const handleShare = async () => {
-        const dynamicTemplate = template
-            .replace(/{{nama_tamu}}/g, namaTamu || '...')
-            .replace(/{{link}}/g, link || '...');
+        const dynamicTemplate = template.replace(/{{nama_tamu}}/g, namaTamu || '...').replace(/{{link}}/g, link || '...');
         if (navigator.share) {
             try {
                 await navigator.share({
@@ -169,21 +149,39 @@ Terima Kasih`;
         }
     };
 
-    const renderedTemplate = template
-        .replace(/{{nama_tamu}}/g, namaTamu || '...')
-        .replace(/{{link}}/g, link || '...');
+    const handlePasteLink = async () => {
+        try {
+            const text = await navigator.clipboard.readText();
+            setLink(text);
+            debouncedValidateLink(text);
+        } catch (err) {
+            console.error("Failed to read clipboard contents: ", err);
+        }
+    };
+
+    const renderedTemplate = template.replace(/{{nama_tamu}}/g, namaTamu || '...').replace(/{{link}}/g, link || '...');
 
     return (
         <>
             <div className="flex flex-col space-y-5 justify-center items-center mx-4">
                 <div className="w-full sm:max-w-[20rem] space-y-2 my-4 flex flex-col items-center">
-                    <Input
-                        type="url"
-                        placeholder="Link Undangan"
-                        className={`w-full border px-2 rounded ${linkError ? 'border-red-500' : ''}`}
-                        value={link}
-                        onChange={handleLinkChange}
-                    />
+                    <div className="relative w-full flex">
+                        <Input
+                            type="url"
+                            placeholder="Link Undangan"
+                            className={`flex-grow border px-2 ${linkError ? 'border-red-500' : ''}`}
+                            value={link}
+                            onChange={handleLinkChange}
+                            style={{ borderTopRightRadius: 0, borderBottomRightRadius: 0 }}
+                        />
+                        <Button
+                            className="bg-gray-500 border-l"
+                            onClick={handlePasteLink}
+                            style={{ borderTopLeftRadius: 0, borderBottomLeftRadius: 0 }}
+                        >
+                            <BiPaste className="inline-block text-lg" />
+                        </Button>
+                    </div>
                     {linkError && <p className="text-red-500 text-sm">{linkError}</p>}
                     <Input
                         type="text"
