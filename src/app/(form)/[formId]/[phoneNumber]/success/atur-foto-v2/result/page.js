@@ -8,6 +8,7 @@ import axios from 'axios';
 import DataTable from 'react-data-table-component';
 import { Button } from '@/components/ui/button';
 import { DialogModalForm } from '@/components/DialogModalForm';
+import { checkForm } from '@/utils/checkForm';
 
 const Result = ({ params }) => {
     const router = useRouter();  // Initialize router
@@ -87,6 +88,25 @@ const Result = ({ params }) => {
         // Navigate to the given URL when the back button is clicked
         router.push(`/${params.formId}/${params.phoneNumber}/success/atur-foto-v2`);
     };
+
+      useEffect(() => {
+        const fetchData = async () => {
+          const { data, error } = await checkForm(params.formId, params.phoneNumber);
+    
+          if (error) {
+            console.error(error);
+            router.replace('/'); // Redirect on error
+          } else {
+            setLoading(false);
+          }
+        };
+    
+        fetchData();
+      }, [params.formId, params.phoneNumber, router]);
+    
+      if (loading) {
+        return null; // Render nothing while loading
+      }
 
     return (
         <div className="flex items-center justify-center bg-gray-100">

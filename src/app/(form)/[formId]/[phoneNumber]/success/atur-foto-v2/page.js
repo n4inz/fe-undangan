@@ -2,11 +2,16 @@
 import React, { useEffect, useState, useRef } from 'react'
 import LoadingOverlay from 'react-loading-overlay-ts'
 import MultiStepForm from '@/components/atur-foto/MultiStepForm'
+import { checkForm } from '@/utils/checkForm'
+import { useRouter } from 'next/navigation'
 
 const AturFoto = ({ params }) => {
+  const router = useRouter()
+
   const [isActive, setActive] = useState(true)
   const [isOverflow, setIsOverflow] = useState(false);
   const containerRef = useRef(null);
+  const [loading, setLoading] = useState(true);
 
   const checkHeight = () => {
     if (containerRef.current) {
@@ -21,6 +26,25 @@ const AturFoto = ({ params }) => {
   useEffect(() => {
     setActive(false)
   }, [])
+
+    useEffect(() => {
+      const fetchData = async () => {
+        const { data, error } = await checkForm(params.formId, params.phoneNumber);
+  
+        if (error) {
+          console.error(error);
+          router.replace('/'); // Redirect on error
+        } else {
+          setLoading(false);
+        }
+      };
+  
+      fetchData();
+    }, [params.formId, params.phoneNumber, router]);
+  
+    if (loading) {
+      return null; // Render nothing while loading
+    }
 
   return (
     <LoadingOverlay active={isActive} spinner text='Loading your content...'>

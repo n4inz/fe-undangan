@@ -857,13 +857,22 @@ const Home = () => {
                 <label className="block text-gray-700">
                   Ceritakan awal bertemu
                 </label>
-                <div className="md:w-1/2">
+                <div className="flex space-x-4">
+                  <Input
+                    type="text"
+                    name="judulCeritaAwal"
+                    value={formData.judulCeritaAwal}
+                    onChange={handleChange}
+                    className="flex-1"
+                    placeholder="Judul Cerita Awal"
+                  />
                   <Input
                     name="dateCeritaAwal"
                     type="month"
                     id="month"
                     value={formData.dateCeritaAwal}
                     onChange={handleChange}
+                    className="flex-1"
                   />
                 </div>
                 <Textarea
@@ -871,6 +880,7 @@ const Home = () => {
                   value={formData.ceritaAwal}
                   onChange={handleChange}
                   className="mt-1 p-2 w-full border border-gray-300 rounded-lg"
+                  placeholder="Ceritakan awal pertemuan kalian..."
                 />
               </div>
             </>
@@ -879,13 +889,22 @@ const Home = () => {
             <>
               <div className="mb-4">
                 <label className="block text-gray-700">Ceritakan awal komitmen</label>
-                <div className="md:w-1/2">
+                <div className="flex space-x-4">
+                  <Input
+                    type="text"
+                    name="judulCeritaJadian"
+                    value={formData.judulCeritaJadian}
+                    onChange={handleChange}
+                    className="flex-1"
+                    placeholder="Judul Komitmen"
+                  />
                   <Input
                     name="dateCeritaJadian"
                     type="month"
                     id="month"
                     value={formData.dateCeritaJadian}
                     onChange={handleChange}
+                    className="flex-1"
                   />
                 </div>
                 <Textarea
@@ -893,6 +912,7 @@ const Home = () => {
                   value={formData.ceritaJadian}
                   onChange={handleChange}
                   className="mt-1 p-2 w-full border border-gray-300 rounded-lg"
+                  placeholder="Ceritakan awal komitmen kalian..."
                 />
               </div>
             </>
@@ -901,13 +921,22 @@ const Home = () => {
             <>
               <div className="mb-4">
                 <label className="block text-gray-700">Ceritakan awal lamaran</label>
-                <div className="md:w-1/2">
+                <div className="flex space-x-4">
+                  <Input
+                    type="text"
+                    name="judulCeritaLamaran"
+                    value={formData.judulCeritaLamaran}
+                    onChange={handleChange}
+                    className="flex-1"
+                    placeholder="Judul Cerita Lamaran"
+                  />
                   <Input
                     name="dateCeritaLamaran"
                     type="month"
                     id="month"
                     value={formData.dateCeritaLamaran}
                     onChange={handleChange}
+                    className="flex-1"
                   />
                 </div>
                 <Textarea
@@ -915,6 +944,7 @@ const Home = () => {
                   value={formData.ceritaLamaran}
                   onChange={handleChange}
                   className="mt-1 p-2 w-full border border-gray-300 rounded-lg"
+                  placeholder="Ceritakan lamaran kalian..."
                 />
               </div>
             </>

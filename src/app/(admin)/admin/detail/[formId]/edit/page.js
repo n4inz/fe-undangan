@@ -163,10 +163,10 @@ const EditDetail = ({ params }) => {
     const handleSelectChange = (id, name) => {
         setSelectedTema({ id, name }); // Store the selected theme in selectedTema
         setFormData((prevData) => ({
-          ...prevData,
-          idTema: id, // Convert idTema to a string here
+            ...prevData,
+            idTema: id, // Convert idTema to a string here
         }));
-      };
+    };
 
 
     const fetchData = async () => {
@@ -223,27 +223,27 @@ const EditDetail = ({ params }) => {
 
     useEffect(() => {
         const fetchOptions = async () => {
-          try {
-            const data = await getTema();
-            setOptions(data || []);
-    
-            // Set selectedTema after options are loaded
-            if (formData.idTema) {
-              const theme = data.find((option) => option.id === formData.idTema);
-              if (theme) {
-                setSelectedTema({ id: theme.id, name: theme.name });
-              }
+            try {
+                const data = await getTema();
+                setOptions(data || []);
+
+                // Set selectedTema after options are loaded
+                if (formData.idTema) {
+                    const theme = data.find((option) => option.id === formData.idTema);
+                    if (theme) {
+                        setSelectedTema({ id: theme.id, name: theme.name });
+                    }
+                }
+            } catch (error) {
+                console.error("Error fetching tema options:", error);
+                setOptions([]); // Ensure options remains an array in case of error
+            } finally {
+                setIsLoadingOptions(false);
             }
-          } catch (error) {
-            console.error("Error fetching tema options:", error);
-            setOptions([]); // Ensure options remains an array in case of error
-          } finally {
-            setIsLoadingOptions(false);
-          }
         };
-    
+
         fetchOptions();
-      }, [formData.idTema]);
+    }, [formData.idTema]);
 
     useEffect(() => {
         setMounted(true); // Indicate that the component has mounted
@@ -692,13 +692,22 @@ const EditDetail = ({ params }) => {
                         </div>
                         <div className="mb-4">
                             <label className="block text-gray-700">Ceritakan awal bertemu</label>
-                            <div className="md:w-1/2">
+                            <div className="flex space-x-4">
+                                <Input
+                                    type="text"
+                                    name="judulCeritaAwal"
+                                    value={formData.judulCeritaAwal}
+                                    onChange={handleChange}
+                                    className="flex-1"
+                                    placeholder="Judul Cerita Awal"
+                                />
                                 <Input
                                     name="dateCeritaAwal"
                                     type="month"
                                     id="month"
                                     value={formData.dateCeritaAwal}
                                     onChange={handleChange}
+                                    className="flex-1"
                                 />
                             </div>
                             <Textarea
@@ -710,13 +719,22 @@ const EditDetail = ({ params }) => {
                         </div>
                         <div className="mb-4">
                             <label className="block text-gray-700">Ceritakan awal jadian</label>
-                            <div className="md:w-1/2">
+                            <div className="flex space-x-4">
+                                <Input
+                                    type="text"
+                                    name="judulCeritaJadian"
+                                    value={formData.judulCeritaJadian}
+                                    onChange={handleChange}
+                                    className="flex-1"
+                                    placeholder="Judul Cerita Komitmen"
+                                />
                                 <Input
                                     name="dateCeritaJadian"
                                     type="month"
                                     id="month"
                                     value={formData.dateCeritaJadian}
                                     onChange={handleChange}
+                                    className="flex-1"
                                 />
                             </div>
                             <Textarea
@@ -728,13 +746,22 @@ const EditDetail = ({ params }) => {
                         </div>
                         <div className="mb-4">
                             <label className="block text-gray-700">Ceritakan awal lamaran</label>
-                            <div className="md:w-1/2">
+                            <div className="flex space-x-4">
+                                <Input
+                                    type="text"
+                                    name="judulCeritaLamaran"
+                                    value={formData.judulCeritaLamaran}
+                                    onChange={handleChange}
+                                    className="flex-1"
+                                    placeholder="Judul Cerita Lamaran"
+                                />
                                 <Input
                                     name="dateCeritaLamaran"
                                     type="month"
                                     id="month"
                                     value={formData.dateCeritaLamaran}
                                     onChange={handleChange}
+                                    className="flex-1"
                                 />
                             </div>
                             <Textarea
