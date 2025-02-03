@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { BiEnvelope, BiPhone, BiX, BiArrowBack } from "react-icons/bi";
-import { useRouter } from 'next/navigation';  // Import the router hook
+import { useRouter } from 'next/navigation';
 import axios from 'axios';
 import DataTable from 'react-data-table-component';
 import { Button } from '@/components/ui/button';
@@ -11,7 +11,7 @@ import { DialogModalForm } from '@/components/DialogModalForm';
 import { checkForm } from '@/utils/checkForm';
 
 const Result = ({ params }) => {
-    const router = useRouter();  // Initialize router
+    const router = useRouter();
     const contactUrl = `https://wa.me/${process.env.NEXT_PUBLIC_WA_NUMBER}?text=Halo,%0ASaya%20ingin%20memesan%20undangan%20dengan%20kode%20id%20:%20${params.formId}`;
 
     const [data, setData] = useState([]);
@@ -20,10 +20,11 @@ const Result = ({ params }) => {
     const [open, setOpen] = useState(false);
     const [selectedIndex, setSelectedIndex] = useState(null);
     const [selectedRow, setSelectedRow] = useState({ id: null, idImage: null });
+    const [pageLoading, setPageLoading] = useState(true);
+    const [imageLoading, setImageLoading] = useState(false);
     const [isFullScreen, setIsFullScreen] = useState(false);
     const [fullScreenImage, setFullScreenImage] = useState(null);
     const [form, setForm] = useState([]);
-    const [loading, setLoading] = useState(false);
 
     const columns = [
         {
@@ -33,17 +34,21 @@ const Result = ({ params }) => {
         },
         {
             name: 'Foto',
-            cell: row => (
-                <Image
-                    src={`${process.env.NEXT_PUBLIC_API_URL}/images/${row.images.fileImage}`}
-                    alt="Foto"
-                    width={100}
-                    height={100}
-                    priority
-                    className="w-auto h-auto object-cover cursor-pointer"
-                    onClick={() => handleImageClick(`${process.env.NEXT_PUBLIC_API_URL}/images/${row.images.fileImage}`)}
-                />
-            ),
+            cell: row => {
+                // Build the image URL including the missing id (assumed to be row.idImage)
+                const imageUrl = `${process.env.NEXT_PUBLIC_API_URL}/images/${row.images.fileImage}`;
+                return (
+                    <Image
+                        src={imageUrl}
+                        alt="Foto"
+                        width={100}
+                        height={100}
+                        priority
+                        className="w-auto h-auto object-cover cursor-pointer"
+                        onClick={() => handleImageClick(imageUrl)}
+                    />
+                );
+            },
         },
         {
             name: 'Bagian',
@@ -55,7 +60,7 @@ const Result = ({ params }) => {
     const handleImageClick = (imageUrl) => {
         setFullScreenImage(imageUrl);
         setIsFullScreen(true);
-        setLoading(true);
+        setImageLoading(true);
     };
 
     const handleCloseFullScreen = () => {
@@ -77,7 +82,7 @@ const Result = ({ params }) => {
     };
 
     const handleImageLoadComplete = () => {
-        setLoading(false);
+        setImageLoading(false);
     };
 
     useEffect(() => {
@@ -85,28 +90,25 @@ const Result = ({ params }) => {
     }, []);
 
     const handleBackButtonClick = () => {
-        // Navigate to the given URL when the back button is clicked
         router.push(`/${params.formId}/${params.phoneNumber}/success/atur-foto-v2`);
     };
 
-      useEffect(() => {
-        const fetchData = async () => {
-          const { data, error } = await checkForm(params.formId, params.phoneNumber);
-    
-          if (error) {
-            console.error(error);
-            router.replace('/'); // Redirect on error
-          } else {
-            setLoading(false);
-          }
+    useEffect(() => {
+        const validateForm = async () => {
+            const { data, error } = await checkForm(params.formId, params.phoneNumber);
+            if (error) {
+                console.error(error);
+                router.replace('/');
+            } else {
+                setPageLoading(false);
+            }
         };
-    
-        fetchData();
-      }, [params.formId, params.phoneNumber, router]);
-    
-      if (loading) {
-        return null; // Render nothing while loading
-      }
+        validateForm();
+    }, [params.formId, params.phoneNumber, router]);
+
+    if (pageLoading) {
+        return null; // Render nothing while checking form or global data
+    }
 
     return (
         <div className="flex items-center justify-center bg-gray-100">
@@ -151,7 +153,7 @@ const Result = ({ params }) => {
 
             {isFullScreen && (
                 <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-90 z-50">
-                    {loading && (
+                    {imageLoading && (
                         <div className="absolute flex items-center justify-center">
                             <div className="w-12 h-12 border-4 border-t-4 border-gray-200 border-t-blue-600 rounded-full animate-spin"></div>
                         </div>

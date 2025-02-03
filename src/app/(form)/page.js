@@ -81,6 +81,8 @@ const Home = () => {
               tglLahirWanita: "",
               datetimeAkad: "",
               datetimeResepsi: "",
+              timeAkad: "",
+              timeResepsi: "",
               alamatAkad: "",
               alamatResepsi: "",
               opsiAkad: "Wanita",
@@ -108,6 +110,8 @@ const Home = () => {
         tglLahirWanita: "",
         datetimeAkad: "",
         datetimeResepsi: "",
+        timeAkad: "",
+        timeResepsi: "",
         alamatAkad: "",
         alamatResepsi: "",
         opsiAkad: "Wanita",
@@ -268,6 +272,8 @@ const Home = () => {
         return 4;
       case "datetimeAkad":
       case "datetimeResepsi":
+      case "timeAkad":
+      case "timeResepsi":
       case "alamatAkad":
       case "alamatResepsi":
       case "opsiAkad":
@@ -593,13 +599,13 @@ const Home = () => {
               {/* Acara */}
               <div className="mb-4">
                 <label className="block text-gray-700">
-                  Tanggal dan Jam Acara (Akad / Pemberkatan )
+                  Tanggal Acara (Akad / Pemberkatan )
                   <span className='text-red-500'>*</span>
                 </label>
                 <input
-                  type="datetime-local"
+                  type="date"
                   name="datetimeAkad"
-                  value={formatDateTime(formData.datetimeAkad)}
+                  value={formData.datetimeAkad}
                   onChange={handleChange}
                   className="mt-1 p-2 w-full border border-gray-300 rounded-lg"
                 />
@@ -607,17 +613,49 @@ const Home = () => {
               </div>
               <div className="mb-4">
                 <label className="block text-gray-700">
-                  Tanggal dan Jam Acara Resepsi
+                  Jam Acara (Akad / Pemberkatan )
+                  <span className='text-red-500'>*</span>
+                  <br></br>
+                  Ex: 12.00 WIB - Selesai
+                </label>
+                <input
+                  type="text"
+                  name="timeAkad"
+                  value={formData.timeAkad}
+                  onChange={handleChange}
+                  className="mt-1 p-2 w-full border border-gray-300 rounded-lg"
+                />
+                {errors.timeAkad && <p className="text-red-500 text-sm mt-1">{errors.timeAkad}</p>}
+              </div>
+              <div className="mb-4">
+                <label className="block text-gray-700">
+                  Tanggal Acara Resepsi
                   <span className='text-red-500'>*</span>
                 </label>
                 <input
-                  type="datetime-local"
+                  type="date"
                   name="datetimeResepsi"
-                  value={formatDateTime(formData.datetimeResepsi)}
+                  value={formData.datetimeResepsi}
                   onChange={handleChange}
                   className="mt-1 p-2 w-full border border-gray-300 rounded-lg"
                 />
                 {errors.datetimeResepsi && <p className="text-red-500 text-sm mt-1">{errors.datetimeResepsi}</p>}
+              </div>
+              <div className="mb-4">
+                <label className="block text-gray-700">
+                  Jam Acara Resepsi
+                  <span className='text-red-500'>*</span>
+                  <br></br>
+                  Ex: 12.00 WIB - Selesai
+                </label>
+                <input
+                  type="text"
+                  name="timeResepsi"
+                  value={formData.timeResepsi}
+                  onChange={handleChange}
+                  className="mt-1 p-2 w-full border border-gray-300 rounded-lg"
+                />
+                {errors.timeResepsi && <p className="text-red-500 text-sm mt-1">{errors.timeResepsi}</p>}
               </div>
               <div className="mb-4">
                 <label className="block text-gray-700">

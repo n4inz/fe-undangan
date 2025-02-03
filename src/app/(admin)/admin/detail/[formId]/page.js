@@ -296,7 +296,7 @@ const Detail = ({ params }) => {
               <span className='text-red-500'>*</span>
             </label>
             <input
-              type="datetime-local"
+              type="date"
               name="datetimeAkad"
               value={formData.datetimeAkad}
 
@@ -305,14 +305,42 @@ const Detail = ({ params }) => {
           </div>
           <div className="mb-4">
             <label className="block text-gray-700">
-              Tanggal dan Jam Acara Resepsi
+              Jam Acara Akad
+              <span className='text-red-500'>*</span>
+              <br></br>
+              Ex: 12.00 WIB - Selesai
+            </label>
+            <input
+              type="text"
+              name="timeAkad"
+              value={formData.timeAkad}
+              className="mt-1 p-2 w-full border border-gray-300 rounded-lg"
+            />
+          </div>
+          <div className="mb-4">
+            <label className="block text-gray-700">
+              Tanggal Acara Resepsi
               <span className='text-red-500'>*</span>
             </label>
             <input
-              type="datetime-local"
+              type="date"
               name="datetimeResepsi"
               value={formData.datetimeResepsi}
 
+              className="mt-1 p-2 w-full border border-gray-300 rounded-lg"
+            />
+          </div>
+          <div className="mb-4">
+            <label className="block text-gray-700">
+              Jam Acara Resepsi
+              <span className='text-red-500'>*</span>
+              <br></br>
+              Ex: 12.00 WIB - Selesai
+            </label>
+            <input
+              type="text"
+              name="timeResepsi"
+              value={formData.timeResepsi}
               className="mt-1 p-2 w-full border border-gray-300 rounded-lg"
             />
           </div>
@@ -479,21 +507,21 @@ const Detail = ({ params }) => {
           <div className="mb-4">
             <label className="block text-gray-700">Ceritakan awal bertemu</label>
             <div className="flex space-x-4">
-                  <Input
-                    type="text"
-                    name="judulCeritaAwal"
-                    value={formData.judulCeritaAwal}
-                    className="flex-1"
-                    placeholder="Judul Cerita Awal"
-                  />
-                  <Input
-                    name="dateCeritaAwal"
-                    type="month"
-                    id="month"
-                    value={formData.dateCeritaAwal}
-                    className="flex-1"
-                  />
-                </div>
+              <Input
+                type="text"
+                name="judulCeritaAwal"
+                value={formData.judulCeritaAwal}
+                className="flex-1"
+                placeholder="Judul Cerita Awal"
+              />
+              <Input
+                name="dateCeritaAwal"
+                type="month"
+                id="month"
+                value={formData.dateCeritaAwal}
+                className="flex-1"
+              />
+            </div>
             <Textarea
               name="ceritaAwal"
               value={formData.ceritaAwal}
@@ -504,21 +532,21 @@ const Detail = ({ params }) => {
           <div className="mb-4">
             <label className="block text-gray-700">Ceritakan awal jadian</label>
             <div className="flex space-x-4">
-                  <Input
-                    type="text"
-                    name="judulCeritaJadian"
-                    value={formData.judulCeritaJadian}
-                    className="flex-1"
-                    placeholder="Judul Cerita Komitmen"
-                  />
-                  <Input
-                    name="dateCeritaJadian"
-                    type="month"
-                    id="month"
-                    value={formData.dateCeritaJadian}
-                    className="flex-1"
-                  />
-                </div>
+              <Input
+                type="text"
+                name="judulCeritaJadian"
+                value={formData.judulCeritaJadian}
+                className="flex-1"
+                placeholder="Judul Cerita Komitmen"
+              />
+              <Input
+                name="dateCeritaJadian"
+                type="month"
+                id="month"
+                value={formData.dateCeritaJadian}
+                className="flex-1"
+              />
+            </div>
             <Textarea
               name="ceritaJadian"
               value={formData.ceritaJadian}
@@ -529,21 +557,21 @@ const Detail = ({ params }) => {
           <div className="mb-4">
             <label className="block text-gray-700">Ceritakan awal lamaran</label>
             <div className="flex space-x-4">
-                  <Input
-                    type="text"
-                    name="judulCeritaLamaran"
-                    value={formData.judulCeritaLamaran}
-                    className="flex-1"
-                    placeholder="Judul Cerita Lamaran"
-                  />
-                  <Input
-                    name="dateCeritaLamaran"
-                    type="month"
-                    id="month"
-                    value={formData.dateCeritaLamaran}
-                    className="flex-1"
-                  />
-                </div>
+              <Input
+                type="text"
+                name="judulCeritaLamaran"
+                value={formData.judulCeritaLamaran}
+                className="flex-1"
+                placeholder="Judul Cerita Lamaran"
+              />
+              <Input
+                name="dateCeritaLamaran"
+                type="month"
+                id="month"
+                value={formData.dateCeritaLamaran}
+                className="flex-1"
+              />
+            </div>
             <Textarea
               name="ceritaLamaran"
               value={formData.ceritaLamaran}

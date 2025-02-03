@@ -25,6 +25,8 @@ export const mainSchema = z.object({
   // tglLahirWanita: requeiredDate,
   datetimeAkad: requeiredDate,
   datetimeResepsi: requeiredDate,
+  timeAkad: requeiredInput,
+  timeResepsi: requeiredInput,
 })
 
 export const schema = z.object({

@@ -474,10 +474,25 @@ const EditDetail = ({ params }) => {
                                 <span className='text-red-500'>*</span>
                             </label>
                             <input
-                                type="datetime-local"
+                                type="date"
                                 name="datetimeAkad"
                                 value={formData.datetimeAkad}
 
+                                className="mt-1 p-2 w-full border border-gray-300 rounded-lg"
+                            />
+                        </div>
+                        <div className="mb-4">
+                            <label className="block text-gray-700">
+                                Jam Acara (Akad / Pemberkatan )
+                                <span className='text-red-500'>*</span>
+                                <br></br>
+                                Ex: 12.00 WIB - Selesai
+                            </label>
+                            <input
+                                type="text"
+                                name="timeAkad"
+                                value={formData.timeAkad}
+                                onChange={handleChange}
                                 className="mt-1 p-2 w-full border border-gray-300 rounded-lg"
                             />
                         </div>
@@ -487,10 +502,25 @@ const EditDetail = ({ params }) => {
                                 <span className='text-red-500'>*</span>
                             </label>
                             <input
-                                type="datetime-local"
+                                type="date"
                                 name="datetimeResepsi"
                                 value={formData.datetimeResepsi}
 
+                                className="mt-1 p-2 w-full border border-gray-300 rounded-lg"
+                            />
+                        </div>
+                        <div className="mb-4">
+                            <label className="block text-gray-700">
+                                Jam Acara Resepsi
+                                <span className='text-red-500'>*</span>
+                                <br></br>
+                                Ex: 12.00 WIB - Selesai
+                            </label>
+                            <input
+                                type="text"
+                                name="timeResepsi"
+                                value={formData.timeResepsi}
+                                onChange={handleChange}
                                 className="mt-1 p-2 w-full border border-gray-300 rounded-lg"
                             />
                         </div>
@@ -704,7 +734,6 @@ const EditDetail = ({ params }) => {
                                 <Input
                                     name="dateCeritaAwal"
                                     type="month"
-                                    id="month"
                                     value={formData.dateCeritaAwal}
                                     onChange={handleChange}
                                     className="flex-1"
@@ -731,7 +760,6 @@ const EditDetail = ({ params }) => {
                                 <Input
                                     name="dateCeritaJadian"
                                     type="month"
-                                    id="month"
                                     value={formData.dateCeritaJadian}
                                     onChange={handleChange}
                                     className="flex-1"
@@ -758,7 +786,6 @@ const EditDetail = ({ params }) => {
                                 <Input
                                     name="dateCeritaLamaran"
                                     type="month"
-                                    id="month"
                                     value={formData.dateCeritaLamaran}
                                     onChange={handleChange}
                                     className="flex-1"
