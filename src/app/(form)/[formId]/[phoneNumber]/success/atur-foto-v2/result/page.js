@@ -35,8 +35,13 @@ const Result = ({ params }) => {
         {
             name: 'Foto',
             cell: row => {
-                // Build the image URL including the missing id (assumed to be row.idImage)
-                const imageUrl = `${process.env.NEXT_PUBLIC_API_URL}/images/${row.images.fileImage}`;
+                // Determine the image source based on whether it's from `images` or `assets`
+                const imageUrl = row.images?.fileImage
+                    ? `${process.env.NEXT_PUBLIC_API_URL}/images/${row.images.fileImage}` // Image from `images` folder
+                    : row.asset?.file
+                        ? `${process.env.NEXT_PUBLIC_API_URL}/asset/${row.asset.file}` // Image from `assets` folder
+                        : '/placeholder-image.png'; // Fallback placeholder image
+
                 return (
                     <Image
                         src={imageUrl}

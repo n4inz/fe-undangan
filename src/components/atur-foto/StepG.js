@@ -2,10 +2,13 @@
 import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import { Button } from "../ui/button";
+import Joyride, { STATUS } from 'react-joyride';
 import axios from "axios";
 import { useParams } from "next/navigation";
 import placeholder from "../../../public/images/placeholder.png";
-import LoadingOverlay from "./LoadingOverlay"  // Import the LoadingOverlay component
+import LoadingOverlay from "./LoadingOverlay";
+import { FaImages } from "react-icons/fa";
+import ModalAsset from "./ModalAsset";
 
 const StepG = ({ number, nextStep, formData, setFormData, onFormChange, partName }) => {
   const params = useParams();
@@ -15,6 +18,24 @@ const StepG = ({ number, nextStep, formData, setFormData, onFormChange, partName
   const [file, setFile] = useState(null);
   const [imageExist, setImageExist] = useState(false);
   const fileInputRef = useRef(null);
+  const [runTour, setRunTour] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(false); // State to control modal visibility
+  const [statusAsset, setStatusAsset] = useState(false);
+
+  const tourSteps = [
+    {
+      target: '#btn-asset',
+      content: 'Klik tombol ini untuk memilih aset',
+      disableBeacon: true,
+    }
+  ];
+
+  const handleJoyrideCallback = (data) => {
+    const { status } = data;
+    if ([STATUS.FINISHED, STATUS.SKIPPED].includes(status)) {
+      setRunTour(false);
+    }
+  };
 
   const handleFileChange = (e) => {
     const selectedFile = e.target.files[0];
@@ -24,6 +45,8 @@ const StepG = ({ number, nextStep, formData, setFormData, onFormChange, partName
         setSelectedImage(event.target.result);
         setFile(selectedFile);
         onFormChange();
+        // console.log('Selected file:', selectedFile);
+        setStatusAsset(false);
       };
       reader.readAsDataURL(selectedFile);
     }
@@ -35,20 +58,40 @@ const StepG = ({ number, nextStep, formData, setFormData, onFormChange, partName
 
   const handleNextClick = async () => {
     setUploading(true);
-    if (!file) {  // Ensure a file is selected before uploading
+    if (!file) {
       alert("Please select a file first!");
+      setUploading(false);
       return;
-    } else if (file == 1) {
-      const uploadData = new FormData();  // Use FormData to handle file uploads
-      uploadData.append('partName', partName); // Add any additional data needed
-      uploadData.append('dataFile', file); // Add any additional data needed
+    } else if (statusAsset && selectedImage) {
+      console.log('finally');
+
+      try {
+        const response = await axios.post(
+          `${process.env.NEXT_PUBLIC_API_URL}/upload-photo-v2/${params.formId}`, file
+        )
+        setSelectedImage(null);
+        setFile(null);
+        onFormChange();
+        nextStep();
+      } catch (error) {
+        console.error("Error uploading the image", error);
+      } finally {
+        setUploading(false);
+        setUploadProgress(0);
+      }
+
+    } else if (file === 1) {
+      const uploadData = new FormData();
+      uploadData.append('partName', partName);
+      uploadData.append('dataFile', file);
+
       try {
         const response = await axios.post(
           `${process.env.NEXT_PUBLIC_API_URL}/upload-photo-v2/${params.formId}`,
-          uploadData,  // Pass the FormData object
+          uploadData,
           {
             headers: {
-              "Content-Type": "multipart/form-data",  // Specify multipart/form-data
+              "Content-Type": "multipart/form-data",
             },
             onUploadProgress: (progressEvent) => {
               const { loaded, total } = progressEvent;
@@ -62,23 +105,31 @@ const StepG = ({ number, nextStep, formData, setFormData, onFormChange, partName
         nextStep();
       } catch (error) {
         console.error("Error uploading the image", error);
+      } finally {
+        setUploading(false);
+        setUploadProgress(0);
       }
-      return;
-    }
-
-    else {
-
-      const uploadData = new FormData();  // Rename to avoid conflict
-      uploadData.append('file', file); // Append file
-      uploadData.append('partName', partName); // Append file
-      // uploadData.append("formId", formId); // Append formId correctly
+    } else {
+      const uploadData = new FormData();
+      uploadData.append('file', file);
+      uploadData.append('partName', partName);
 
       try {
-        const response = await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/upload-photo-v2/${params.formId}`, uploadData, {
-          headers: {
-            "Content-Type": "multipart/form-data",
-          },
-        });
+        const response = await axios.post(
+          `${process.env.NEXT_PUBLIC_API_URL}/upload-photo-v2/${params.formId}`,
+          uploadData,
+          {
+            headers: {
+              "Content-Type": "multipart/form-data",
+            },
+            onUploadProgress: (progressEvent) => {
+              const { loaded, total } = progressEvent;
+              const percent = Math.floor((loaded / total) * 100);
+              setUploadProgress(percent);  // Update progress
+            },
+          }
+        );
+
         setSelectedImage(null);
         setFile(null);
         onFormChange();
@@ -87,34 +138,41 @@ const StepG = ({ number, nextStep, formData, setFormData, onFormChange, partName
         console.error("Error uploading the image", error);
       } finally {
         setUploading(false);
-        setUploadProgress(0);  // Reset progress after upload
+        setUploadProgress(0);
       }
-    };
+    }
   };
 
   const fetchData = async () => {
     try {
-      const response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/get-selected-photo/${params.formId}/${params.phoneNumber}`, {
-        params: {
-          partName: partName, // Passing as query parameter
+      const response = await axios.get(
+        `${process.env.NEXT_PUBLIC_API_URL}/get-selected-photo/${params.formId}/${params.phoneNumber}`,
+        {
+          params: {
+            partName: partName,
+          },
         }
-      });
+      );
 
       const imagesData = response.data.data;
+      const imagesDataxx = response.data;
 
-      if (imagesData && Array.isArray(imagesData) && imagesData.length > 0) {
+      console.log("Images Data:", imagesDataxx);
+
+      if (imagesData.length > 0) {
         let imageUrl;
-        if (imagesData[0].fileImage) {
-          imageUrl = `${process.env.NEXT_PUBLIC_API_URL}/images/${imagesData[0].fileImage}`;
+        if (imagesData[0].fileImage || imagesData[0].file) {
+          imageUrl = `${process.env.NEXT_PUBLIC_API_URL}/${response.data.type}/${response.data.type === 'images' ? imagesData[0].fileImage : imagesData[0].file}`;
+          setFile(1);
         } else {
           console.error('Image data does not contain expected fields');
           return;
         }
 
-        console.log(imageUrl);
+        console.log("Imageurl:", imageUrl);
+
         setSelectedImage(imageUrl);
         setUploading(false);
-        setFile(1);
         onFormChange();
       } else {
         console.error('No images found');
@@ -122,49 +180,92 @@ const StepG = ({ number, nextStep, formData, setFormData, onFormChange, partName
       }
     } catch (error) {
       console.error('Error fetching data:', error);
-      setUploading(false); // Reset uploading state in case of error
+      setUploading(false);
     }
-  }
-
-
+  };
 
   useEffect(() => {
     fetchData();
-  }, []);
+    let tourShown = false;
+    try {
+      tourShown = localStorage.getItem('tourShown');
+    } catch (error) {
+      console.warn('LocalStorage is not supported:', error);
+    }
+    if (!tourShown) {
+      setRunTour(true); // Start the tour when the component mounts
+      try {
+        localStorage.setItem('tourShown', 'true');
+      } catch (error) {
+        console.warn('LocalStorage is not supported:', error);
+      }
+    }
+  }, [params.formId, params.phoneNumber, partName]);
+
+  const handleSelectImage = (assetData) => {
+    setSelectedImage(assetData.imageUrl);
+    setFile({ ...assetData, partName: partName });
+    setStatusAsset(true);
+    console.log('Selected asset:', assetData);
+  };
 
   return (
-    <div className="relative min-h-screen p-4 text-center flex-grow">
-      {/* Use LoadingOverlay Component */}
-      {uploading && <LoadingOverlay progress={uploadProgress} />}
-      <h2 className="text-xl font-semibold">{number}. {partName}</h2>
+    <>
+      <ModalAsset isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} onSelectImage={handleSelectImage} />
 
-      <div className="flex items-center justify-center mb-4">
-        <Image
-          src={selectedImage ? selectedImage : `${placeholder.src}`}
-          alt="Cover"
-          width={300}
-          height={350}
-          className="mt-4"
+      <div className="relative min-h-screen p-4 text-center flex-grow">
+        <Joyride
+          steps={tourSteps}
+          run={runTour}
+          continuous={false}
+          showSkipButton={true}
+          callback={handleJoyrideCallback}
+          styles={{
+            options: {
+              primaryColor: '#4F46E5', // Indigo color to match your theme
+            }
+          }}
         />
-      </div>
 
-      <div className="flex justify-center gap-x-4 pb-4">
-        <input
-          type="file"
-          ref={fileInputRef}
-          onChange={handleFileChange}
-          style={{ display: "none" }}
-          accept="image/*"
-        />
-        <Button onClick={handleUploadClick} disabled={uploading}>
-          {selectedImage ? "Ganti Foto" : "Upload Foto"}
-        </Button>
+        {uploading && <LoadingOverlay progress={uploadProgress} />}
+        <div className="flex justify-between items-center">
+          <h2 className="text-xl font-semibold flex-grow text-center">{number}. {partName}</h2>
+          <Button
+            id="btn-asset"
+            onClick={() => setIsModalOpen(true)}
+          >
+            <FaImages className="text-lg" />
+          </Button>
+        </div>
 
-        <Button onClick={handleNextClick} disabled={!file || uploading}>
-          {uploading ? "Uploading..." : "Selanjutnya"}
-        </Button>
+        <div className="flex items-center justify-center mb-4">
+          <Image
+            src={selectedImage ? selectedImage : `${placeholder.src}`}
+            alt="Cover"
+            width={300}
+            height={350}
+            className="mt-4"
+          />
+        </div>
+
+        <div className="flex justify-center gap-x-4 pb-4">
+          <input
+            type="file"
+            ref={fileInputRef}
+            onChange={handleFileChange}
+            style={{ display: "none" }}
+            accept="image/*"
+          />
+          <Button onClick={handleUploadClick} disabled={uploading}>
+            {selectedImage ? "Ganti Foto" : "Upload Foto"}
+          </Button>
+
+          <Button onClick={handleNextClick} disabled={!file || uploading}>
+            {uploading ? "Uploading..." : "Selanjutnya"}
+          </Button>
+        </div>
       </div>
-    </div>
+    </>
   );
 };
 
