@@ -42,36 +42,44 @@ const ModalAsset = ({ isOpen, onClose, onSelectImage, selectType = 'single', par
 
     const handleOk = async () => {
         if (selectedAssets.length > 0) {
-        if(selectType === 'single') {
-            const selectedData = selectedAssets.map(asset => ({
-                idAsset: asset.id,
-                filename: asset.file,
-                imageUrl: `${process.env.NEXT_PUBLIC_API_URL}/asset/${asset.file}`,
-            }));
-
-            onSelectImage(selectedData[0]);
-        }else if(selectType === 'multiple' && length < 5) {
-            const selectedData = selectedAssets.map(asset => ({
-                idAsset: asset.id,
-                filename: asset.file,
-                imageUrl: `${process.env.NEXT_PUBLIC_API_URL}/asset/${asset.file}`,
-                partName: partName
-            }));
-            try {
-                const response = await axios.post(
-                  `${process.env.NEXT_PUBLIC_API_URL}/add-bg-asset/${params.formId}`, selectedData
-                )
-                setSelectedImage(null);
-                setFile(null);
-                onFormChange();
-                nextStep();
-              } catch (error) {
-                console.error("Error uploading the image", error);
-              }
-        }else{
-            alert('Maksimal 5 gambar');
-        }
-
+            if (selectType === 'single') {
+                const selectedData = selectedAssets.map(asset => ({
+                    idAsset: asset.id,
+                    filename: asset.file,
+                    imageUrl: `${process.env.NEXT_PUBLIC_API_URL}/asset/${asset.file}`,
+                }));
+    
+                onSelectImage(selectedData[0]);
+            } else if (selectType === 'multiple') {
+                // Check if total selected assets exceed 5
+                const totalSelected = length + selectedAssets.length;
+                if (totalSelected > 5) {
+                    alert('Maksimal 5 gambar');
+                    onClose();
+                    return; // Exit early to prevent further execution
+                }
+    
+                const selectedData = selectedAssets.map(asset => ({
+                    idAsset: asset.id,
+                    filename: asset.file,
+                    imageUrl: `${process.env.NEXT_PUBLIC_API_URL}/asset/${asset.file}`,
+                    partName: partName
+                }));
+    
+                try {
+                    const response = await axios.post(
+                        `${process.env.NEXT_PUBLIC_API_URL}/add-bg-asset/${params.formId}`,
+                        selectedData
+                    );
+                    setSelectedImage(null);
+                    setFile(null);
+                    onFormChange();
+                    nextStep();
+                } catch (error) {
+                    console.error("Error uploading the image", error);
+                }
+            }
+    
             onClose();
         }
     };
