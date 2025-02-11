@@ -10,7 +10,7 @@ import { useEffect, useState } from "react";
 import Image from 'next/image';
 import { useParams } from "next/navigation";
 
-const ModalAsset = ({ isOpen, onClose, onSelectImage, selectType = 'single', partName }) => {
+const ModalAsset = ({ isOpen, onClose, onSelectImage, selectType = 'single', partName, length = null }) => {
     const params = useParams();
     const [assets, setAssets] = useState([]);
     const [selectedAssets, setSelectedAssets] = useState([]);
@@ -50,7 +50,7 @@ const ModalAsset = ({ isOpen, onClose, onSelectImage, selectType = 'single', par
             }));
 
             onSelectImage(selectedData[0]);
-        }else{
+        }else if(selectType === 'multiple' && length < 5) {
             const selectedData = selectedAssets.map(asset => ({
                 idAsset: asset.id,
                 filename: asset.file,
@@ -68,6 +68,8 @@ const ModalAsset = ({ isOpen, onClose, onSelectImage, selectType = 'single', par
               } catch (error) {
                 console.error("Error uploading the image", error);
               }
+        }else{
+            alert('Maksimal 5 gambar');
         }
 
             onClose();
