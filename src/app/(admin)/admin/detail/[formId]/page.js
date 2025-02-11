@@ -52,11 +52,19 @@ const Detail = ({ params }) => {
     }
   };
 
-
+  const getImageUrl = (row) => {
+    return row.images?.fileImage
+      ? `${process.env.NEXT_PUBLIC_API_URL}/images/${row.images.fileImage}` // Image from `images` folder
+      : row.asset?.file
+      ? `${process.env.NEXT_PUBLIC_API_URL}/asset/${row.asset.file}` // Image from `assets` folder
+      : ''; // Fallback to empty string if no image is available
+  };
+  
   const fetchImage = async () => {
     const response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/image-order/${params.formId}`);
     setListImages(response.data.images);
     setOrderImageStatus(response.data.order);
+    console.log("TES : ", response.data);
   };
 
   const downloadImage = () => {
@@ -699,7 +707,7 @@ const Detail = ({ params }) => {
                 )}
                 <div className="relative h-56 max-w-xs w-full">
                   <Image
-                    src={`${process.env.NEXT_PUBLIC_API_URL}/images/${src.images.fileImage}`}
+                    src={getImageUrl(src)}
                     alt={`Image ${index}`}
                     fill
                     className="rounded-lg border border-gray-300 object-cover"

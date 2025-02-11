@@ -1,3 +1,4 @@
+//BACKGROUND
 import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import { Button } from "../ui/button";
@@ -6,6 +7,8 @@ import { useParams } from "next/navigation";
 import placeholder from "../../../public/images/placeholder.png";
 import { BiX } from "react-icons/bi";
 import LoadingOverlay from "./LoadingOverlay";
+import ModalAsset from "./ModalAsset";
+import { FaImages } from "react-icons/fa";
 
 const StepJ = ({ number, nextStep, formData, setFormData, onFormChange, partName }) => {
   const params = useParams();
@@ -16,6 +19,8 @@ const StepJ = ({ number, nextStep, formData, setFormData, onFormChange, partName
   const [errors, setErrors] = useState({});
   const [remove, setRemove] = useState(false);
   const fileInputRef = useRef(null);
+  const [isModalOpen, setIsModalOpen] = useState(false); // State to control modal visibility
+  const [statusAsset, setStatusAsset] = useState(false);
 
   // 1) Handle file selection
   const handleFileChange = (e) => {
@@ -157,6 +162,34 @@ const StepJ = ({ number, nextStep, formData, setFormData, onFormChange, partName
     }
   };
 
+  const handleSelectImage = (selectedAssets) => {
+    if (!selectedAssets) return;
+
+    const selectedArray = Array.isArray(selectedAssets) ? selectedAssets : [selectedAssets];
+
+    // Convert selected assets to match `images` structure
+    const newImages = selectedArray.map(asset => ({
+        url: asset.imageUrl,
+        id: asset.idAsset,
+        file: null
+    }));
+
+    setImages(prev => {
+        if (prev.length >= 5) {
+            alert("Maksimal 5 gambar dapat dipilih.");
+            return prev;
+        }
+
+        const updatedImages = [...prev, ...newImages].slice(0, 5);
+        return updatedImages;
+    });
+
+    setFormData(prev => ({
+        ...prev,
+        imageUrls: [...(prev.imageUrls || []), ...newImages.map(img => img.url)].slice(0, 5)
+    }));
+};
+
   // 4) Fetch existing images from the server (already uploaded)
   const fetchData = async () => {
     try {
@@ -170,9 +203,12 @@ const StepJ = ({ number, nextStep, formData, setFormData, onFormChange, partName
       );
 
       const imagesData = response.data.data.map((item) => ({
-        url: `${process.env.NEXT_PUBLIC_API_URL}/images/${item.images.fileImage}`,
+        url: item.images.fileImage 
+          ? `${process.env.NEXT_PUBLIC_API_URL}/images/${item.images.fileImage}`
+          : `${process.env.NEXT_PUBLIC_API_URL}/images/${item.asset.file}`,
         id: item.id,
         file: null, // no local file for server-stored images
+        type: item.images.fileImage ? "images" : "asset",
       }));
       setImages(imagesData);
     } catch (error) {
@@ -181,18 +217,29 @@ const StepJ = ({ number, nextStep, formData, setFormData, onFormChange, partName
   };
 
   useEffect(() => {
-    fetchData();
-  }, []);
+    if (!isModalOpen) {
+      fetchData();
+    }
+  }, [isModalOpen]);
 
   // ========== RENDER ========== //
   return (
     <div className="relative min-h-screen p-4 text-center flex-grow">
+      
       {/* Loading Overlay */}
       {uploading && <LoadingOverlay progress={uploadProgress} />}
 
-      <h2 className="text-xl font-semibold">
-        {number}. {partName} (Max. 5 Foto)
-      </h2>
+      <ModalAsset isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} onSelectImage={handleSelectImage} selectType="multiple" partName={partName} />
+
+        <div className="flex justify-between items-center">
+          <h2 className="text-xl font-semibold flex-grow text-center">{number}. {partName}</h2>
+          <Button
+            id="btn-asset"
+            onClick={() => setIsModalOpen(true)}
+          >
+            <FaImages className="text-lg" />
+          </Button>
+        </div>
 
       <div className="flex flex-wrap items-center justify-center mb-4 gap-4">
         {images.length > 0 ? (

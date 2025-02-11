@@ -8,10 +8,12 @@ import {
 import axios from "axios";
 import { useEffect, useState } from "react";
 import Image from 'next/image';
+import { useParams } from "next/navigation";
 
-const ModalAsset = ({ isOpen, onClose, onSelectImage }) => {
+const ModalAsset = ({ isOpen, onClose, onSelectImage, selectType = 'single', partName }) => {
+    const params = useParams();
     const [assets, setAssets] = useState([]);
-    const [selectedAsset, setSelectedAsset] = useState(null);
+    const [selectedAssets, setSelectedAssets] = useState([]);
 
     const fetchData = async () => {
         try {
@@ -23,35 +25,66 @@ const ModalAsset = ({ isOpen, onClose, onSelectImage }) => {
         }
     };
 
-    useEffect(() => {
-        if (isOpen) {
-            fetchData();
-        }
-    }, [isOpen]);
-
     const handleSelect = (asset) => {
-        setSelectedAsset(asset);
+        if (selectType === 'multiple') {
+            setSelectedAssets(prev => {
+                const isSelected = prev.some(item => item.id === asset.id);
+                if (isSelected) {
+                    return prev.filter(item => item.id !== asset.id);
+                } else {
+                    return [...prev, asset];
+                }
+            });
+        } else {
+            setSelectedAssets([asset]);
+        }
     };
 
-    const handleOk = () => {
-        if (selectedAsset) {
-            const imageUrl = `${process.env.NEXT_PUBLIC_API_URL}/asset/${selectedAsset.file}`;
-            const assetData = {
-                idAsset: selectedAsset.id,
-                filename: selectedAsset.file,
-                imageUrl: imageUrl,
-            };
-            onSelectImage(assetData);
+    const handleOk = async () => {
+        if (selectedAssets.length > 0) {
+        if(selectType === 'single') {
+            const selectedData = selectedAssets.map(asset => ({
+                idAsset: asset.id,
+                filename: asset.file,
+                imageUrl: `${process.env.NEXT_PUBLIC_API_URL}/asset/${asset.file}`,
+            }));
+
+            onSelectImage(selectedData[0]);
+        }else{
+            const selectedData = selectedAssets.map(asset => ({
+                idAsset: asset.id,
+                filename: asset.file,
+                imageUrl: `${process.env.NEXT_PUBLIC_API_URL}/asset/${asset.file}`,
+                partName: partName
+            }));
+            try {
+                const response = await axios.post(
+                  `${process.env.NEXT_PUBLIC_API_URL}/add-bg-asset/${params.formId}`, selectedData
+                )
+                setSelectedImage(null);
+                setFile(null);
+                onFormChange();
+                nextStep();
+              } catch (error) {
+                console.error("Error uploading the image", error);
+              }
+        }
+
             onClose();
         }
     };
-
-    // Reset selected asset when modal closes
+    
     useEffect(() => {
-        if (!isOpen) {
-            setSelectedAsset(null);
+        if (isOpen) {
+            fetchData();
+        } else {
+            setSelectedAssets([]);
         }
     }, [isOpen]);
+
+    const isSelected = (assetId) => {
+        return selectedAssets.some(asset => asset.id === assetId);
+    };
 
     return (
         <Dialog open={isOpen} onOpenChange={onClose}>
@@ -59,11 +92,12 @@ const ModalAsset = ({ isOpen, onClose, onSelectImage }) => {
                 <DialogHeader>
                     <DialogTitle>Pilih Aset</DialogTitle>
                     <DialogDescription>
-                        Silahkan pilih gambar untuk ditampilkan di undangan anda.
+                        {selectType === 'multiple' 
+                            ? 'Silahkan pilih beberapa gambar untuk ditampilkan di undangan anda.'
+                            : 'Silahkan pilih gambar untuk ditampilkan di undangan anda.'}
                     </DialogDescription>
                 </DialogHeader>
                 
-                {/* Grid for Image List */}
                 <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-3 gap-4 max-h-96 overflow-y-auto p-2">
                     {assets.length > 0 ? (
                         assets.map((asset) => {
@@ -71,9 +105,14 @@ const ModalAsset = ({ isOpen, onClose, onSelectImage }) => {
                             return (
                                 <div
                                     key={asset.id}
-                                    className={`text-center border-2 ${selectedAsset?.id === asset.id ? 'border-blue-500' : 'border-transparent'} rounded-lg cursor-pointer p-1`}
+                                    className={`relative text-center border-2 ${isSelected(asset.id) ? 'border-blue-500' : 'border-transparent'} rounded-lg cursor-pointer p-1`}
                                     onClick={() => handleSelect(asset)}
                                 >
+                                    {selectType === 'multiple' && isSelected(asset.id) && (
+                                        <div className="absolute top-2 right-2 w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center text-white">
+                                            ✓
+                                        </div>
+                                    )}
                                     <Image
                                         src={imageUrl}
                                         alt={asset.name}
@@ -90,14 +129,20 @@ const ModalAsset = ({ isOpen, onClose, onSelectImage }) => {
                     )}
                 </div>
 
-                {/* OK Button */}
-                <button
-                    onClick={handleOk}
-                    disabled={!selectedAsset}
-                    className="fixed bottom-4 right-4 px-4 py-2 bg-blue-500 text-white rounded-md cursor-pointer disabled:bg-gray-400"
-                >
-                    OK
-                </button>
+                <div className="fixed bottom-4 right-4 flex items-center gap-2">
+                    {selectType === 'multiple' && (
+                        <span className="text-sm text-gray-600">
+                            Selected: {selectedAssets.length}
+                        </span>
+                    )}
+                    <button
+                        onClick={handleOk}
+                        disabled={selectedAssets.length === 0}
+                        className="px-4 py-2 bg-blue-500 text-white rounded-md cursor-pointer disabled:bg-gray-400"
+                    >
+                        OK
+                    </button>
+                </div>
             </DialogContent>
         </Dialog>
     );
