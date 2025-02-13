@@ -9,17 +9,22 @@ import axios from "axios";
 import { useEffect, useState } from "react";
 import Image from 'next/image';
 import { useParams } from "next/navigation";
+import { FaArrowLeft, FaArrowRight } from "react-icons/fa";
 
 const ModalAsset = ({ isOpen, onClose, onSelectImage, selectType = 'single', partName, length = null }) => {
     const params = useParams();
     const [assets, setAssets] = useState([]);
     const [selectedAssets, setSelectedAssets] = useState([]);
+    const [currentPage, setCurrentPage] = useState(1);
+    const [totalPages, setTotalPages] = useState(1);
+    const limit = 10;
 
     const fetchData = async () => {
         try {
-            const response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/asset`);
+            const response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/asset?page=${currentPage}&limit=${limit}`);
             console.log('API response:', response.data);
             setAssets(Array.isArray(response.data.data) ? response.data.data : []);
+            setTotalPages(response.data.pageCount || 1);
         } catch (error) {
             console.error('Error fetching data:', error);
         }
@@ -48,7 +53,7 @@ const ModalAsset = ({ isOpen, onClose, onSelectImage, selectType = 'single', par
                     filename: asset.file,
                     imageUrl: `${process.env.NEXT_PUBLIC_API_URL}/asset/${asset.file}`,
                 }));
-    
+
                 onSelectImage(selectedData[0]);
             } else if (selectType === 'multiple') {
                 // Check if total selected assets exceed 5
@@ -58,14 +63,14 @@ const ModalAsset = ({ isOpen, onClose, onSelectImage, selectType = 'single', par
                     onClose();
                     return; // Exit early to prevent further execution
                 }
-    
+
                 const selectedData = selectedAssets.map(asset => ({
                     idAsset: asset.id,
                     filename: asset.file,
                     imageUrl: `${process.env.NEXT_PUBLIC_API_URL}/asset/${asset.file}`,
                     partName: partName
                 }));
-    
+
                 try {
                     const response = await axios.post(
                         `${process.env.NEXT_PUBLIC_API_URL}/add-bg-asset/${params.formId}`,
@@ -79,18 +84,19 @@ const ModalAsset = ({ isOpen, onClose, onSelectImage, selectType = 'single', par
                     console.error("Error uploading the image", error);
                 }
             }
-    
+
             onClose();
         }
     };
-    
+
     useEffect(() => {
         if (isOpen) {
             fetchData();
         } else {
             setSelectedAssets([]);
+            setCurrentPage(1); // Reset to first page when closing
         }
-    }, [isOpen]);
+    }, [isOpen, currentPage]); // Add currentPage to dependencies
 
     const isSelected = (assetId) => {
         return selectedAssets.some(asset => asset.id === assetId);
@@ -98,17 +104,17 @@ const ModalAsset = ({ isOpen, onClose, onSelectImage, selectType = 'single', par
 
     return (
         <Dialog open={isOpen} onOpenChange={onClose}>
-            <DialogContent>
+            <DialogContent className="h-[100vh] flex flex-col">
                 <DialogHeader>
                     <DialogTitle>Pilih Aset</DialogTitle>
                     <DialogDescription>
-                        {selectType === 'multiple' 
+                        {selectType === 'multiple'
                             ? 'Silahkan pilih beberapa gambar untuk ditampilkan di undangan anda.'
                             : 'Silahkan pilih gambar untuk ditampilkan di undangan anda.'}
                     </DialogDescription>
                 </DialogHeader>
-                
-                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-3 gap-4 max-h-96 overflow-y-auto p-2">
+
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-3 gap-4 overflow-y-auto flex-1 p-2">
                     {assets.length > 0 ? (
                         assets.map((asset) => {
                             const imageUrl = `${process.env.NEXT_PUBLIC_API_URL}/asset/${asset.file}`;
@@ -139,19 +145,41 @@ const ModalAsset = ({ isOpen, onClose, onSelectImage, selectType = 'single', par
                     )}
                 </div>
 
-                <div className="fixed bottom-4 right-4 flex items-center gap-2">
-                    {selectType === 'multiple' && (
-                        <span className="text-sm text-gray-600">
-                            Selected: {selectedAssets.length}
+                {/* Pagination Controls */}
+                <div className="flex justify-between items-center gap-4 mt-4">
+                    <div className="flex items-center gap-4">
+                        <button
+                            onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                            disabled={currentPage === 1}
+                            className="px-4 py-2 bg-gray-200 rounded-md disabled:opacity-50"
+                        >
+                            <FaArrowLeft />
+                        </button>
+                        <span className="text-sm">
+                            Page {currentPage} of {totalPages}
                         </span>
-                    )}
-                    <button
-                        onClick={handleOk}
-                        disabled={selectedAssets.length === 0}
-                        className="px-4 py-2 bg-blue-500 text-white rounded-md cursor-pointer disabled:bg-gray-400"
-                    >
-                        OK
-                    </button>
+                        <button
+                            onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                            disabled={currentPage === totalPages}
+                            className="px-4 py-2 bg-gray-200 rounded-md disabled:opacity-50"
+                        >
+                            <FaArrowRight />
+                        </button>
+                    </div>
+                    <div className="flex items-center gap-4">
+                        {selectType === 'multiple' && (
+                            <span className="text-sm text-gray-600">
+                                Selected: {selectedAssets.length}
+                            </span>
+                        )}
+                        <button
+                            onClick={handleOk}
+                            disabled={selectedAssets.length === 0}
+                            className="px-4 py-2 bg-blue-500 text-white rounded-md cursor-pointer disabled:bg-gray-400"
+                        >
+                            OK
+                        </button>
+                    </div>
                 </div>
             </DialogContent>
         </Dialog>

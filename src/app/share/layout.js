@@ -1,4 +1,4 @@
-import "@/app/globals.css";
+import "@/app/styles/globals.css";
 
 export const metadata = {
   title: 'Form Share Undangan - SewaUndangan',

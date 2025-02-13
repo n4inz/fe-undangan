@@ -1,5 +1,5 @@
 import { Inter } from "next/font/google";
-import "@/app/globals.css";
+import "@/app/styles/globals.css";
 import Sidebar from "@/layout/sidebar";
 import { Toaster } from "@/components/ui/toaster";
 import { checkAuthClient } from "@/app/api/auth/checkAuth";
