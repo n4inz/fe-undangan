@@ -26,6 +26,7 @@ const Detail = ({ params }) => {
 
   const [formData, setFormData] = useState({});
   const [listImages, setListImages] = useState([]);
+  const [rekeningList, setRekeningList] = useState([]);
 
   const [loading, setLoading] = useState(false);
   const [isAdmin, setIsAdmin] = useState(null); // Initialize isAdmin
@@ -42,11 +43,12 @@ const Detail = ({ params }) => {
       });
       setFormData(response.data.form);
       setIsAdmin(response.data.isAdmin);
+      setRekeningList(response.data.form.rekening || []);
 
       if (response.data.form.fileZip != null) {
         setFileName(response.data.form.fileZip);
       }
-      // console.log(response.data);
+      console.log("DATA:", response.data);
     } catch (error) {
       console.error('Error fetching data:', error);
     }
@@ -56,15 +58,15 @@ const Detail = ({ params }) => {
     return row.images?.fileImage
       ? `${process.env.NEXT_PUBLIC_API_URL}/images/${row.images.fileImage}` // Image from `images` folder
       : row.asset?.file
-      ? `${process.env.NEXT_PUBLIC_API_URL}/asset/${row.asset.file}` // Image from `assets` folder
-      : ''; // Fallback to empty string if no image is available
+        ? `${process.env.NEXT_PUBLIC_API_URL}/asset/${row.asset.file}` // Image from `assets` folder
+        : ''; // Fallback to empty string if no image is available
   };
-  
+
   const fetchImage = async () => {
     const response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/image-order/${params.formId}`);
     setListImages(response.data.images);
     setOrderImageStatus(response.data.order);
-    console.log("TES : ", response.data);
+    // console.log("TES : ", response.data);
   };
 
   const downloadImage = () => {
@@ -478,7 +480,49 @@ const Detail = ({ params }) => {
               className="mt-1 p-2 w-full border border-gray-300 rounded-lg"
             />
           </div>
-          <div className="mb-4">
+
+          {rekeningList.map((rekening, index) => (
+            <div
+              key={index}
+              className="mb-4 relative border border-gray-300 rounded-lg p-4"
+            >
+              {/* Show Close Button for Second Input and Beyond */}
+              {/* {index > 0 && (
+                      <button
+                        type="button"
+                        onClick={() => handleRemoveRekening(index)}
+                        className="absolute top-2 right-2 text-red-500 hover:text-red-700"
+                        title="Hapus Rekening"
+                      >
+                        ✖
+                      </button>
+                    )} */}
+              <label className="block text-gray-700">
+                Nama Rekening {index + 1}
+              </label>
+              <Input
+                type="text"
+                name="namaRekening"
+                value={rekening.namaRekening}
+                // onChange={(e) => handleChange(e, index)}
+                className="mt-1 p-2 w-full border border-gray-300 rounded-lg"
+                placeholder={`Nama Bank a/n Nasabah`}
+              />
+              <label className="block text-gray-700 mt-2">
+                Nomor Rekening {index + 1}
+              </label>
+              <Input
+                type="text"
+                name="noRekening"
+                value={rekening.noRekening}
+                // onChange={(e) => handleChange(e, index)}
+                className="mt-1 p-2 w-full border border-gray-300 rounded-lg"
+                placeholder={`012345xxxx`}
+              />
+            </div>
+          ))}
+
+          {/* <div className="mb-4">
             <label className="block text-gray-700">
               Nama Rekening Jika ada tamu ingin kirim hadiah (Nama Bank Dan atas nama rekening)
             </label>
@@ -499,7 +543,7 @@ const Detail = ({ params }) => {
               value={formData.noRek}
               className="mt-1 p-2 w-full border border-gray-300 rounded-lg"
             />
-          </div>
+          </div> */}
           <div className="mb-4">
             <label className="block text-gray-700">
               Alamat Rumah Jika ada Pengiriman Hadiah Dari tamu Undangan

@@ -32,6 +32,7 @@ const EditDetail = ({ params }) => {
 
     // Set initial state for formData
     const [formData, setFormData] = useState({});
+    const [rekeningList, setRekeningList] = useState([]);
 
     const [errors, setErrors] = useState({});
 
@@ -98,12 +99,23 @@ const EditDetail = ({ params }) => {
     };
 
 
-    const handleChange = (e) => {
+    // Handle input changes
+    const handleChange = (e, index = null) => {
         const { name, value } = e.target;
-        setFormData({
-            ...formData,
-            [name]: value,
-        });
+
+        if (index !== null) {
+            // Handle changes for rekening fields
+            const updatedRekening = [...formData.rekening];
+            updatedRekening[index] = { ...updatedRekening[index], [name]: value };
+            setFormData({ ...formData, rekening: updatedRekening });
+            setRekeningList(updatedRekening); // Update rekeningList state
+        } else {
+            // Handle changes for other fields
+            setFormData({
+                ...formData,
+                [name]: value,
+            });
+        }
     };
 
     const handleRemoveZip = () => {
@@ -168,6 +180,18 @@ const EditDetail = ({ params }) => {
         }));
     };
 
+    // const handleRekeningChange = (e, index) => {
+    //     const { name, value } = e.target;
+    //     const updatedRekening = [...formData.rekening];
+    //     updatedRekening[index] = { ...updatedRekening[index], [name]: value };
+    //     setFormData({ ...formData, rekening: updatedRekening });
+    // };
+
+    // Add new rekening entry
+    const handleAddRekening = () => {
+        setRekeningList([...rekeningList, { namaRekening: "", noRekening: "" }]);
+      };
+
 
     const fetchData = async () => {
         try {
@@ -213,7 +237,11 @@ const EditDetail = ({ params }) => {
                 setUploadComplete(true);
                 setProgress(100);
             }
+            if (!updatedFormData.rekening) {
+                updatedFormData.rekening = [];
+            }
             setFormData(updatedFormData);
+            setRekeningList(updatedFormData.rekening || []);
         } catch (error) {
             console.error('Error fetching data:', error);
         } finally {
@@ -685,29 +713,55 @@ const EditDetail = ({ params }) => {
                             />
                         </div>
                         <div className="mb-4">
-                            <label className="block text-gray-700">
-                                Nama Rekening Jika ada tamu ingin kirim hadiah (Nama Bank Dan atas nama rekening)
-                            </label>
-                            <Input
-                                type="text"
-                                name="namaRekening"
-                                value={formData.namaRekening}
-                                onChange={handleChange}
-                                className="mt-1 p-2 w-full border border-gray-300 rounded-lg"
-                            />
+                            {rekeningList.map((rekening, index) => (
+                                <div
+                                    key={index}
+                                    className="mb-4 relative border border-gray-300 rounded-lg p-4"
+                                >
+                                    {/* Show Close Button for Second Input and Beyond */}
+                                    {index > 0 && (
+                                        <button
+                                            type="button"
+                                            onClick={() => handleRemoveRekening(index)}
+                                            className="absolute top-2 right-2 text-red-500 hover:text-red-700"
+                                            title="Hapus Rekening"
+                                        >
+                                            ✖
+                                        </button>
+                                    )}
+                                    <label className="block text-gray-700">
+                                        Nama Rekening {index + 1}
+                                    </label>
+                                    <Input
+                                        type="text"
+                                        name="namaRekening"
+                                        value={rekening.namaRekening}
+                                        onChange={(e) => handleChange(e, index)}
+                                        className="mt-1 p-2 w-full border border-gray-300 rounded-lg"
+                                        placeholder={`Nama Bank a/n Nasabah`}
+                                    />
+                                    <label className="block text-gray-700 mt-2">
+                                        Nomor Rekening {index + 1}
+                                    </label>
+                                    <Input
+                                        type="text"
+                                        name="noRekening"
+                                        value={rekening.noRekening}
+                                        onChange={(e) => handleChange(e, index)}
+                                        className="mt-1 p-2 w-full border border-gray-300 rounded-lg"
+                                        placeholder={`012345xxxx`}
+                                    />
+                                </div>
+                            ))}
+                            <Button
+                                type="button"
+                                onClick={handleAddRekening}
+                                className="mt-2 px-4 py-2 bg-blue-500 text-white rounded-lg"
+                            >
+                                + Tambah Rekening
+                            </Button>
                         </div>
-                        <div className="mb-4">
-                            <label className="block text-gray-700">
-                                Nomor Rekening
-                            </label>
-                            <Input
-                                type="text"
-                                name="noRek"
-                                value={formData.noRek}
-                                onChange={handleChange}
-                                className="mt-1 p-2 w-full border border-gray-300 rounded-lg"
-                            />
-                        </div>
+
                         <div className="mb-4">
                             <label className="block text-gray-700">
                                 Alamat Rumah Jika ada Pengiriman Hadiah Dari tamu Undangan
