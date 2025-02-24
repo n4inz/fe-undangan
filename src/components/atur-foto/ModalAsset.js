@@ -109,7 +109,7 @@ const ModalAsset = ({ isOpen, onClose, onSelectImage, selectType = 'single', par
 
     return (
         <Dialog open={isOpen} onOpenChange={onClose}>
-            <DialogContent className="h-[100vh] flex flex-col">
+            <DialogContent className="h-[90vh] flex flex-col">
                 <DialogHeader>
                     <DialogTitle>Pilih Aset</DialogTitle>
                     <DialogDescription>
