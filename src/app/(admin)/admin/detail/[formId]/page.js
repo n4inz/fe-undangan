@@ -480,6 +480,7 @@ const Detail = ({ params }) => {
               className="mt-1 p-2 w-full border border-gray-300 rounded-lg"
             />
           </div>
+<<<<<<< HEAD
           <div className="mb-4">
             <label className="block text-gray-700">
               Pilih Model Rekening
@@ -493,6 +494,9 @@ const Detail = ({ params }) => {
               placeholder={`Nama Bank a/n Nasabah`}
             />
           </div>
+=======
+
+>>>>>>> 735029a64416b8d20fa969c1ddac70dfc49988b4
           {rekeningList.map((rekening, index) => (
             <div
               key={index}
@@ -509,6 +513,7 @@ const Detail = ({ params }) => {
                         ✖
                       </button>
                     )} */}
+<<<<<<< HEAD
               <Image
                 src={`${process.env.NEXT_PUBLIC_API_URL}/images/${rekening.icon}`}
                 alt={rekening.name}
@@ -516,6 +521,8 @@ const Detail = ({ params }) => {
                 height={64}
                 className="mr-2"
               />
+=======
+>>>>>>> 735029a64416b8d20fa969c1ddac70dfc49988b4
               <label className="block text-gray-700">
                 Nama Rekening {index + 1}
               </label>

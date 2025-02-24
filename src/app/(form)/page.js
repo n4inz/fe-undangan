@@ -18,8 +18,11 @@ import { Loader2 } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger } from '@/components/ui/select';
 import { getTema } from '@/lib/tema';
 import { SelectValue } from '@radix-ui/react-select';
+<<<<<<< HEAD
 import BankCombobox from '@/components/admin/BankComboBox';
 import { getBankList } from '@/lib/bank';
+=======
+>>>>>>> 735029a64416b8d20fa969c1ddac70dfc49988b4
 
 const formatDateTime = (datetime) => {
   if (!datetime) return '';
@@ -55,7 +58,10 @@ const Home = () => {
   const [selectedTema, setSelectedTema] = useState(null);
   const [isLoadingOptions, setIsLoadingOptions] = useState(true);
   const [maxStep, setMaxStep] = useState(14);
+<<<<<<< HEAD
   const [bankList, setBankList] = useState([]);
+=======
+>>>>>>> 735029a64416b8d20fa969c1ddac70dfc49988b4
 
   useEffect(() => {
     setMounted(true);
@@ -126,7 +132,11 @@ const Home = () => {
   }, []);
 
   const [rekeningList, setRekeningList] = useState([
+<<<<<<< HEAD
     { namaRekening: "", noRekening: "", icon: "" },
+=======
+    { namaRekening: "", noRekening: "" },
+>>>>>>> 735029a64416b8d20fa969c1ddac70dfc49988b4
   ]);
 
   useEffect(() => {
@@ -159,7 +169,11 @@ const Home = () => {
   };
 
   const handleAddRekening = () => {
+<<<<<<< HEAD
     setRekeningList([...rekeningList, { namaRekening: "", noRekening: "", icon: "" }]);
+=======
+    setRekeningList([...rekeningList, { namaRekening: "", noRekening: "" }]);
+>>>>>>> 735029a64416b8d20fa969c1ddac70dfc49988b4
   };
 
   const handleRemoveRekening = (index) => {
@@ -297,6 +311,7 @@ const Home = () => {
     }
   };
 
+<<<<<<< HEAD
   useEffect(() => {
     const fetchBankList = async () => {
       const data = await getBankList();
@@ -314,6 +329,8 @@ const Home = () => {
     console.log(rekeningList)
   };
 
+=======
+>>>>>>> 735029a64416b8d20fa969c1ddac70dfc49988b4
   const handleSelectChange = (id, name) => {
     setSelectedTema({ id, name }); // Store the selected theme in selectedTema
     setFormData((prevData) => ({
@@ -834,6 +851,7 @@ const Home = () => {
                       </button>
                     )}
                     <label className="block text-gray-700">
+<<<<<<< HEAD
                       Icon Bank {index + 1}
                     </label>
                     <BankCombobox
@@ -843,6 +861,8 @@ const Home = () => {
                       isLoading={isLoading}
                     />
                     <label className="block text-gray-700">
+=======
+>>>>>>> 735029a64416b8d20fa969c1ddac70dfc49988b4
                       Nama Rekening {index + 1}
                     </label>
                     <Input
