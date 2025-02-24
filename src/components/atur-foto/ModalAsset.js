@@ -10,10 +10,7 @@ import { useEffect, useState } from "react";
 import Image from 'next/image';
 import { useParams } from "next/navigation";
 import { FaArrowLeft, FaArrowRight } from "react-icons/fa";
-<<<<<<< HEAD
 import { Skeleton } from "../ui/skeleton";
-=======
->>>>>>> 735029a64416b8d20fa969c1ddac70dfc49988b4
 
 const ModalAsset = ({ isOpen, onClose, onSelectImage, selectType = 'single', partName, length = null }) => {
     const params = useParams();
@@ -22,15 +19,10 @@ const ModalAsset = ({ isOpen, onClose, onSelectImage, selectType = 'single', par
     const [currentPage, setCurrentPage] = useState(1);
     const [totalPages, setTotalPages] = useState(1);
     const limit = 10;
-<<<<<<< HEAD
     const [isLoading, setIsLoading] = useState(false); // Add loading state
 
     const fetchData = async () => {
         setIsLoading(true);
-=======
-
-    const fetchData = async () => {
->>>>>>> 735029a64416b8d20fa969c1ddac70dfc49988b4
         try {
             const response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/asset?page=${currentPage}&limit=${limit}`);
             console.log('API response:', response.data);
@@ -38,11 +30,8 @@ const ModalAsset = ({ isOpen, onClose, onSelectImage, selectType = 'single', par
             setTotalPages(response.data.pageCount || 1);
         } catch (error) {
             console.error('Error fetching data:', error);
-<<<<<<< HEAD
         } finally {
             setIsLoading(false);
-=======
->>>>>>> 735029a64416b8d20fa969c1ddac70dfc49988b4
         }
     };
 
@@ -131,7 +120,6 @@ const ModalAsset = ({ isOpen, onClose, onSelectImage, selectType = 'single', par
                 </DialogHeader>
 
                 <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-3 gap-4 overflow-y-auto flex-1 p-2">
-<<<<<<< HEAD
                     {isLoading ? (
                         // Show skeleton loading states
                         Array.from({ length: limit }).map((_, index) => (
@@ -141,9 +129,6 @@ const ModalAsset = ({ isOpen, onClose, onSelectImage, selectType = 'single', par
                             </div>
                         ))
                     ) : assets.length > 0 ? (
-=======
-                    {assets.length > 0 ? (
->>>>>>> 735029a64416b8d20fa969c1ddac70dfc49988b4
                         assets.map((asset) => {
                             const imageUrl = `${process.env.NEXT_PUBLIC_API_URL}/asset/${asset.file}`;
                             return (
