@@ -18,11 +18,8 @@ import { Loader2 } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger } from '@/components/ui/select';
 import { getTema } from '@/lib/tema';
 import { SelectValue } from '@radix-ui/react-select';
-<<<<<<< HEAD
 import { getBankList } from '@/lib/bank';
 import BankCombobox from '@/components/admin/BankComboBox';
-=======
->>>>>>> 735029a64416b8d20fa969c1ddac70dfc49988b4
 
 const formatDateTime = (datetime) => {
     if (!datetime) return '';
@@ -53,10 +50,7 @@ const EditDetail = ({ params }) => {
     const [isUploading, setIsUploading] = useState(false);
     const [uploadComplete, setUploadComplete] = useState(false); // Track if upload is complete
     const [selectedTema, setSelectedTema] = useState(null);
-<<<<<<< HEAD
     const [bankList, setBankList] = useState([]);
-=======
->>>>>>> 735029a64416b8d20fa969c1ddac70dfc49988b4
 
     const handleFileChange = async (event) => {
         const file = event.target.files[0]; // Get only the first file
@@ -181,7 +175,6 @@ const EditDetail = ({ params }) => {
         }
     };
 
-<<<<<<< HEAD
     useEffect(() => {
         const fetchBankList = async () => {
             const data = await getBankList();
@@ -192,8 +185,6 @@ const EditDetail = ({ params }) => {
         fetchBankList();
     }, []);
 
-=======
->>>>>>> 735029a64416b8d20fa969c1ddac70dfc49988b4
     const handleSelectChange = (id, name) => {
         setSelectedTema({ id, name }); // Store the selected theme in selectedTema
         setFormData((prevData) => ({
@@ -202,7 +193,6 @@ const EditDetail = ({ params }) => {
         }));
     };
 
-<<<<<<< HEAD
     const handleSelectBankChange = (value, index) => {
         const newRekeningList = [...rekeningList];
         newRekeningList[index].icon = value;
@@ -210,8 +200,6 @@ const EditDetail = ({ params }) => {
         console.log(rekeningList)
     };
 
-=======
->>>>>>> 735029a64416b8d20fa969c1ddac70dfc49988b4
     // const handleRekeningChange = (e, index) => {
     //     const { name, value } = e.target;
     //     const updatedRekening = [...formData.rekening];
@@ -222,11 +210,7 @@ const EditDetail = ({ params }) => {
     // Add new rekening entry
     const handleAddRekening = () => {
         setRekeningList([...rekeningList, { namaRekening: "", noRekening: "" }]);
-<<<<<<< HEAD
     };
-=======
-      };
->>>>>>> 735029a64416b8d20fa969c1ddac70dfc49988b4
 
 
     const fetchData = async () => {
@@ -749,7 +733,6 @@ const EditDetail = ({ params }) => {
                             />
                         </div>
                         <div className="mb-4">
-<<<<<<< HEAD
                             <label className="block text-gray-700">
                                 Pilih Model Rekening
                             </label>
@@ -767,8 +750,6 @@ const EditDetail = ({ params }) => {
                             </Select>
                         </div>
                         <div className="mb-4">
-=======
->>>>>>> 735029a64416b8d20fa969c1ddac70dfc49988b4
                             {rekeningList.map((rekening, index) => (
                                 <div
                                     key={index}
@@ -786,7 +767,6 @@ const EditDetail = ({ params }) => {
                                         </button>
                                     )}
                                     <label className="block text-gray-700">
-<<<<<<< HEAD
                                         Icon Bank {index + 1}
                                     </label>
                                     <BankCombobox
@@ -797,8 +777,6 @@ const EditDetail = ({ params }) => {
                                     />
 
                                     <label className="block text-gray-700">
-=======
->>>>>>> 735029a64416b8d20fa969c1ddac70dfc49988b4
                                         Nama Rekening {index + 1}
                                     </label>
                                     <Input
