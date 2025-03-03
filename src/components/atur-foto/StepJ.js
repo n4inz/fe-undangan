@@ -232,7 +232,7 @@ const StepJ = ({ number, nextStep, formData, setFormData, onFormChange, partName
       <ModalAsset isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} onSelectImage={handleSelectImage} selectType="multiple" partName={partName} length={images.length} />
 
         <div className="flex justify-between items-center">
-          <h2 className="text-xl font-semibold flex-grow text-center">{number}. {partName}</h2>
+          <h2 className="text-xl font-semibold flex-grow text-center">{number}. {partName} (Max. 5 Foto)</h2>
           <Button
             id="btn-asset"
             onClick={() => setIsModalOpen(true)}

@@ -525,7 +525,7 @@ const EditDetail = ({ params }) => {
                                 type="date"
                                 name="datetimeAkad"
                                 value={formData.datetimeAkad}
-
+                                onChange={handleChange}
                                 className="mt-1 p-2 w-full border border-gray-300 rounded-lg"
                             />
                         </div>
@@ -553,7 +553,7 @@ const EditDetail = ({ params }) => {
                                 type="date"
                                 name="datetimeResepsi"
                                 value={formData.datetimeResepsi}
-
+                                onChange={handleChange}
                                 className="mt-1 p-2 w-full border border-gray-300 rounded-lg"
                             />
                         </div>
