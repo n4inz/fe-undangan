@@ -6,7 +6,7 @@ import {
     DialogTitle,
 } from "@/components/ui/dialog";
 import axios from "axios";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import Image from 'next/image';
 import { useParams } from "next/navigation";
 import { FaArrowLeft, FaArrowRight } from "react-icons/fa";
@@ -18,35 +18,31 @@ const ModalAsset = ({ isOpen, onClose, onSelectImage, selectType = 'single', par
     const [selectedAssets, setSelectedAssets] = useState([]);
     const [currentPage, setCurrentPage] = useState(1);
     const [totalPages, setTotalPages] = useState(1);
-    const limit = 10;
-    const [isLoading, setIsLoading] = useState(false); // Add loading state
+    const limit = 12;
+    const [isLoading, setIsLoading] = useState(false);
+
+    const hasFetched = useRef(false);
+    const pageCache = useRef({});
 
     const fetchData = async () => {
+        if (pageCache.current[currentPage] && hasFetched.current) return;
+        
         setIsLoading(true);
         try {
-            const response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/asset?page=${currentPage}&limit=${limit}`);
-            console.log('API response:', response.data);
-            setAssets(Array.isArray(response.data.data) ? response.data.data : []);
-            setTotalPages(response.data.pageCount || 1);
+            const response = await axios.get(
+                `${process.env.NEXT_PUBLIC_API_URL}/asset?page=${currentPage}&limit=${limit}`
+            );
+            
+            const { data, total, page } = response.data;
+            pageCache.current[currentPage] = data; // Simpan ke cache
+            
+            setAssets(data);
+            setTotalPages(Math.ceil(total / limit));
+            hasFetched.current = true;
         } catch (error) {
             console.error('Error fetching data:', error);
         } finally {
             setIsLoading(false);
-        }
-    };
-
-    const handleSelect = (asset) => {
-        if (selectType === 'multiple') {
-            setSelectedAssets(prev => {
-                const isSelected = prev.some(item => item.id === asset.id);
-                if (isSelected) {
-                    return prev.filter(item => item.id !== asset.id);
-                } else {
-                    return [...prev, asset];
-                }
-            });
-        } else {
-            setSelectedAssets([asset]);
         }
     };
 
@@ -61,12 +57,11 @@ const ModalAsset = ({ isOpen, onClose, onSelectImage, selectType = 'single', par
 
                 onSelectImage(selectedData[0]);
             } else if (selectType === 'multiple') {
-                // Check if total selected assets exceed 5
                 const totalSelected = length + selectedAssets.length;
                 if (totalSelected > 5) {
                     alert('Maksimal 5 gambar');
                     onClose();
-                    return; // Exit early to prevent further execution
+                    return;
                 }
 
                 const selectedData = selectedAssets.map(asset => ({
@@ -77,7 +72,7 @@ const ModalAsset = ({ isOpen, onClose, onSelectImage, selectType = 'single', par
                 }));
 
                 try {
-                    const response = await axios.post(
+                    await axios.post(
                         `${process.env.NEXT_PUBLIC_API_URL}/add-bg-asset/${params.formId}`,
                         selectedData
                     );
@@ -93,15 +88,38 @@ const ModalAsset = ({ isOpen, onClose, onSelectImage, selectType = 'single', par
             onClose();
         }
     };
+    
+// Reset state saat modal ditutup
+const resetState = () => {
+    setSelectedAssets([]);
+    hasFetched.current = false;
+};
 
-    useEffect(() => {
-        if (isOpen) {
-            fetchData();
-        } else {
-            setSelectedAssets([]);
-            setCurrentPage(1); // Reset to first page when closing
+useEffect(() => {
+    if (isOpen) {
+        if (pageCache.current[currentPage]) {
+            // Gunakan data cache jika tersedia
+            setAssets(pageCache.current[currentPage]);
+            return;
         }
-    }, [isOpen, currentPage]); // Add currentPage to dependencies
+        fetchData();
+    } else {
+        resetState();
+    }
+}, [isOpen, currentPage]);
+
+const handleSelect = (asset) => {
+    if (selectType === 'multiple') {
+        setSelectedAssets(prev => {
+            const isSelected = prev.some(item => item.id === asset.id);
+            return isSelected ? 
+                prev.filter(item => item.id !== asset.id) : 
+                [...prev, asset];
+        });
+    } else {
+        setSelectedAssets([asset]);
+    }
+};
 
     const isSelected = (assetId) => {
         return selectedAssets.some(asset => asset.id === assetId);
@@ -121,7 +139,6 @@ const ModalAsset = ({ isOpen, onClose, onSelectImage, selectType = 'single', par
 
                 <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-3 gap-4 overflow-y-auto flex-1 p-2">
                     {isLoading ? (
-                        // Show skeleton loading states
                         Array.from({ length: limit }).map((_, index) => (
                             <div key={index} className="flex flex-col gap-2">
                                 <Skeleton className="h-[150px] w-full rounded-lg" />
