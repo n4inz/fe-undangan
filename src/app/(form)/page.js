@@ -1,5 +1,5 @@
 "use client"
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import Image from 'next/image';
 import { z } from 'zod';
 // import LoadingSpinner from '../components/LoadingSpinner'; // Adjust the path as needed
@@ -20,6 +20,7 @@ import { getTema } from '@/lib/tema';
 import { SelectValue } from '@radix-ui/react-select';
 import BankCombobox from '@/components/admin/BankComboBox';
 import { getBankList } from '@/lib/bank';
+import MusicList from './musicList';
 
 const formatDateTime = (datetime) => {
   if (!datetime) return '';
@@ -54,8 +55,11 @@ const Home = () => {
   const [options, setOptions] = useState([]);
   const [selectedTema, setSelectedTema] = useState(null);
   const [isLoadingOptions, setIsLoadingOptions] = useState(true);
-  const [maxStep, setMaxStep] = useState(14);
+  const [maxStep, setMaxStep] = useState(15);
   const [bankList, setBankList] = useState([]);
+
+  const [currentlyPlaying, setCurrentlyPlaying] = useState(null);
+  const audioRef = useRef(null);
 
   useEffect(() => {
     setMounted(true);
@@ -291,7 +295,7 @@ const Home = () => {
         return 6;
       // ...and so on for all your steps.
       case "pilihanTema":
-        return 14;
+        return 15;
       default:
         return 1; // Default to step 1 if field name is not found
     }
@@ -330,6 +334,16 @@ const Home = () => {
     if (value !== "Lainnya") {
       setSelectedTema(null); // Clear selectedTema if "Lainnya" is not selected
     }
+  };
+
+  const handleSongSelected = (selectedId) => {
+    console.log("ID lagu terpilih:", selectedId);
+    // Convert selectedId to integer before storing in formData
+    const selectedIdInt = parseInt(selectedId, 10);
+    setFormData({
+      ...formData,
+      idMusic: selectedIdInt,
+    });
   };
 
   useEffect(() => {
@@ -1047,6 +1061,19 @@ const Home = () => {
                   value={formData.turutMengundang}
                   onChange={handleChange}
                   className="mt-1 p-2 w-full border border-gray-300 rounded-lg"
+                />
+              </div>
+            </>
+          )}
+          {currentStep === 14 && (
+            <>
+              <div className="mb-4">
+                <MusicList
+                  currentlyPlaying={currentlyPlaying}
+                  setCurrentlyPlaying={setCurrentlyPlaying}
+                  audioRef={audioRef}
+                  // Callback untuk menerima nilai
+                  selectedSongId={formData.idMusic ? formData.idMusic.toString() : ''} // Nilai yang dipilih
                 />
               </div>
             </>
