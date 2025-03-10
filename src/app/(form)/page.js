@@ -1073,6 +1073,7 @@ const Home = () => {
                   setCurrentlyPlaying={setCurrentlyPlaying}
                   audioRef={audioRef}
                   // Callback untuk menerima nilai
+                  onSongSelected={handleSongSelected}
                   selectedSongId={formData.idMusic ? formData.idMusic.toString() : ''} // Nilai yang dipilih
                 />
               </div>
