@@ -20,6 +20,7 @@ import { getTema } from '@/lib/tema';
 import { SelectValue } from '@radix-ui/react-select';
 import { getBankList } from '@/lib/bank';
 import BankCombobox from '@/components/admin/BankComboBox';
+import MusicCombobox from '@/components/admin/MusicComboBox';
 
 const formatDateTime = (datetime) => {
     if (!datetime) return '';
@@ -35,6 +36,7 @@ const EditDetail = ({ params }) => {
     // Set initial state for formData
     const [formData, setFormData] = useState({});
     const [rekeningList, setRekeningList] = useState([]);
+    const [musicList, setMusicList] = useState([]);
 
     const [errors, setErrors] = useState({});
 
@@ -175,6 +177,16 @@ const EditDetail = ({ params }) => {
         }
     };
 
+    const fetchMusicList = async (e) => {
+        try {
+            const response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/music`);
+            setMusicList(response.data.data);
+            console.log("musicList", response.data.data);
+        } catch (error) {
+            console.error('Error fetching music list:', error);
+        }
+    }
+
     useEffect(() => {
         const fetchBankList = async () => {
             const data = await getBankList();
@@ -183,6 +195,7 @@ const EditDetail = ({ params }) => {
         };
 
         fetchBankList();
+        fetchMusicList();
     }, []);
 
     const handleSelectChange = (id, name) => {
@@ -198,6 +211,14 @@ const EditDetail = ({ params }) => {
         newRekeningList[index].icon = value;
         setRekeningList(newRekeningList);
         console.log(rekeningList)
+    };
+
+    const handleSelectMusicChange = (value, index) => {
+        setFormData((prevData) => ({
+            ...prevData,
+            idMusic: Number(value), // Convert to number
+        }));
+
     };
 
     // const handleRekeningChange = (e, index) => {
@@ -947,6 +968,15 @@ const EditDetail = ({ params }) => {
                                 value={formData.turutMengundang}
                                 onChange={handleChange}
                                 className="mt-1 p-2 w-full border border-gray-300 rounded-lg"
+                            />
+                        </div>
+                        <div className="mb-4">
+                            <label className="block text-gray-700">Pilih Musik</label>
+                            <MusicCombobox
+                                value={formData.idMusic || ''}
+                                onValueChange={(value) => handleSelectMusicChange(value)}
+                                list={musicList}
+                                isLoading={isLoading}
                             />
                         </div>
                         <div className="mb-4">

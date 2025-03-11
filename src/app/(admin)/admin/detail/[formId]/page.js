@@ -34,6 +34,7 @@ const Detail = ({ params }) => {
   const [orderImageStatus, setOrderImageStatus] = useState(false);
 
   const [fileName, setFileName] = useState('');
+  const [music, setMusic] = useState([]);
 
 
   const fetchData = async () => {
@@ -692,6 +693,13 @@ const Detail = ({ params }) => {
             <Textarea
               name="turutMengundang"
               value={formData.turutMengundang}
+              className="mt-1 p-2 w-full border border-gray-300 rounded-lg"
+            />
+          </div>
+          <div className="mb-4">
+            <label className="block text-gray-700">Pilih Musik</label>
+            <Input
+              value={formData.music?.name}
               className="mt-1 p-2 w-full border border-gray-300 rounded-lg"
             />
           </div>
