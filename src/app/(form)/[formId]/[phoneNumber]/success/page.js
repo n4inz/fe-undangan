@@ -5,6 +5,8 @@ import Link from "next/link";
 import { BiArrowBack, BiPhone, BiPhotoAlbum } from "react-icons/bi";
 import { usePathname, useRouter } from "next/navigation";
 import { checkForm } from "@/utils/checkForm";
+import PaymentModal from "./paymentModal";
+import { Toaster } from "@/components/ui/toaster";
 
 const Success = ({ params }) => {
   const pathname = usePathname();
@@ -43,8 +45,7 @@ const Success = ({ params }) => {
         {/* Success Message */}
         <div className="text-center">
           <p className="text-lg font-semibold">
-            Terima Kasih Telah Mengisi Form SewaUndangan. Pesanan Anda Akan
-            Segera Kami Proses 🙏
+            Terima Kasih Telah Mengisi Form SewaUndangan. Pesanan dengan ID {params.formId} Akan Segera Kami Proses setelah melakukan pembayaran 🙏
           </p>
         </div>
 
@@ -68,6 +69,13 @@ const Success = ({ params }) => {
           </Link>
         </div>
 
+        <div className="flex mt-4 items-center">
+          <PaymentModal 
+          formId={params.formId}
+          phoneNumber={params.phoneNumber}
+          />
+        </div>
+        
         {/* Atur Foto Button */}
         <div className="flex mt-4 items-center">
           <Link
@@ -78,7 +86,9 @@ const Success = ({ params }) => {
             Atur Foto
           </Link>
         </div>
+
       </div>
+      <Toaster /> {/* Tambahkan ini */}
     </div>
   );
 };

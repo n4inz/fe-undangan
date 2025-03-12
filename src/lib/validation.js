@@ -60,3 +60,12 @@ export const themeSchema = z.object({
 export const assetSchema = z.object({
   name: requeiredInput,
 })
+
+export const paymentSchema = z.object({
+  name: requeiredInput,
+  file: z
+    .any()
+    .refine((file) => file instanceof File && file.size > 0, {
+      message: 'File is required',
+    })
+})
