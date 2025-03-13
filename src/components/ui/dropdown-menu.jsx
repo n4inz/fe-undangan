@@ -60,6 +60,12 @@ const DropdownMenuContent = React.forwardRef(({ className, sideOffset = 4, ...pr
 ))
 DropdownMenuContent.displayName = DropdownMenuPrimitive.Content.displayName
 
+function removePointerEventsFromBody() {
+  if (document.body.style.pointerEvents === "none") {
+      document.body.style.pointerEvents = "";
+  }
+}
+
 const DropdownMenuItem = React.forwardRef(({ className, inset, ...props }, ref) => (
   <DropdownMenuPrimitive.Item
     ref={ref}
@@ -68,7 +74,16 @@ const DropdownMenuItem = React.forwardRef(({ className, inset, ...props }, ref) 
       inset && "pl-8",
       className
     )}
-    {...props} />
+    {...props} 
+
+    onSelect={(event) => {
+      if (props.onSelect) {
+          props.onSelect(event);
+      }
+
+      removePointerEventsFromBody();
+    }}
+    />
 ))
 DropdownMenuItem.displayName = DropdownMenuPrimitive.Item.displayName
 

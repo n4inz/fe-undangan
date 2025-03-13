@@ -1,13 +1,14 @@
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+  AlertDialog,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Loader2 } from "lucide-react";
@@ -52,15 +53,18 @@ export function DialogModalLinkUndangan({ open, onOpenChange, index, row, formId
   }, [open, row]);
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[425px]">
-        <DialogHeader>
-          <DialogTitle>Link Undangan</DialogTitle>
-        </DialogHeader>
+    <AlertDialog open={open} onOpenChange={onOpenChange}>
+      <AlertDialogContent className="sm:max-w-[425px]">
+        <AlertDialogHeader>
+          <AlertDialogTitle>Link Undangan</AlertDialogTitle>
+          <AlertDialogDescription>
+            Masukkan link URL undangan untuk dibagikan.
+          </AlertDialogDescription>
+        </AlertDialogHeader>
         <form onSubmit={handleSubmit}>
           <div className="grid gap-4 py-4">
             <div className="grid w-full max-w-sm items-center gap-1.5">
-              <Label htmlFor="payment">Masukkan Link URL Undangan</Label>
+              <Label htmlFor="linkUndangan">Masukkan Link URL Undangan</Label>
               <Input
                 type="text"
                 name="linkUndangan"
@@ -70,7 +74,7 @@ export function DialogModalLinkUndangan({ open, onOpenChange, index, row, formId
               />
             </div>
           </div>
-          <DialogFooter>
+          <AlertDialogFooter>
             <Button type="submit" disabled={isLoading}>
               {isLoading ? (
                 <>
@@ -81,9 +85,11 @@ export function DialogModalLinkUndangan({ open, onOpenChange, index, row, formId
                 "Submit"
               )}
             </Button>
-          </DialogFooter>
+
+              <AlertDialogCancel>Cancel</AlertDialogCancel>
+          </AlertDialogFooter>
         </form>
-      </DialogContent>
-    </Dialog>
+      </AlertDialogContent>
+    </AlertDialog>
   );
 }

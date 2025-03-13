@@ -51,7 +51,7 @@ export default function DialogModalProofPayment({ formId, phoneNumber }) {
     return (
         <Dialog>
             <DialogTrigger asChild>
-                <button className="rounded-full mt-2">
+                <button className="rounded-full">
                     <BiInfoSquare className="mr-2 h-4 w-4 text-slate-600" />
                 </button>
             </DialogTrigger>

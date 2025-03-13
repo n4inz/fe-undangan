@@ -12,6 +12,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Loader2 } from "lucide-react";
 import axios from "axios"; // Assuming axios will be used later for image upload
+import { AlertDialog, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "../ui/alert-dialog";
 
 export function DialogModalPayment({ open, onOpenChange, index, row, formId, onDataUpdate }) {
   const [isLoading, setIsLoading] = useState(false);
@@ -55,38 +56,44 @@ export function DialogModalPayment({ open, onOpenChange, index, row, formId, onD
   }, [open, row]);
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[425px]">
-        <DialogHeader>
-          <DialogTitle>Pembayaran Lunas</DialogTitle>
-        </DialogHeader>
-        <form onSubmit={handleSubmit}>
-          <div className="grid gap-4 py-4">
-            <div className="grid w-full max-w-sm items-center gap-1.5">
-              <Label htmlFor="payment">Jumlah Pembayaran</Label>
-              <Input
-                type="number"
-                name="payment"
-                value={formData.payment}
-                onChange={handleChange}
-                className="mt-1 p-2 w-full border border-gray-300 rounded-lg"
-              />
+    <>
+      <AlertDialog open={open} onOpenChange={onOpenChange}>
+        <AlertDialogContent className="sm:max-w-[425px]">
+          <AlertDialogHeader>
+            <AlertDialogTitle>Pembayaran Lunas</AlertDialogTitle>
+            <AlertDialogDescription>
+              Masukkan jumlah pembayaran untuk menandai sebagai lunas.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <form onSubmit={handleSubmit}>
+            <div className="grid gap-4 py-4">
+              <div className="grid w-full max-w-sm items-center gap-1.5">
+                <Label htmlFor="payment">Jumlah Pembayaran</Label>
+                <Input
+                  type="number"
+                  name="payment"
+                  value={formData.payment}
+                  onChange={handleChange}
+                  className="mt-1 p-2 w-full border border-gray-300 rounded-lg"
+                />
+              </div>
             </div>
-          </div>
-          <DialogFooter>
-            <Button type="submit" disabled={isLoading}>
-              {isLoading ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Submit
-                </>
-              ) : (
-                "Submit"
-              )}
-            </Button>
-          </DialogFooter>
-        </form>
-      </DialogContent>
-    </Dialog>
+            <AlertDialogFooter>
+              <Button type="submit" disabled={isLoading}>
+                {isLoading ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Submit
+                  </>
+                ) : (
+                  "Submit"
+                )}
+              </Button>
+              <AlertDialogCancel>Cancel</AlertDialogCancel>
+            </AlertDialogFooter>
+          </form>
+        </AlertDialogContent>
+      </AlertDialog>
+    </>
   );
 }

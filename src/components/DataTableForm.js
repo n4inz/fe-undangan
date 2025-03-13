@@ -28,6 +28,7 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import DialogModalProofPayment from './admin/DialogModalProofPayment';
+// import DialogModalProofPayment from './admin/DialogModalProofPayment';
 
 const DataTableForm = ({ initialStatus, onDataUpdate }) => {
 
@@ -46,7 +47,6 @@ const DataTableForm = ({ initialStatus, onDataUpdate }) => {
   const [selectedRow, setSelectedRow] = useState({ id: null, paymentAmount: null });
   const [open, setOpen] = useState(false);
   const [openLink, setOpenLink] = useState(false);
-  const [openProof, setOpenProof] = useState(false);
 
   const [isAdmin, setIsAdmin] = useState(0);
 
@@ -176,6 +176,7 @@ const DataTableForm = ({ initialStatus, onDataUpdate }) => {
             <option value="1">In Progress</option>
             <option value="2">Review</option>
             <option value="3">Done</option>
+            <option value="4">Cancel</option>
             {/* ... more options */}
           </select>
         ),
@@ -194,7 +195,7 @@ const DataTableForm = ({ initialStatus, onDataUpdate }) => {
             <DropdownMenuTrigger className='ml-4' asChild>
               <span className="cursor-pointer"><BiDotsVertical className="h-4 w-4" /></span>
             </DropdownMenuTrigger>
-            <DropdownMenuContent className="w-56">
+            <DropdownMenuContent className="w-56" forceMount={false}>
               <DropdownMenuItem onClick={() => handleAction(row)}>
                 <BiArrowToRight className="mr-2 h-4 w-4" />
                 <span>Move to {initialStatus === 1 ? "List" : "MyList"}</span>
@@ -208,11 +209,13 @@ const DataTableForm = ({ initialStatus, onDataUpdate }) => {
                 <>
                   {row.isPaid === 0 ? (
                     <DropdownMenuItem onClick={() => handlePayment(row)}>
+                      {/* <DropdownMenuItem> */}
                       <BiMoneyWithdraw className="mr-2 h-4 w-4" />
                       <span>Lunas</span>
+                      {/* <DialogModalPayment row={selectedRow} onDataUpdate={handleDataUpdate} /> */}
                     </DropdownMenuItem>
                   ) : (
-                    <DropdownMenuItem onClick={() => handlePayment(row)}>
+                    <DropdownMenuItem onClick={() => { setOpen(false); handlePayment(row); }}>
                       <BiMoneyWithdraw className="mr-2 h-4 w-4" />
                       <span>Batalkan Status Lunas</span>
                     </DropdownMenuItem>
@@ -221,23 +224,23 @@ const DataTableForm = ({ initialStatus, onDataUpdate }) => {
               )}
             </DropdownMenuContent>
           </DropdownMenu>
-          <div className='flex-row items-center'>
-          {row.isPaid === 1 && (
-            <Popover>
-              <PopoverTrigger>
-                <BiMoneyWithdraw className="mr-2 h-4 w-4 text-green-600" />
-              </PopoverTrigger>
-              {isAdmin === 1 && (
-                <PopoverContent className="w-20 p-2 text-xs text-center">
-                  {row.paymentAmount}
-                </PopoverContent>
-              )}
-            </Popover>
+          <div className='flex-row items-center gap-x-2'>
+            {row.isPaid === 1 && (
+              <Popover>
+                <PopoverTrigger>
+                  <BiMoneyWithdraw className="mr-2 h-4 w-4 text-green-600" />
+                </PopoverTrigger>
+                {isAdmin === 1 && (
+                  <PopoverContent className="w-20 p-2 text-xs text-center">
+                    {row.paymentAmount}
+                  </PopoverContent>
+                )}
+              </Popover>
 
-          )}
-          {row.idPayment != null && (
-            <DialogModalProofPayment formId={row.id} phoneNumber={row.nomorWa} />
-          )}
+            )}
+            {row.idPayment != null && (
+              <DialogModalProofPayment formId={row.id} phoneNumber={row.nomorWa} />
+            )}
           </div>
         </>
       ),
@@ -347,6 +350,8 @@ const DataTableForm = ({ initialStatus, onDataUpdate }) => {
     fetchData(currentPage, perPage, search, filterStatusForm); // Re-fetch the data after it has been updated
     onDataUpdate(msg);
   };
+
+
 
   return (
     <>
