@@ -36,6 +36,7 @@ const Success = ({ params }) => {
 
   return (
     <div className="flex items-center justify-center bg-gray-100">
+      <Toaster className="z-50" /> {/* Tambahkan ini */}
       <div className="h-screen justify-center bg-white p-8 rounded-lg shadow-lg max-w-lg w-full flex items-center flex-col relative">
         {/* Back Button */}
         <Link href="/" className="absolute top-4 left-4">
@@ -70,12 +71,12 @@ const Success = ({ params }) => {
         </div>
 
         <div className="flex mt-4 items-center">
-          <PaymentModal 
-          formId={params.formId}
-          phoneNumber={params.phoneNumber}
+          <PaymentModal
+            formId={params.formId}
+            phoneNumber={params.phoneNumber}
           />
         </div>
-        
+
         {/* Atur Foto Button */}
         <div className="flex mt-4 items-center">
           <Link
@@ -88,7 +89,6 @@ const Success = ({ params }) => {
         </div>
 
       </div>
-      <Toaster /> {/* Tambahkan ini */}
     </div>
   );
 };

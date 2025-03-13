@@ -1,13 +1,13 @@
 'use client';
 import { useState, useRef, useEffect } from 'react';
-import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogTrigger, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { BiCopy, BiUpload } from 'react-icons/bi';
+import { BiCheck, BiCopy, BiUpload, BiX } from 'react-icons/bi';
 import { toast } from '@/components/ui/use-toast';
 import { z } from 'zod';
 import { paymentSchema } from '@/lib/validation';
@@ -201,10 +201,16 @@ export default function PaymentModal({ formId, phoneNumber }) {
                 </Button>
             </DialogTrigger>
             <DialogContent className="max-w-md w-full p-4 h-[100dvh] flex flex-col">
+                <DialogTitle>
+                    {paymentStatus ? (
+                        <h2 className="text-xl font-bold">Pembayaran Anda</h2>
+                        ) : (
+                        <h2 className="text-xl font-bold">Upload Bukti Transfer</h2>
+                        )}
+                </DialogTitle>
                 <ScrollArea className="flex-1 p-2">
                     {paymentStatus ? (
                         <div>
-                            <h2 className="text-xl font-bold">Pembayaran Anda</h2>
                             <div className="mt-4">
                                 <p className="font-bold">Nama Rekening:</p>
                                 <p>{formData.name}</p>
@@ -212,6 +218,13 @@ export default function PaymentModal({ formId, phoneNumber }) {
                             <div className="mt-4">
                                 <p className="font-bold">Paket:</p>
                                 <p>{formData.paket}</p>
+                            </div>
+                            <div className="mt-4">
+                                <p className="font-bold">Ekstra:</p>
+                                <p className="flex items-center">{formData.isMusic ? (<BiCheck className="mr-2 text-green-600" />): (<BiX className="mr-2 text-red-600" />)} Custom Musik</p>
+                                <p className='flex items-center'>{formData.isFont ? (<BiCheck className="mr-2 text-green-600" />): (<BiX className="mr-2 text-red-600" />)} Custom Font</p>
+                                <p className='flex items-center'><BiCheck className="mr-2 text-green-600" /> Thema</p>
+                                <p className='flex items-center'><BiCheck className="mr-2 text-green-600" /> Revisi 5x</p>
                             </div>
                             <div className="mt-4">
                                 <p className="font-bold">Total:</p>

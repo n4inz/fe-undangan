@@ -27,6 +27,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
+import DialogModalProofPayment from './admin/DialogModalProofPayment';
 
 const DataTableForm = ({ initialStatus, onDataUpdate }) => {
 
@@ -45,6 +46,7 @@ const DataTableForm = ({ initialStatus, onDataUpdate }) => {
   const [selectedRow, setSelectedRow] = useState({ id: null, paymentAmount: null });
   const [open, setOpen] = useState(false);
   const [openLink, setOpenLink] = useState(false);
+  const [openProof, setOpenProof] = useState(false);
 
   const [isAdmin, setIsAdmin] = useState(0);
 
@@ -168,7 +170,7 @@ const DataTableForm = ({ initialStatus, onDataUpdate }) => {
       {
         name: 'Status',
         cell: row => (
-          <select value={row.statusForm} disabled> 
+          <select value={row.statusForm} disabled>
             {/* Add options for different status values */}
             <option value="0">Todo</option>
             <option value="1">In Progress</option>
@@ -219,7 +221,7 @@ const DataTableForm = ({ initialStatus, onDataUpdate }) => {
               )}
             </DropdownMenuContent>
           </DropdownMenu>
-
+          <div className='flex-row items-center'>
           {row.isPaid === 1 && (
             <Popover>
               <PopoverTrigger>
@@ -231,7 +233,12 @@ const DataTableForm = ({ initialStatus, onDataUpdate }) => {
                 </PopoverContent>
               )}
             </Popover>
+
           )}
+          {row.idPayment != null && (
+            <DialogModalProofPayment formId={row.id} phoneNumber={row.nomorWa} />
+          )}
+          </div>
         </>
       ),
       wrap: true, // Ensures content wraps and fits within the container
