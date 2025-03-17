@@ -133,8 +133,8 @@ const Result = ({ params }) => {
                     <h1 className="text-3xl underline">Daftar Foto</h1>
                 </div>
 
-                {form.isPaid == 1 && (
-                    <Link type="button" href={form.slug} target='_blank' className="bottom-4 rounded-full shadow-lg bg-blue-600 text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 p-4 my-2">
+                {form.slug && (
+                    <Link href={form.slug} target='_blank' className="bottom-4 rounded-full shadow-lg bg-blue-600 text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 p-4 my-2">
                         <BiEnvelope className="h-6 w-6 mr-2 inline" />
                         Link Undangan
                     </Link>

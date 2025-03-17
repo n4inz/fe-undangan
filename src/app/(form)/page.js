@@ -1150,7 +1150,7 @@ const Home = () => {
                 Selanjutnya
               </button>
             ) : (
-              <Button type="submit" className="bg-blue-500 text-white px-4 py-2 rounded-lg">
+              <Button type="submit" className="bg-blue-500 text-white px-4 py-2 rounded-lg" disabled={isLoading}>
                 {isLoading ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />

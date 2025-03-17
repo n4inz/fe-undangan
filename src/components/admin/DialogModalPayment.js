@@ -78,7 +78,8 @@ export function DialogModalPayment({ open, onOpenChange, index, row, formId, onD
                 />
               </div>
             </div>
-            <AlertDialogFooter>
+            <AlertDialogFooter className="gap-2">
+              <AlertDialogCancel>Cancel</AlertDialogCancel>
               <Button type="submit" disabled={isLoading}>
                 {isLoading ? (
                   <>
@@ -89,7 +90,6 @@ export function DialogModalPayment({ open, onOpenChange, index, row, formId, onD
                   "Submit"
                 )}
               </Button>
-              <AlertDialogCancel>Cancel</AlertDialogCancel>
             </AlertDialogFooter>
           </form>
         </AlertDialogContent>

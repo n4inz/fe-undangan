@@ -3,6 +3,7 @@ import "@/app/styles/globals.css";
 import Sidebar from "@/layout/sidebar";
 import { Toaster } from "@/components/ui/toaster";
 import { checkAuthClient } from "@/app/api/auth/checkAuth";
+import NextTopLoader from 'nextjs-toploader';
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -16,6 +17,7 @@ export default async function AdminLayout({ children }) {
   return (
     <html lang="en">
       <body className={inter.className}>
+      <NextTopLoader showSpinner={false} />
       <Sidebar authenticated={authResult.authenticated} />
 
         {children}
