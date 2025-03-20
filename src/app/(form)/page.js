@@ -21,6 +21,7 @@ import { SelectValue } from '@radix-ui/react-select';
 import BankCombobox from '@/components/admin/BankComboBox';
 import { getBankList } from '@/lib/bank';
 import MusicList from './musicList';
+import DatePicker from '@/components/DatePicker';
 
 const formatDateTime = (datetime) => {
   if (!datetime) return '';
@@ -160,6 +161,13 @@ const Home = () => {
         [name]: value,
       });
     }
+  };
+
+  const handleDateChange = (name, date) => {
+    setFormData({
+      ...formData,
+      [name]: date,
+    });
   };
 
   const handleAddRekening = () => {
@@ -464,13 +472,14 @@ const Home = () => {
               </div>
               <div className="mb-4">
                 <label className="block text-gray-700">Tanggal Lahir Mempelai Pria</label>
-                <input
+                {/* <input
                   type="date"
                   name="tglLahirPria"
                   value={formData.tglLahirPria}
                   onChange={handleChange}
                   className="mt-1 p-2 w-full border border-gray-300 rounded-lg"
-                />
+                /> */}
+                <DatePicker name="tglLahirPria" value={formData.tglLahirPria} onDateChange={handleDateChange} />
                 {/* {errors.tglLahirPria && <p className="text-red-500 text-sm mt-1">{errors.tglLahirPria}</p>} */}
               </div>
               <div className="mb-4">
@@ -556,13 +565,14 @@ const Home = () => {
               </div>
               <div className="mb-4">
                 <label className="block text-gray-700">Tanggal Lahir Mempelai Wanita</label>
-                <input
+                {/* <input
                   type="date"
                   name="tglLahirWanita"
                   value={formData.tglLahirWanita}
                   onChange={handleChange}
                   className="mt-1 p-2 w-full border border-gray-300 rounded-lg"
-                />
+                /> */}
+                <DatePicker name="tglLahirWanita" value={formData.tglLahirWanita} onDateChange={handleDateChange} />
                 {/* {errors.tglLahirWanita && <p className="text-red-500 text-sm mt-1">{errors.tglLahirWanita}</p>} */}
               </div>
               <div className="mb-4">
@@ -636,13 +646,14 @@ const Home = () => {
                   Tanggal Acara (Akad / Pemberkatan )
                   <span className='text-red-500'>*</span>
                 </label>
-                <input
+                {/* <input
                   type="date"
                   name="datetimeAkad"
                   value={formData.datetimeAkad}
                   onChange={handleChange}
                   className="mt-1 p-2 w-full border border-gray-300 rounded-lg"
-                />
+                /> */}
+                <DatePicker name="datetimeAkad" value={formData.datetimeAkad} onDateChange={handleDateChange} />
                 {errors.datetimeAkad && <p className="text-red-500 text-sm mt-1">{errors.datetimeAkad}</p>}
               </div>
               <div className="mb-4">
@@ -666,13 +677,14 @@ const Home = () => {
                   Tanggal Acara Resepsi
                   <span className='text-red-500'>*</span>
                 </label>
-                <input
+                {/* <input
                   type="date"
                   name="datetimeResepsi"
                   value={formData.datetimeResepsi}
                   onChange={handleChange}
                   className="mt-1 p-2 w-full border border-gray-300 rounded-lg"
-                />
+                /> */}
+                <DatePicker name="datetimeResepsi" value={formData.datetimeResepsi} onDateChange={handleDateChange} />
                 {errors.datetimeResepsi && <p className="text-red-500 text-sm mt-1">{errors.datetimeResepsi}</p>}
               </div>
               <div className="mb-4">

@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { BiCheck, BiCopy, BiUpload, BiX } from 'react-icons/bi';
+import { BiCheck, BiCopy, BiMoney, BiX } from 'react-icons/bi';
 import { toast } from '@/components/ui/use-toast';
 import { z } from 'zod';
 import { paymentSchema } from '@/lib/validation';
@@ -196,8 +196,8 @@ export default function PaymentModal({ formId, phoneNumber }) {
         <Dialog>
             <DialogTrigger asChild>
                 <Button className="bg-slate-700 hover:bg-slate-900 text-white font-bold py-2 px-4 rounded-full flex items-center">
-                    <BiUpload className="h-6 w-6 mr-2" />
-                    Upload Bukti Transfer
+                    <BiMoney className="h-6 w-6 mr-2" />
+                    Bayar Sekarang
                 </Button>
             </DialogTrigger>
             <DialogContent className="max-w-md w-full p-4 h-[100dvh] flex flex-col">
