@@ -210,7 +210,7 @@ const StepF = ({ number, nextStep, formData, setFormData, onFormChange, partName
         {images.length > 0 ? (
           images.map((image, index) => (
             <div key={image.id || index} className="relative mt-4">
-              <Image
+              <img
                 src={image.url}
                 alt={`Preview ${index + 1}`}
                 width={150}

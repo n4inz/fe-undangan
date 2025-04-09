@@ -2,13 +2,14 @@
 import { useEffect, useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { BiEnvelope, BiPhone, BiX, BiArrowBack } from "react-icons/bi";
+import { BiEnvelope, BiPhone, BiX, BiArrowBack, BiEdit } from "react-icons/bi";
 import { useRouter } from 'next/navigation';
 import axios from 'axios';
 import DataTable from 'react-data-table-component';
 import { Button } from '@/components/ui/button';
 import { DialogModalForm } from '@/components/DialogModalForm';
 import { checkForm } from '@/utils/checkForm';
+import ImageEditor from '@/components/atur-foto/ImageEditor'; // Import the ImageEditor component
 
 const Result = ({ params }) => {
     const router = useRouter();
@@ -25,6 +26,8 @@ const Result = ({ params }) => {
     const [isFullScreen, setIsFullScreen] = useState(false);
     const [fullScreenImage, setFullScreenImage] = useState(null);
     const [form, setForm] = useState([]);
+    const [editingImage, setEditingImage] = useState(null);
+    const [editingRow, setEditingRow] = useState(null);
 
     const columns = [
         {
@@ -35,12 +38,11 @@ const Result = ({ params }) => {
         {
             name: 'Foto',
             cell: row => {
-                // Determine the image source based on whether it's from `images` or `assets`
                 const imageUrl = row.images?.fileImage
-                    ? `${process.env.NEXT_PUBLIC_API_URL}/images/${row.images.fileImage}` // Image from `images` folder
+                    ? `${process.env.NEXT_PUBLIC_API_URL}/images/${row.images.fileImage}`
                     : row.asset?.file
-                        ? `${process.env.NEXT_PUBLIC_API_URL}/asset/${row.asset.file}` // Image from `assets` folder
-                        : '/placeholder-image.png'; // Fallback placeholder image
+                        ? `${process.env.NEXT_PUBLIC_API_URL}/asset/${row.asset.file}`
+                        : '/placeholder-image.png';
 
                 return (
                     <Image
@@ -60,7 +62,86 @@ const Result = ({ params }) => {
             selector: row => row.partName,
             sortable: true,
         },
+        {
+            name: 'Aksi',
+            cell: row => {
+                const imageUrl = row.images?.fileImage
+                    ? `${process.env.NEXT_PUBLIC_API_URL}/images/${row.images.fileImage}`
+                    : row.asset?.file
+                        ? `${process.env.NEXT_PUBLIC_API_URL}/asset/${row.asset.file}`
+                        : null;
+
+                return (
+                    <div className="flex gap-2">
+                        <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => {
+                                if (imageUrl) {
+                                    setEditingImage(imageUrl);
+                                    setEditingRow(row);
+                                }
+                            }}
+                            disabled={!imageUrl}
+                        >
+                            <BiEdit className="mr-2 h-4 w-4" />
+                            Edit
+                        </Button>
+                    </div>
+                );
+            },
+            width: '150px',
+        },
     ];
+
+    const handleSaveEditedImage = async (base64Data) => {
+        try {
+            // Convert base64 to File
+            const file = dataURLtoFile(base64Data, 'edited-image.jpg');
+    
+            // Create FormData and append the file
+            const formData = new FormData();
+            formData.append('file', file);
+            formData.append('partName', editingRow.partName);
+            formData.append('idImage', editingRow.id);
+            formData.append('phoneNumber', params.phoneNumber);
+    
+            // Send to backend
+            const response = await axios.post(
+                `${process.env.NEXT_PUBLIC_API_URL}/upload-photo-v2/${params.formId}`,
+                formData,
+                {
+                    headers: {
+                        'Content-Type': 'multipart/form-data',
+                    },
+                }
+            );
+    
+            if (response.status === 200) {
+                fetchData(); // Refresh the data
+            }
+        } catch (error) {
+            console.error('Error saving edited image:', error);
+        } finally {
+            setEditingImage(null);
+            setEditingRow(null);
+        }
+    };
+    
+    // Helper function to convert base64 to File
+    const dataURLtoFile = (dataurl, filename) => {
+        const arr = dataurl.split(',');
+        const mime = arr[0].match(/:(.*?);/)[1];
+        const bstr = atob(arr[1]);
+        let n = bstr.length;
+        const u8arr = new Uint8Array(n);
+        
+        while (n--) {
+            u8arr[n] = bstr.charCodeAt(n);
+        }
+        
+        return new File([u8arr], filename, { type: mime });
+    };
 
     const handleImageClick = (imageUrl) => {
         setFullScreenImage(imageUrl);
@@ -112,7 +193,7 @@ const Result = ({ params }) => {
     }, [params.formId, params.phoneNumber, router]);
 
     if (pageLoading) {
-        return null; // Render nothing while checking form or global data
+        return null;
     }
 
     return (
@@ -178,6 +259,18 @@ const Result = ({ params }) => {
                         <BiX className="h-6 w-6" />
                     </Button>
                 </div>
+            )}
+
+            {editingImage && (
+                <ImageEditor
+                    image={editingImage}
+                    idImage={editingRow?.id}
+                    onSave={handleSaveEditedImage}
+                    onCancel={() => {
+                        setEditingImage(null);
+                        setEditingRow(null);
+                    }}
+                />
             )}
         </div>
     );

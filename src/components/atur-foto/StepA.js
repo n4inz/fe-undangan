@@ -7,20 +7,23 @@ import axios from "axios";
 import { useParams } from "next/navigation";
 import placeholder from "../../../public/images/placeholder.png";
 import LoadingOverlay from "./LoadingOverlay";
-import { FaImages } from "react-icons/fa";
+import { FaImages, FaEdit } from "react-icons/fa";
 import ModalAsset from "./ModalAsset";
+import ImageEditor from "./ImageEditor";
+import { dataURLtoBlob } from "@/utils/helpers";
 
 const StepA = ({ number, nextStep, formData, setFormData, onFormChange, partName }) => {
   const params = useParams();
   const [uploading, setUploading] = useState(false);
-  const [uploadProgress, setUploadProgress] = useState(0); // Track upload progress
+  const [uploadProgress, setUploadProgress] = useState(0);
   const [selectedImage, setSelectedImage] = useState(formData.imageUrl || null);
   const [file, setFile] = useState(null);
   const [imageExist, setImageExist] = useState(false);
   const fileInputRef = useRef(null);
   const [runTour, setRunTour] = useState(false);
-  const [isModalOpen, setIsModalOpen] = useState(false); // State to control modal visibility
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const [statusAsset, setStatusAsset] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
 
   const tourSteps = [
     {
@@ -39,15 +42,13 @@ const StepA = ({ number, nextStep, formData, setFormData, onFormChange, partName
 
   const handleFileChange = (e) => {
     const selectedFile = e.target.files[0];
-    if (selectedFile) {
+    if (e.target.files && e.target.files.length > 0) {
       const reader = new FileReader();
-      reader.onload = (event) => {
-        setSelectedImage(event.target.result);
+      reader.addEventListener('load', () => {
+        setSelectedImage(reader.result);
         setFile(selectedFile);
-        onFormChange();
-        // console.log('Selected file:', selectedFile);
-        setStatusAsset(false);
-      };
+        setIsEditing(true);
+      });
       reader.readAsDataURL(selectedFile);
     }
   };
@@ -56,90 +57,47 @@ const StepA = ({ number, nextStep, formData, setFormData, onFormChange, partName
     fileInputRef.current.click();
   };
 
+  const handleEditClick = () => {
+    if (selectedImage) {
+      setIsEditing(true);
+    }
+  };
+
   const handleNextClick = async () => {
     setUploading(true);
     if (!file) {
       alert("Please select a file first!");
       setUploading(false);
       return;
-    } else if (statusAsset && selectedImage) {
-      console.log('finally');
+    }
 
-      try {
-        const response = await axios.post(
-          `${process.env.NEXT_PUBLIC_API_URL}/upload-photo-v2/${params.formId}`, file
-        )
-        setSelectedImage(null);
-        setFile(null);
-        onFormChange();
-        nextStep();
-      } catch (error) {
-        console.error("Error uploading the image", error);
-      } finally {
-        setUploading(false);
-        setUploadProgress(0);
-      }
-
-    } else if (file === 1) {
-      const uploadData = new FormData();
-      uploadData.append('partName', partName);
-      uploadData.append('dataFile', file);
-
-      try {
-        const response = await axios.post(
-          `${process.env.NEXT_PUBLIC_API_URL}/upload-photo-v2/${params.formId}`,
-          uploadData,
-          {
-            headers: {
-              "Content-Type": "multipart/form-data",
-            },
-            onUploadProgress: (progressEvent) => {
-              const { loaded, total } = progressEvent;
-              const percent = Math.floor((loaded / total) * 100);
-              setUploadProgress(percent);  // Update progress
-            },
-          }
-        );
-        setImageExist(false);
-        onFormChange();
-        nextStep();
-      } catch (error) {
-        console.error("Error uploading the image", error);
-      } finally {
-        setUploading(false);
-        setUploadProgress(0);
-      }
-    } else {
+    try {
       const uploadData = new FormData();
       uploadData.append('file', file);
       uploadData.append('partName', partName);
 
-      try {
-        const response = await axios.post(
-          `${process.env.NEXT_PUBLIC_API_URL}/upload-photo-v2/${params.formId}`,
-          uploadData,
-          {
-            headers: {
-              "Content-Type": "multipart/form-data",
-            },
-            onUploadProgress: (progressEvent) => {
-              const { loaded, total } = progressEvent;
-              const percent = Math.floor((loaded / total) * 100);
-              setUploadProgress(percent);  // Update progress
-            },
-          }
-        );
+      const response = await axios.post(
+        `${process.env.NEXT_PUBLIC_API_URL}/upload-photo-v2/${params.formId}`,
+        uploadData,
+        {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+          onUploadProgress: (progressEvent) => {
+            const { loaded, total } = progressEvent;
+            const percent = Math.floor((loaded / total) * 100);
+            setUploadProgress(percent);
+          },
+        }
+      );
 
-        setSelectedImage(null);
-        setFile(null);
-        onFormChange();
-        nextStep();
-      } catch (error) {
-        console.error("Error uploading the image", error);
-      } finally {
-        setUploading(false);
-        setUploadProgress(0);
-      }
+      onFormChange();
+      nextStep();
+    } catch (error) {
+      console.error("Error uploading the image", error);
+    } finally {
+      setUploading(false);
+      setUploadProgress(0);
     }
   };
 
@@ -155,9 +113,6 @@ const StepA = ({ number, nextStep, formData, setFormData, onFormChange, partName
       );
 
       const imagesData = response.data.data;
-      const imagesDataxx = response.data;
-
-      console.log("Images Data:", imagesDataxx);
 
       if (imagesData.length > 0) {
         let imageUrl;
@@ -170,8 +125,6 @@ const StepA = ({ number, nextStep, formData, setFormData, onFormChange, partName
           console.error('Image data does not contain expected fields');
           return;
         }
-
-        console.log("Imageurl:", imageUrl);
 
         setSelectedImage(imageUrl);
         setUploading(false);
@@ -195,7 +148,7 @@ const StepA = ({ number, nextStep, formData, setFormData, onFormChange, partName
       console.warn('LocalStorage is not supported:', error);
     }
     if (!tourShown) {
-      setRunTour(true); // Start the tour when the component mounts
+      setRunTour(true);
       try {
         localStorage.setItem('tourShown', 'true');
       } catch (error) {
@@ -208,7 +161,6 @@ const StepA = ({ number, nextStep, formData, setFormData, onFormChange, partName
     setSelectedImage(assetData.imageUrl);
     setFile({ ...assetData, partName: partName });
     setStatusAsset(true);
-    console.log('Selected asset:', assetData);
   };
 
   return (
@@ -224,7 +176,7 @@ const StepA = ({ number, nextStep, formData, setFormData, onFormChange, partName
           callback={handleJoyrideCallback}
           styles={{
             options: {
-              primaryColor: '#4F46E5', // Indigo color to match your theme
+              primaryColor: '#4F46E5',
             }
           }}
         />
@@ -240,14 +192,25 @@ const StepA = ({ number, nextStep, formData, setFormData, onFormChange, partName
           </Button>
         </div>
 
-        <div className="flex items-center justify-center mb-4">
-          <Image
-            src={selectedImage ? selectedImage : `${placeholder.src}`}
-            alt="Cover"
-            width={300}
-            height={350}
-            className="mt-4"
-          />
+        <div className="flex items-center justify-center mb-4 relative">
+          <div className="relative">
+            <img
+              src={selectedImage || placeholder?.src}
+              alt="Cover"
+              width={300}
+              height={350}
+              className="mt-4"
+            />
+            {selectedImage && selectedImage !== placeholder?.src && (
+              <button
+                onClick={handleEditClick}
+                className="absolute top-4 right-4 bg-white p-2 rounded-full shadow-md hover:bg-gray-100"
+                title="Edit Image"
+              >
+                <FaEdit className="text-blue-500" />
+              </button>
+            )}
+          </div>
         </div>
 
         <div className="flex justify-center gap-x-4 pb-4">
@@ -266,6 +229,21 @@ const StepA = ({ number, nextStep, formData, setFormData, onFormChange, partName
             {uploading ? "Uploading..." : "Selanjutnya"}
           </Button>
         </div>
+
+        {isEditing && selectedImage && (
+          <ImageEditor
+            image={selectedImage}
+            onSave={(editedImage) => {
+              setSelectedImage(editedImage);
+              setIsEditing(false);
+              // Create a file object from the edited image
+              const blob = dataURLtoBlob(editedImage);
+              const editedFile = new File([blob], 'edited-image.jpg', { type: 'image/jpeg' });
+              setFile(editedFile);
+            }}
+            onCancel={() => setIsEditing(false)}
+          />
+        )}
       </div>
     </>
   );
