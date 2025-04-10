@@ -1,4 +1,4 @@
-//COVER
+// COVER
 import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import { Button } from "../ui/button";
@@ -15,13 +15,13 @@ import { dataURLtoBlob } from "@/utils/helpers";
 const StepA = ({ number, nextStep, formData, setFormData, onFormChange, partName }) => {
   const params = useParams();
   const [uploading, setUploading] = useState(false);
-  const [uploadProgress, setUploadProgress] = useState(0);
+  const [uploadProgress, setUploadProgress] = useState(0); // Track upload progress
   const [selectedImage, setSelectedImage] = useState(formData.imageUrl || null);
   const [file, setFile] = useState(null);
   const [imageExist, setImageExist] = useState(false);
   const fileInputRef = useRef(null);
   const [runTour, setRunTour] = useState(false);
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(false); // State to control modal visibility
   const [statusAsset, setStatusAsset] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
 
@@ -57,47 +57,90 @@ const StepA = ({ number, nextStep, formData, setFormData, onFormChange, partName
     fileInputRef.current.click();
   };
 
-  const handleEditClick = () => {
-    if (selectedImage) {
-      setIsEditing(true);
-    }
-  };
-
   const handleNextClick = async () => {
     setUploading(true);
     if (!file) {
       alert("Please select a file first!");
       setUploading(false);
       return;
-    }
+    } else if (statusAsset && selectedImage) {
+      console.log('finally');
 
-    try {
+      try {
+        const response = await axios.post(
+          `${process.env.NEXT_PUBLIC_API_URL}/upload-photo-v2/${params.formId}`, file
+        )
+        setSelectedImage(null);
+        setFile(null);
+        onFormChange();
+        nextStep();
+      } catch (error) {
+        console.error("Error uploading the image", error);
+      } finally {
+        setUploading(false);
+        setUploadProgress(0);
+      }
+
+    } else if (file === 1) {
+      const uploadData = new FormData();
+      uploadData.append('partName', partName);
+      uploadData.append('dataFile', file);
+
+      try {
+        const response = await axios.post(
+          `${process.env.NEXT_PUBLIC_API_URL}/upload-photo-v2/${params.formId}`,
+          uploadData,
+          {
+            headers: {
+              "Content-Type": "multipart/form-data",
+            },
+            onUploadProgress: (progressEvent) => {
+              const { loaded, total } = progressEvent;
+              const percent = Math.floor((loaded / total) * 100);
+              setUploadProgress(percent);  // Update progress
+            },
+          }
+        );
+        setImageExist(false);
+        onFormChange();
+        nextStep();
+      } catch (error) {
+        console.error("Error uploading the image", error);
+      } finally {
+        setUploading(false);
+        setUploadProgress(0);
+      }
+    } else {
       const uploadData = new FormData();
       uploadData.append('file', file);
       uploadData.append('partName', partName);
 
-      const response = await axios.post(
-        `${process.env.NEXT_PUBLIC_API_URL}/upload-photo-v2/${params.formId}`,
-        uploadData,
-        {
-          headers: {
-            "Content-Type": "multipart/form-data",
-          },
-          onUploadProgress: (progressEvent) => {
-            const { loaded, total } = progressEvent;
-            const percent = Math.floor((loaded / total) * 100);
-            setUploadProgress(percent);
-          },
-        }
-      );
+      try {
+        const response = await axios.post(
+          `${process.env.NEXT_PUBLIC_API_URL}/upload-photo-v2/${params.formId}`,
+          uploadData,
+          {
+            headers: {
+              "Content-Type": "multipart/form-data",
+            },
+            onUploadProgress: (progressEvent) => {
+              const { loaded, total } = progressEvent;
+              const percent = Math.floor((loaded / total) * 100);
+              setUploadProgress(percent);  // Update progress
+            },
+          }
+        );
 
-      onFormChange();
-      nextStep();
-    } catch (error) {
-      console.error("Error uploading the image", error);
-    } finally {
-      setUploading(false);
-      setUploadProgress(0);
+        setSelectedImage(null);
+        setFile(null);
+        onFormChange();
+        nextStep();
+      } catch (error) {
+        console.error("Error uploading the image", error);
+      } finally {
+        setUploading(false);
+        setUploadProgress(0);
+      }
     }
   };
 
@@ -113,11 +156,14 @@ const StepA = ({ number, nextStep, formData, setFormData, onFormChange, partName
       );
 
       const imagesData = response.data.data;
+      const imagesDataxx = response.data;
+
+      console.log("Images Data:", imagesDataxx);
 
       if (imagesData.length > 0) {
         let imageUrl;
-        if (imagesData[0].ssCover) {
-          imageUrl = `${process.env.NEXT_PUBLIC_API_URL}/images/${imagesData[0].ssCover}`;
+        if (imagesData[0].ssSubCover) {
+          imageUrl = `${process.env.NEXT_PUBLIC_API_URL}/images/${imagesData[0].ssSubCover}`;
         } else if (imagesData[0].fileImage || imagesData[0].file) {
           imageUrl = `${process.env.NEXT_PUBLIC_API_URL}/${response.data.type}/${response.data.type === 'images' ? imagesData[0].fileImage : imagesData[0].file}`;
           setFile(1);
@@ -125,6 +171,8 @@ const StepA = ({ number, nextStep, formData, setFormData, onFormChange, partName
           console.error('Image data does not contain expected fields');
           return;
         }
+
+        console.log("Imageurl:", imageUrl);
 
         setSelectedImage(imageUrl);
         setUploading(false);
@@ -148,7 +196,7 @@ const StepA = ({ number, nextStep, formData, setFormData, onFormChange, partName
       console.warn('LocalStorage is not supported:', error);
     }
     if (!tourShown) {
-      setRunTour(true);
+      setRunTour(true); // Start the tour when the component mounts
       try {
         localStorage.setItem('tourShown', 'true');
       } catch (error) {
@@ -161,7 +209,9 @@ const StepA = ({ number, nextStep, formData, setFormData, onFormChange, partName
     setSelectedImage(assetData.imageUrl);
     setFile({ ...assetData, partName: partName });
     setStatusAsset(true);
+    console.log('Selected asset:', assetData);
   };
+
 
   return (
     <>
@@ -176,7 +226,7 @@ const StepA = ({ number, nextStep, formData, setFormData, onFormChange, partName
           callback={handleJoyrideCallback}
           styles={{
             options: {
-              primaryColor: '#4F46E5',
+              primaryColor: '#4F46E5', // Indigo color to match your theme
             }
           }}
         />
@@ -203,7 +253,11 @@ const StepA = ({ number, nextStep, formData, setFormData, onFormChange, partName
             />
             {selectedImage && selectedImage !== placeholder?.src && (
               <button
-                onClick={handleEditClick}
+                onClick={() => {
+                  if (selectedImage) {
+                    setIsEditing(true);
+                  }
+                }}
                 className="absolute top-4 right-4 bg-white p-2 rounded-full shadow-md hover:bg-gray-100"
                 title="Edit Image"
               >
@@ -236,6 +290,7 @@ const StepA = ({ number, nextStep, formData, setFormData, onFormChange, partName
             onSave={(editedImage) => {
               setSelectedImage(editedImage);
               setIsEditing(false);
+              // setFile(1); // Reset file after editing
               // Create a file object from the edited image
               const blob = dataURLtoBlob(editedImage);
               const editedFile = new File([blob], 'edited-image.jpg', { type: 'image/jpeg' });

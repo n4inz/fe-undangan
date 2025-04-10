@@ -3,6 +3,8 @@ import { useState, useCallback, useRef, useEffect } from 'react';
 import ReactCrop from 'react-image-crop';
 import 'react-image-crop/dist/ReactCrop.css';
 import { FaTimes, FaCheck, FaUndoAlt, FaRedoAlt, FaCrop, FaArrowLeft } from 'react-icons/fa';
+import { set } from 'date-fns';
+import { Button } from '../ui/button';
 
 const ImageEditor = ({ image, onSave, onCancel, idImage = null }) => {
   const [step, setStep] = useState('rotate');
@@ -12,6 +14,7 @@ const ImageEditor = ({ image, onSave, onCancel, idImage = null }) => {
   const [completedCrop, setCompletedCrop] = useState(null);
   const [aspectRatio, setAspectRatio] = useState(null);
   const [containerSize, setContainerSize] = useState({ width: 0, height: 0 });
+  const [btnDone, setBtnDone] = useState(false);
   
   const containerRef = useRef(null);
   const imgRef = useRef(null);
@@ -114,6 +117,7 @@ const ImageEditor = ({ image, onSave, onCancel, idImage = null }) => {
   };
 
   const getCroppedImg = async () => {
+    setBtnDone(true);
     try {
       if (!completedCrop || !imgRef.current || !canvasRef.current) {
         return;
@@ -158,6 +162,7 @@ const ImageEditor = ({ image, onSave, onCancel, idImage = null }) => {
       console.error('Error cropping image', e);
       // Fallback to original image if cropping fails
       onSave(rotatedImage || image);
+      setBtnDone(false);
     }
   };
 
@@ -173,29 +178,30 @@ const ImageEditor = ({ image, onSave, onCancel, idImage = null }) => {
           <FaTimes className="w-6 h-6 lg:w-4 lg:h-4" />
         </button>
         {step === 'rotate' ? (
-          <button
+          <Button
             onClick={handleNext}
             className="px-4 py-2 bg-blue-500 text-white rounded-full hover:bg-blue-600 transition-colors flex items-center gap-2"
           >
             <FaCheck className="w-6 h-6 lg:w-4 lg:h-4" />
             <span>Next</span>
-          </button>
+          </Button>
         ) : (
           <div className="flex gap-4">
-            <button
+            <Button
               onClick={() => setStep('rotate')}
               className="p-2 text-white hover:bg-gray-700 rounded-full transition-colors"
               aria-label="Back"
             >
               <FaArrowLeft className="w-6 h-6 lg:w-4 lg:h-4" />
-            </button>
-            <button
+            </Button>
+            <Button
               onClick={getCroppedImg}
               className="px-4 py-2 bg-blue-500 text-white rounded-full hover:bg-blue-600 transition-colors flex items-center gap-2"
+              disabled={btnDone}
             >
               <FaCheck className="w-6 h-6 lg:w-4 lg:h-4" />
               <span>Done</span>
-            </button>
+            </Button>
           </div>
         )}
       </div>
