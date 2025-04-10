@@ -233,6 +233,39 @@ const EditDetail = ({ params }) => {
         setRekeningList([...rekeningList, { namaRekening: "", noRekening: "" }]);
     };
 
+    const handleRemoveRekening = async (index, id) => {
+        if (!id) {
+            // If id is not set or null, simply update the rekeningList without making an API call
+            setRekeningList((prevRekeningList) => {
+                const updatedRekeningList = prevRekeningList.filter((_, i) => i !== index);
+                setFormData((prevFormData) => ({
+                    ...prevFormData,
+                    rekening: updatedRekeningList,
+                }));
+                return updatedRekeningList;
+            });
+            return;
+        }
+    
+        try {
+            await axios.delete(`${process.env.NEXT_PUBLIC_API_URL}/remove-rekening/${id}`, {
+                withCredentials: true // Include credentials with the request
+            });
+    
+            // Update rekeningList and formData.rekening simultaneously
+            setRekeningList((prevRekeningList) => {
+                const updatedRekeningList = prevRekeningList.filter((_, i) => i !== index);
+                setFormData((prevFormData) => ({
+                    ...prevFormData,
+                    rekening: updatedRekeningList,
+                }));
+                return updatedRekeningList;
+            });
+        } catch (error) {
+            console.error('Error removing rekening:', error);
+        }
+    };
+
 
     const fetchData = async () => {
         try {
@@ -777,16 +810,16 @@ const EditDetail = ({ params }) => {
                                     className="mb-4 relative border border-gray-300 rounded-lg p-4"
                                 >
                                     {/* Show Close Button for Second Input and Beyond */}
-                                    {index > 0 && (
+                                    {/* {index > 0 && ( */}
                                         <button
                                             type="button"
-                                            onClick={() => handleRemoveRekening(index)}
+                                            onClick={() => handleRemoveRekening(index, rekening.id)}
                                             className="absolute top-2 right-2 text-red-500 hover:text-red-700"
                                             title="Hapus Rekening"
                                         >
                                             ✖
                                         </button>
-                                    )}
+                                    {/* )} */}
                                     <label className="block text-gray-700">
                                         Icon Bank {index + 1}
                                     </label>
