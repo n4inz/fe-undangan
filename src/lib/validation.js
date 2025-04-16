@@ -1,7 +1,11 @@
 import { z } from 'zod';
 
 const requeiredInput = z.string().min(1, { message: "Form harus diisi" });
-const requeiredDate = z.date({ required_error: "Date is required", invalid_type_error: "Invalid date" });
+// const requeiredDate = z.string().min(1, { message: "Date is required" }).refine(val => !isNaN(Date.parse(val)), { message: "Invalid date" });
+const requeiredDate = z.union([
+  z.string().min(1, { message: "Date is required" }),
+  z.date(),
+]);
 
 const optionalField = z.string().optional();
 
