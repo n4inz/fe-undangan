@@ -164,9 +164,10 @@ const Home = () => {
   };
 
   const handleDateChange = (name, date) => {
+    const formattedDate = date ? date.toISOString().split('T')[0] : ''; // Convert date to string (YYYY-MM-DD format)
     setFormData({
       ...formData,
-      [name]: date,
+      [name]: formattedDate,
     });
   };
 
