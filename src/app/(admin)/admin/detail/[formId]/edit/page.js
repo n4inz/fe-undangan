@@ -209,8 +209,12 @@ const EditDetail = ({ params }) => {
     const handleSelectBankChange = (value, index) => {
         const newRekeningList = [...rekeningList];
         newRekeningList[index].icon = value;
+    
+        const updatedRekening = [...formData.rekening];
+        updatedRekening[index] = { ...updatedRekening[index], icon: value };
+    
         setRekeningList(newRekeningList);
-        console.log(rekeningList)
+        setFormData({ ...formData, rekening: updatedRekening });
     };
 
     const handleSelectMusicChange = (value, index) => {
