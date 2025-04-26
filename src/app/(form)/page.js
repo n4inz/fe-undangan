@@ -21,7 +21,12 @@ import { SelectValue } from '@radix-ui/react-select';
 import BankCombobox from '@/components/admin/BankComboBox';
 import { getBankList } from '@/lib/bank';
 import MusicList from './musicList';
-import DatePicker from '@/components/DatePicker';
+import dayjs from 'dayjs';
+import { DemoContainer } from '@mui/x-date-pickers/internals/demo';
+import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
+import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
+import { DatePicker } from '@mui/x-date-pickers/DatePicker';
+
 
 const formatDateTime = (datetime) => {
   if (!datetime) return '';
@@ -164,7 +169,7 @@ const Home = () => {
   };
 
   const handleDateChange = (name, date) => {
-    const formattedDate = date ? date.toISOString().split('T')[0] : ''; // Convert date to string (YYYY-MM-DD format)
+    const formattedDate = date ? date.format('YYYY-MM-DD') : ''; // ✅ Use dayjs format instead of toISOString
     setFormData({
       ...formData,
       [name]: formattedDate,
@@ -480,7 +485,19 @@ const Home = () => {
                   onChange={handleChange}
                   className="mt-1 p-2 w-full border border-gray-300 rounded-lg"
                 /> */}
-                <DatePicker name="tglLahirPria" value={formData.tglLahirPria} onDateChange={handleDateChange} />
+                <LocalizationProvider dateAdapter={AdapterDayjs}>
+                  <DemoContainer components={['DatePicker']}>
+                    <DatePicker
+                      // label="Basic date picker"
+                      name="tglLahirPria"
+                      format="DD/MM/YYYY"
+                      value={formData.tglLahirPria ? dayjs(formData.tglLahirPria) : null}
+                      onChange={(newDate) => handleDateChange('tglLahirPria', newDate)}
+                      className="mt-1 p-2 w-full border border-gray-300 rounded-lg"
+                    />
+                  </DemoContainer>
+                </LocalizationProvider>
+                {/* <DatePicker name="tglLahirPria" value={formData.tglLahirPria} onDateChange={handleDateChange} /> */}
                 {/* {errors.tglLahirPria && <p className="text-red-500 text-sm mt-1">{errors.tglLahirPria}</p>} */}
               </div>
               <div className="mb-4">
@@ -573,7 +590,19 @@ const Home = () => {
                   onChange={handleChange}
                   className="mt-1 p-2 w-full border border-gray-300 rounded-lg"
                 /> */}
-                <DatePicker name="tglLahirWanita" value={formData.tglLahirWanita} onDateChange={handleDateChange} />
+                {/* <DatePicker name="tglLahirWanita" value={formData.tglLahirWanita} onDateChange={handleDateChange} /> */}
+                <LocalizationProvider dateAdapter={AdapterDayjs}>
+                  <DemoContainer components={['DatePicker']}>
+                    <DatePicker
+                      // label="Basic date picker"
+                      name="tglLahirWanita"
+                      format="DD/MM/YYYY"
+                      value={formData.tglLahirWanita ? dayjs(formData.tglLahirWanita) : null}
+                      onChange={(newDate) => handleDateChange('tglLahirWanita', newDate)}
+                      className="mt-1 p-2 w-full border border-gray-300 rounded-lg"
+                    />
+                  </DemoContainer>
+                </LocalizationProvider>
                 {/* {errors.tglLahirWanita && <p className="text-red-500 text-sm mt-1">{errors.tglLahirWanita}</p>} */}
               </div>
               <div className="mb-4">
@@ -654,7 +683,19 @@ const Home = () => {
                   onChange={handleChange}
                   className="mt-1 p-2 w-full border border-gray-300 rounded-lg"
                 /> */}
-                <DatePicker name="datetimeAkad" value={formData.datetimeAkad} onDateChange={handleDateChange} />
+                {/* <DatePicker name="datetimeAkad" value={formData.datetimeAkad} onDateChange={handleDateChange} /> */}
+                <LocalizationProvider dateAdapter={AdapterDayjs}>
+                  <DemoContainer components={['DatePicker']}>
+                    <DatePicker
+                      // label="Basic date picker"
+                      name="datetimeAkad"
+                      format="DD/MM/YYYY"
+                      value={formData.datetimeAkad ? dayjs(formData.datetimeAkad) : null}
+                      onChange={(newDate) => handleDateChange('datetimeAkad', newDate)}
+                      className="mt-1 p-2 w-full border border-gray-300 rounded-lg"
+                    />
+                  </DemoContainer>
+                </LocalizationProvider>
                 {errors.datetimeAkad && <p className="text-red-500 text-sm mt-1">{errors.datetimeAkad}</p>}
               </div>
               <div className="mb-4">
@@ -685,7 +726,19 @@ const Home = () => {
                   onChange={handleChange}
                   className="mt-1 p-2 w-full border border-gray-300 rounded-lg"
                 /> */}
-                <DatePicker name="datetimeResepsi" value={formData.datetimeResepsi} onDateChange={handleDateChange} />
+                {/* <DatePicker name="datetimeResepsi" value={formData.datetimeResepsi} onDateChange={handleDateChange} /> */}
+                <LocalizationProvider dateAdapter={AdapterDayjs}>
+                  <DemoContainer components={['DatePicker']}>
+                    <DatePicker
+                      // label="Basic date picker"
+                      name="datetimeResepsi"
+                      format="DD/MM/YYYY"
+                      value={formData.datetimeResepsi ? dayjs(formData.datetimeResepsi) : null}
+                      onChange={(newDate) => handleDateChange('datetimeResepsi', newDate)}
+                      className="mt-1 p-2 w-full border border-gray-300 rounded-lg"
+                    />
+                  </DemoContainer>
+                </LocalizationProvider>
                 {errors.datetimeResepsi && <p className="text-red-500 text-sm mt-1">{errors.datetimeResepsi}</p>}
               </div>
               <div className="mb-4">

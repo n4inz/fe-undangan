@@ -338,8 +338,8 @@ function Calendar({
                 </SelectContent>
               </Select>
               <Select
-              defaultValue={calendarMonth.date.getFullYear().toString()}
-              // defaultValue={props.selected ? getYear(props.selected).toString() : calendarMonth.date.getFullYear().toString()}
+                defaultValue={calendarMonth.date.getFullYear().toString()}
+                // defaultValue={props.selected ? getYear(props.selected).toString() : calendarMonth.date.getFullYear().toString()}
                 onValueChange={(value) => {
                   const newDate = new Date(calendarMonth.date);
                   newDate.setFullYear(parseInt(value, 10));
@@ -668,9 +668,9 @@ const DateTimePicker = React.forwardRef(
       }),
       [displayDate]
     );
-useEffect(() => {
-  console.log(month);
-}, [month]);
+    useEffect(() => {
+      console.log(month);
+    }, [month]);
     const initHourFormat = {
       hour24:
         (displayFormat && displayFormat.hour24) ||
@@ -698,17 +698,25 @@ useEffect(() => {
             mode="single"
             selected={displayDate}
             month={month}
-            onSelect={(newDate) => {
-              if (newDate) {
-                newDate.setHours(
-                  month ? month.getHours() : 0,
-                  month ? month.getMinutes() : 0,
-                  month ? month.getSeconds() : 0
-                );
-                onSelect(newDate);
-              }
+            onSelect={(day) => {
+              if (!day) return;
+              // normalize to local-midnight
+              const clean = new Date(
+                day.getFullYear(),
+                day.getMonth(),
+                day.getDate(),
+                /* preserve your desired time here, or just 0:0:0 */
+                month?.getHours() ?? 0,
+                month?.getMinutes() ?? 0,
+                month?.getSeconds() ?? 0
+              );
+              onSelect(clean);
             }}
-            onMonthChange={handleMonthChange}
+            onMonthChange={(newMonth) => {
+              // simply update your month state—no diff math
+              setMonth(newMonth);
+              onChange && onChange(newMonth);
+            }}
             yearRange={yearRange}
             locale={locale}
             value={displayDate}

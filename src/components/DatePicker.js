@@ -8,11 +8,11 @@ import { Button } from "@/components/ui/button";
 import { useEffect } from "react";
 
 const DatePicker = ({ name, value, onDateChange }) => {
-  
+
   useEffect(() => {
     console.log("value", value);
   }
-  , [value]);
+    , [value]);
 
   return (
     <Popover>
@@ -30,7 +30,15 @@ const DatePicker = ({ name, value, onDateChange }) => {
           granularity="day"
           mode="single"
           selected={value}
-          onSelect={(date) => onDateChange(name, date)}
+          onSelect={(date) => {
+            // strip off any hidden TZ offset
+            const clean = new Date(
+              date.getFullYear(),
+              date.getMonth(),
+              date.getDate()
+            );
+            onDateChange(name, clean);
+          }}
           initialFocus
         />
       </PopoverContent>
