@@ -14,7 +14,7 @@ import { paymentSchema } from '@/lib/validation';
 import { Loader2 } from 'lucide-react';
 import axios from 'axios';
 import Image from 'next/image';
-import placeholder from '../../../../../../public/images/placeholder.png';
+import placeholder from '/public/images/placeholder.png';
 
 export default function PaymentModal({ formId, phoneNumber }) {
     const [formData, setFormData] = useState({

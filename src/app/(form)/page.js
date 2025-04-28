@@ -233,7 +233,7 @@ const Home = () => {
               console.warn("Error removing localStorage item:", error);
             }
           }
-          router.push(`/${response.data.id}/${response.data.nomorWa}/success`);
+          router.push(`/${response.data.id}/${response.data.nomorWa}/atur-foto`);
         })
         .catch((error) => {
           console.error("Error uploading files:", error);

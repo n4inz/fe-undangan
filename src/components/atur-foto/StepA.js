@@ -41,6 +41,7 @@ const StepA = ({ number, nextStep, formData, setFormData, onFormChange, partName
   };
 
   const handleFileChange = (e) => {
+    setStatusAsset(false);
     const selectedFile = e.target.files[0];
     if (e.target.files && e.target.files.length > 0) {
       const reader = new FileReader();
@@ -48,6 +49,8 @@ const StepA = ({ number, nextStep, formData, setFormData, onFormChange, partName
         setSelectedImage(reader.result);
         setFile(selectedFile);
         setIsEditing(true);
+        console.log('Selected file:', selectedFile);
+        console.log('Selected file type:', selectedFile.type);
       });
       reader.readAsDataURL(selectedFile);
     }

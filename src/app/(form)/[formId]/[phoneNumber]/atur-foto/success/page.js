@@ -39,7 +39,7 @@ const Success = ({ params }) => {
       <Toaster className="z-50" /> {/* Tambahkan ini */}
       <div className="h-screen justify-center bg-white p-8 rounded-lg shadow-lg max-w-lg w-full flex items-center flex-col relative">
         {/* Back Button */}
-        <Link href="/" className="absolute top-4 left-4">
+        <Link href={`/${params.formId}/${params.phoneNumber}/atur-foto`} className="absolute top-4 left-4">
           <BiArrowBack className="h-8 w-8" />
         </Link>
 
@@ -80,11 +80,11 @@ const Success = ({ params }) => {
         {/* Atur Foto Button */}
         <div className="flex mt-4 items-center">
           <Link
-            href={`${pathname}/atur-foto-v2`}
+            href={`${pathname}/result`}
             className="bg-slate-500 hover:bg-slate-700 text-white font-bold py-2 px-4 rounded-full flex items-center"
           >
             <BiPhotoAlbum className="h-6 w-6 mr-2" />
-            Atur Foto
+            Tabel Foto
           </Link>
         </div>
 

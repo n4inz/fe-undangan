@@ -85,7 +85,7 @@ const MultiStepForm = ({ onFormChange }) => {
 
   const handleFinalStep = async () => {
     setLoading(true);  // Show loading indicator
-    await router.push(`${pathname}/result`);
+    await router.push(`${pathname}/success`);
     setLoading(false); // Hide loading indicator after navigation
   };
 

@@ -52,6 +52,7 @@ const StepJ = ({ number, nextStep, formData, setFormData, onFormChange, partName
       url: item.previewUrl, // local preview URL
       id: null,             // no ID yet since not uploaded
       file: item.file,      // keep the raw File
+      type: 'file'
     }));
 
     // Append to existing arrays
@@ -221,6 +222,11 @@ const StepJ = ({ number, nextStep, formData, setFormData, onFormChange, partName
       fetchData();
     }
   }, [isModalOpen]);
+
+  useEffect(() => {
+    console.log('newFiles', newFiles);
+    console.log('images', images);
+  }, [images, newFiles]);
 
   // ========== RENDER ========== //
   return (

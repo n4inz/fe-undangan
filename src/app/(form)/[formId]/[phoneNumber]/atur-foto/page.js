@@ -16,9 +16,9 @@ const AturFoto = ({ params }) => {
   const [loading, setLoading] = useState(true);
 
   const checkHeight = () => {
-    if (containerRef.current) {
+    if (containerRef?.current) {
       setTimeout(() => {
-        const containerHeight = containerRef.current.scrollHeight;
+        const containerHeight = containerRef.current?.scrollHeight || 0;
         const viewportHeight = window.innerHeight;
         setIsOverflow(containerHeight > viewportHeight);
       }, 100);
@@ -56,12 +56,12 @@ const AturFoto = ({ params }) => {
           className={`bg-white rounded-lg shadow-lg w-full max-w-full ${isOverflow ? "h-full overflow-y-auto" : "min-h-screen"} md:max-w-xl flex flex-col relative`}
         >
           {/* Back Button */}
-          <Button
+          {/* <Button
             onClick={() => router.push(`/${params.formId}/${params.phoneNumber}/success`)}
             className="absolute top-4 left-4 p-2 bg-gray-200 rounded-full text-gray-600 hover:bg-gray-300 focus:outline-none"
           >
             <BiArrowBack className="h-6 w-6" />
-          </Button>
+          </Button> */}
           <div className="p-4 text-center">
             <h1 className="text-3xl underline">Atur Foto</h1>
           </div>

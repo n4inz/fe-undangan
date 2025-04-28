@@ -41,6 +41,7 @@ const StepE = ({ number, nextStep, formData, setFormData, onFormChange, partName
   };
 
   const handleFileChange = (e) => {
+    setStatusAsset(false);
     const selectedFile = e.target.files[0];
     if (e.target.files && e.target.files.length > 0) {
       const reader = new FileReader();
