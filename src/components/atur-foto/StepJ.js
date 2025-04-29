@@ -9,6 +9,7 @@ import { BiX } from "react-icons/bi";
 import LoadingOverlay from "./LoadingOverlay";
 import ModalAsset from "./ModalAsset";
 import { FaImages } from "react-icons/fa";
+import { id } from "date-fns/locale";
 
 const StepJ = ({ number, nextStep, formData, setFormData, onFormChange, partName }) => {
   const params = useParams();
@@ -131,6 +132,7 @@ const StepJ = ({ number, nextStep, formData, setFormData, onFormChange, partName
     // Build FormData
     const fd = new FormData();
     newFiles.forEach((item) => {
+      fd.append("id", item.id); // ID of the image (if any)
       fd.append("file", item.file); // only the remaining files
     });
     fd.append("partName", partName);
@@ -165,31 +167,47 @@ const StepJ = ({ number, nextStep, formData, setFormData, onFormChange, partName
 
   const handleSelectImage = (selectedAssets) => {
     if (!selectedAssets) return;
-
-    const selectedArray = Array.isArray(selectedAssets) ? selectedAssets : [selectedAssets];
-
-    // Convert selected assets to match `images` structure
+  
+    const selectedArray = Array.isArray(selectedAssets)
+      ? selectedAssets
+      : [selectedAssets];
+  
+    // Convert to your `images` shape
     const newImages = selectedArray.map(asset => ({
-        url: asset.imageUrl,
-        id: asset.idAsset,
-        file: null
+      url: asset.imageUrl,
+      id:  asset.idAsset,
+      file: null,
+      type: "newAsset",
     }));
-
+  
     setImages(prev => {
-        if (prev.length >= 5) {
-            alert("Maksimal 5 gambar dapat dipilih.");
-            return prev;
-        }
-
-        const updatedImages = [...prev, ...newImages].slice(0, 5);
-        return updatedImages;
+      if (prev.length >= 5) {
+        alert("Maksimal 5 gambar dapat dipilih.");
+        return prev;
+      }
+      // just append, then cap at 5
+      return [...prev, ...newImages].slice(0, 5);
     });
-
+  
+    setNewFiles(prevFiles => {
+      const newFiles = selectedArray.map(asset => ({
+        previewUrl: asset.imageUrl,
+        file:       null,
+        id:         asset.idAsset,
+      }));
+      // append, then cap at 5
+      return [...prevFiles, ...newFiles].slice(0, 5);
+    });
+  
     setFormData(prev => ({
-        ...prev,
-        imageUrls: [...(prev.imageUrls || []), ...newImages.map(img => img.url)].slice(0, 5)
+      ...prev,
+      imageUrls: [
+        ...(prev.imageUrls || []),
+        ...newImages.map(img => img.url),
+      ].slice(0, 5),
     }));
-};
+  };
+  
 
   // 4) Fetch existing images from the server (already uploaded)
   const fetchData = async () => {
@@ -218,10 +236,8 @@ const StepJ = ({ number, nextStep, formData, setFormData, onFormChange, partName
   };
 
   useEffect(() => {
-    if (!isModalOpen) {
       fetchData();
-    }
-  }, [isModalOpen]);
+  }, []);
 
   useEffect(() => {
     console.log('newFiles', newFiles);

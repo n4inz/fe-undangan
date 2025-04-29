@@ -215,6 +215,16 @@ const StepA = ({ number, nextStep, formData, setFormData, onFormChange, partName
     console.log('Selected asset:', assetData);
   };
 
+  useEffect(() => {
+    if (selectedImage) {
+      setFormData((prevData) => ({
+        ...prevData,
+        imageUrl: selectedImage,
+        file: file,
+      }));
+    }
+  }
+  , [selectedImage, file, setFormData]);
 
   return (
     <>

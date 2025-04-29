@@ -72,14 +72,15 @@ const ModalAsset = ({ isOpen, onClose, onSelectImage, selectType = 'single', par
                 }));
 
                 try {
-                    await axios.post(
-                        `${process.env.NEXT_PUBLIC_API_URL}/add-bg-asset/${params.formId}`,
-                        selectedData
-                    );
-                    setSelectedImage(null);
-                    setFile(null);
-                    onFormChange();
-                    nextStep();
+                    // await axios.post(
+                    //     `${process.env.NEXT_PUBLIC_API_URL}/add-bg-asset/${params.formId}`,
+                    //     selectedData
+                    // );
+                    // setSelectedImage(null);
+                    // setFile(null);
+                    // onFormChange();
+                    // nextStep();
+                    onSelectImage(selectedData);
                 } catch (error) {
                     console.error("Error uploading the image", error);
                 }
