@@ -11,6 +11,7 @@ import StepI from "./StepI";
 import StepJ from "./StepJ";
 import axios from "axios";
 import { useRouter, usePathname, useParams } from "next/navigation";
+import StepI1 from "./StepI1";
 
 const MultiStepForm = ({ onFormChange }) => {
   const router = useRouter();
@@ -107,6 +108,7 @@ const MultiStepForm = ({ onFormChange }) => {
           setFormData={setFormData}
           onFormChange={onFormChange}
           partName="cover"
+          title="Cover"
           number={1}
         />
       );
@@ -118,6 +120,7 @@ const MultiStepForm = ({ onFormChange }) => {
           setFormData={setFormData}
           onFormChange={onFormChange}
           partName="subcover"
+          title="Sub Cover"
           number={2}
         />
       );
@@ -129,6 +132,7 @@ const MultiStepForm = ({ onFormChange }) => {
           setFormData={setFormData}
           onFormChange={onFormChange}
           partName="mempelai-pria"
+          title="Mempelai Pria"
           number={3}
         />
       );
@@ -140,6 +144,7 @@ const MultiStepForm = ({ onFormChange }) => {
           setFormData={setFormData}
           onFormChange={onFormChange}
           partName="mempelai-wanita"
+          title="Mempelai Wanita"
           number={4}
         />
       );
@@ -151,6 +156,7 @@ const MultiStepForm = ({ onFormChange }) => {
           setFormData={setFormData}
           onFormChange={onFormChange}
           partName="mempelai-pria-wanita"
+          title="Mempelai Pria & Wanita"
           number={3}
         />
       );
@@ -162,6 +168,7 @@ const MultiStepForm = ({ onFormChange }) => {
           setFormData={setFormData}
           onFormChange={onFormChange}
           partName="gallery"
+          title="Gallery"
           number={5}
         />
       );
@@ -173,6 +180,7 @@ const MultiStepForm = ({ onFormChange }) => {
           setFormData={setFormData}
           onFormChange={onFormChange}
           partName="awal-ketemu"
+          title="Awal Ketemu"
           number={6}
         />
       );
@@ -184,6 +192,7 @@ const MultiStepForm = ({ onFormChange }) => {
           setFormData={setFormData}
           onFormChange={onFormChange}
           partName="komitmen"
+          title="Komitmen"
           number={7}
         />
       );
@@ -195,10 +204,23 @@ const MultiStepForm = ({ onFormChange }) => {
           setFormData={setFormData}
           onFormChange={onFormChange}
           partName="lamaran"
+          title="Lamaran"
           number={8}
         />
       );
-    case 10:
+      case 10:
+      return (
+        <StepI1
+          nextStep={nextStep}
+          formData={formData}
+          setFormData={setFormData}
+          onFormChange={onFormChange}
+          partName="cover-bawah"
+          title="Cover Bawah"
+          number={9}
+        />
+      );
+    case 11:
       return (
         <StepJ
           nextStep={nextStep}
@@ -206,7 +228,8 @@ const MultiStepForm = ({ onFormChange }) => {
           setFormData={setFormData}
           onFormChange={onFormChange}
           partName="background"
-          number={9}
+          title="Background"
+          number={10}
         />
       );
     default:

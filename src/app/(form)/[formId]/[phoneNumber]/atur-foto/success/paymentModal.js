@@ -165,18 +165,17 @@ export default function PaymentModal({ formId, phoneNumber }) {
         }
     };
 
-    const handleCopy = (text) => {
-        navigator.clipboard.writeText(text).then(() => {
-            toast({
-                title: 'Berhasil menyalin rekening.',
+    const handleCopy = (text, event) => {
+        if (event) event.preventDefault();  // stops the submit
+        navigator.clipboard.writeText(text)
+            .then(() => {
+                toast({ title: 'Berhasil menyalin rekening.' });
+            })
+            .catch(() => {
+                toast({ title: 'Gagal menyalin rekening.', type: 'error' });
             });
-        }).catch(() => {
-            toast({
-                title: "Gagal menyalin rekening.",
-                type: "error",
-            });
-        });
     };
+
 
     const checkPayment = async () => {
         const response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/payment/${formId}/${phoneNumber}`);
@@ -204,9 +203,9 @@ export default function PaymentModal({ formId, phoneNumber }) {
                 <DialogTitle>
                     {paymentStatus ? (
                         <h2 className="text-xl font-bold">Pembayaran Anda</h2>
-                        ) : (
+                    ) : (
                         <h2 className="text-xl font-bold">Upload Bukti Transfer</h2>
-                        )}
+                    )}
                 </DialogTitle>
                 <ScrollArea className="flex-1 p-2">
                     {paymentStatus ? (
@@ -221,8 +220,8 @@ export default function PaymentModal({ formId, phoneNumber }) {
                             </div>
                             <div className="mt-4">
                                 <p className="font-bold">Ekstra:</p>
-                                <p className="flex items-center">{formData.isMusic ? (<BiCheck className="mr-2 text-green-600" />): (<BiX className="mr-2 text-red-600" />)} Custom Musik</p>
-                                <p className='flex items-center'>{formData.isFont ? (<BiCheck className="mr-2 text-green-600" />): (<BiX className="mr-2 text-red-600" />)} Custom Font</p>
+                                <p className="flex items-center">{formData.isMusic ? (<BiCheck className="mr-2 text-green-600" />) : (<BiX className="mr-2 text-red-600" />)} Custom Musik</p>
+                                <p className='flex items-center'>{formData.isFont ? (<BiCheck className="mr-2 text-green-600" />) : (<BiX className="mr-2 text-red-600" />)} Custom Font</p>
                                 <p className='flex items-center'><BiCheck className="mr-2 text-green-600" /> Thema</p>
                                 <p className='flex items-center'><BiCheck className="mr-2 text-green-600" /> Revisi 5x</p>
                             </div>
@@ -304,25 +303,25 @@ export default function PaymentModal({ formId, phoneNumber }) {
                                 <ul className="text-sm">
                                     <li className="flex items-center justify-between">
                                         BRI: 501801024504537
-                                        <Button variant="ghost" size="sm" onClick={() => handleCopy('501801024504537')}>
+                                        <Button type="button" variant="ghost" size="sm" onClick={(e) => handleCopy('501801024504537', e)}>
                                             <BiCopy className="w-4 h-4" />
                                         </Button>
                                     </li>
                                     <li className="flex items-center justify-between">
                                         BSI: 7188520604
-                                        <Button variant="ghost" size="sm" onClick={() => handleCopy('7188520604')}>
+                                        <Button type="button" variant="ghost" size="sm" onClick={(e) => handleCopy('7188520604', e)}>
                                             <BiCopy className="w-4 h-4" />
                                         </Button>
                                     </li>
                                     <li className="flex items-center justify-between">
                                         Dana: 085340910179
-                                        <Button variant="ghost" size="sm" onClick={() => handleCopy('085340910179')}>
+                                        <Button type="button" variant="ghost" size="sm" onClick={(e) => handleCopy('085340910179', e)}>
                                             <BiCopy className="w-4 h-4" />
                                         </Button>
                                     </li>
                                     <li className="flex items-center justify-between">
                                         Shoopepay: 085340910179
-                                        <Button variant="ghost" size="sm" onClick={() => handleCopy('085340910179')}>
+                                        <Button type="button" variant="ghost" size="sm" onClick={(e) => handleCopy('085340910179', e)}>
                                             <BiCopy className="w-4 h-4" />
                                         </Button>
                                     </li>

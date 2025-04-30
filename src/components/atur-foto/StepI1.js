@@ -1,4 +1,4 @@
-//AWAL KETEMU
+// COVER BAWAH
 import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import { Button } from "../ui/button";
@@ -12,7 +12,7 @@ import ModalAsset from "./ModalAsset";
 import ImageEditor from "./ImageEditor";
 import { dataURLtoBlob } from "@/utils/helpers";
 
-const StepG = ({ number, nextStep, formData, setFormData, onFormChange, partName, title }) => {
+const StepI1 = ({ number, nextStep, formData, setFormData, onFormChange, partName, title }) => {
   const params = useParams();
   const [uploading, setUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0); // Track upload progress
@@ -49,6 +49,8 @@ const StepG = ({ number, nextStep, formData, setFormData, onFormChange, partName
         setSelectedImage(reader.result);
         setFile(selectedFile);
         setIsEditing(true);
+        console.log('Selected file:', selectedFile);
+        console.log('Selected file type:', selectedFile.type);
       });
       reader.readAsDataURL(selectedFile);
     }
@@ -157,9 +159,9 @@ const StepG = ({ number, nextStep, formData, setFormData, onFormChange, partName
       );
 
       const imagesData = response.data.data;
-      // const imagesDataxx = response.data;
+      const imagesDataxx = response.data;
 
-      // console.log("Images Data:", imagesDataxx);
+      console.log("Images Data:", imagesDataxx);
 
       if (imagesData.length > 0) {
         let imageUrl;
@@ -210,6 +212,17 @@ const StepG = ({ number, nextStep, formData, setFormData, onFormChange, partName
     setStatusAsset(true);
     console.log('Selected asset:', assetData);
   };
+
+  useEffect(() => {
+    if (selectedImage) {
+      setFormData((prevData) => ({
+        ...prevData,
+        imageUrl: selectedImage,
+        file: file,
+      }));
+    }
+  }
+  , [selectedImage, file, setFormData]);
 
   return (
     <>
@@ -288,6 +301,7 @@ const StepG = ({ number, nextStep, formData, setFormData, onFormChange, partName
             onSave={(editedImage) => {
               setSelectedImage(editedImage);
               setIsEditing(false);
+              // setFile(1); // Reset file after editing
               // Create a file object from the edited image
               const blob = dataURLtoBlob(editedImage);
               const editedFile = new File([blob], 'edited-image.jpg', { type: 'image/jpeg' });
@@ -301,4 +315,4 @@ const StepG = ({ number, nextStep, formData, setFormData, onFormChange, partName
   );
 };
 
-export default StepG;
+export default StepI1;

@@ -4,11 +4,11 @@ import Image from "next/image";
 import { Button } from "../ui/button";
 import axios from "axios";
 import { useParams } from "next/navigation";
-import placeholder from "../../../public/images/placeholder.png";
+import placeholder from "/public/images/placeholder.png";
 import { BiX } from "react-icons/bi";
 import LoadingOverlay from "./LoadingOverlay"; // Import the LoadingOverlay component
 
-const StepF = ({ number, nextStep, formData, setFormData, onFormChange, partName }) => {
+const StepF = ({ number, nextStep, formData, setFormData, onFormChange, partName, title }) => {
   const params = useParams();
   const [uploading, setUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
@@ -202,7 +202,7 @@ const StepF = ({ number, nextStep, formData, setFormData, onFormChange, partName
       {uploading && <LoadingOverlay progress={uploadProgress} />}
 
       <h2 className="text-xl font-semibold">
-        {number}. {partName} (Max. 15 Foto)
+        {number}. {title} (Max. 15 Foto)
       </h2>
 
       {/* Image previews */}

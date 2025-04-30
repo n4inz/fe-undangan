@@ -4,14 +4,14 @@ import Image from "next/image";
 import { Button } from "../ui/button";
 import axios from "axios";
 import { useParams } from "next/navigation";
-import placeholder from "../../../public/images/placeholder.png";
+import placeholder from "/public/images/placeholder.png";
 import { BiX } from "react-icons/bi";
 import LoadingOverlay from "./LoadingOverlay";
 import ModalAsset from "./ModalAsset";
 import { FaImages } from "react-icons/fa";
 import { id } from "date-fns/locale";
 
-const StepJ = ({ number, nextStep, formData, setFormData, onFormChange, partName }) => {
+const StepJ = ({ number, nextStep, formData, setFormData, onFormChange, partName, title }) => {
   const params = useParams();
   const [uploading, setUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);

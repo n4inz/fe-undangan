@@ -5,18 +5,18 @@ import { Button } from "../ui/button";
 import Joyride, { STATUS } from 'react-joyride';
 import axios from "axios";
 import { useParams } from "next/navigation";
-import placeholder from "../../../public/images/placeholder.png";
+import placeholder from "/public/images/placeholder.png";
 import LoadingOverlay from "./LoadingOverlay";
 import { FaImages, FaEdit } from "react-icons/fa";
 import ModalAsset from "./ModalAsset";
 import ImageEditor from "./ImageEditor";
 import { dataURLtoBlob } from "@/utils/helpers";
 
-const StepI = ({ number, nextStep, formData, setFormData, onFormChange, partName }) => {
+const StepI = ({ number, nextStep, formData, setFormData, onFormChange, partName, title }) => {
   const params = useParams();
   const [uploading, setUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0); // Track upload progress
-  const [selectedImage, setSelectedImage] = useState(formData.imageUrl || null);
+  const [selectedImage, setSelectedImage] = useState(null);
   const [file, setFile] = useState(null);
   const [imageExist, setImageExist] = useState(false);
   const fileInputRef = useRef(null);
@@ -231,7 +231,7 @@ const StepI = ({ number, nextStep, formData, setFormData, onFormChange, partName
 
         {uploading && <LoadingOverlay progress={uploadProgress} />}
         <div className="flex justify-between items-center">
-          <h2 className="text-xl font-semibold flex-grow text-center">{number}. {partName}</h2>
+          <h2 className="text-xl font-semibold flex-grow text-center">{number}. {title}</h2>
           <Button
             id="btn-asset"
             onClick={() => setIsModalOpen(true)}
