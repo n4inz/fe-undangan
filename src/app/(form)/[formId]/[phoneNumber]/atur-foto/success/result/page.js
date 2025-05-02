@@ -72,22 +72,20 @@ const Result = ({ params }) => {
                         : null;
 
                 return (
-                    <div className="flex gap-2">
-                        <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => {
-                                if (imageUrl) {
-                                    setEditingImage(imageUrl);
-                                    setEditingRow(row);
-                                }
-                            }}
-                            disabled={!imageUrl}
-                        >
-                            <BiEdit className="mr-2 h-4 w-4" />
-                            Edit
-                        </Button>
-                    </div>
+                    <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => {
+                            if (imageUrl) {
+                                setEditingImage(imageUrl);
+                                setEditingRow(row);
+                            }
+                        }}
+                        disabled={!imageUrl}
+                    >
+                        <BiEdit className="mr-2 h-4 w-4" />
+                        Edit
+                    </Button>
                 );
             },
             width: '150px',
@@ -98,14 +96,14 @@ const Result = ({ params }) => {
         try {
             // Convert base64 to File
             const file = dataURLtoFile(base64Data, 'edited-image.jpg');
-    
+
             // Create FormData and append the file
             const formData = new FormData();
             formData.append('file', file);
             formData.append('partName', editingRow.partName);
             formData.append('idImage', editingRow.id);
             formData.append('phoneNumber', params.phoneNumber);
-    
+
             // Send to backend
             const response = await axios.post(
                 `${process.env.NEXT_PUBLIC_API_URL}/upload-photo-v2/${params.formId}`,
@@ -116,7 +114,7 @@ const Result = ({ params }) => {
                     },
                 }
             );
-    
+
             if (response.status === 200) {
                 fetchData(); // Refresh the data
             }
@@ -127,7 +125,7 @@ const Result = ({ params }) => {
             setEditingRow(null);
         }
     };
-    
+
     // Helper function to convert base64 to File
     const dataURLtoFile = (dataurl, filename) => {
         const arr = dataurl.split(',');
@@ -135,11 +133,11 @@ const Result = ({ params }) => {
         const bstr = atob(arr[1]);
         let n = bstr.length;
         const u8arr = new Uint8Array(n);
-        
+
         while (n--) {
             u8arr[n] = bstr.charCodeAt(n);
         }
-        
+
         return new File([u8arr], filename, { type: mime });
     };
 
@@ -215,14 +213,22 @@ const Result = ({ params }) => {
                 </div>
 
                 {form.slug && (
-                    <Link href={form.slug} target='_blank' className="bottom-4 rounded-full shadow-lg bg-blue-600 text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 p-4 my-2">
-                        <BiEnvelope className="h-6 w-6 mr-2 inline" />
+                    <Link href={form.slug} target='_blank' className="bottom-4 rounded-full shadow-lg bg-blue-600 text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 p-3 my-2 text-sm">
+                        <BiEnvelope className="h-5 w-5 mr-2 inline" />
                         Link Undangan
                     </Link>
                 )}
-                <Link type="button" href={contactUrl} target='_blank' className="bottom-4 rounded-full shadow-lg bg-blue-600 text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 p-4 my-2">
-                    <BiPhone className="h-6 w-6 mr-2 inline" />
+                <Link type="button" href={contactUrl} target='_blank' className="bottom-4 rounded-full shadow-lg bg-blue-600 text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 p-3 my-2 text-sm">
+                    <BiPhone className="h-5 w-5 mr-2 inline" />
                     Hubungi Admin
+                </Link>
+
+                <Link
+                    href="result/edit" // Ganti dengan URL edit yang sesuai
+                    className="rounded-full shadow-lg bg-gray-600 text-white hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 p-3 my-2 text-sm"
+                >
+                    <BiEdit className="h-5 w-5 mr-2 inline" />
+                    Edit Undangan
                 </Link>
 
                 <DataTable
