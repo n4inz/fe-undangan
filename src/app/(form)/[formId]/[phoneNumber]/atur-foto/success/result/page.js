@@ -2,7 +2,7 @@
 import { useEffect, useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { BiEnvelope, BiPhone, BiX, BiArrowBack, BiEdit } from "react-icons/bi";
+import { BiEnvelope, BiPhone, BiArrowBack, BiEdit } from "react-icons/bi";
 import { useRouter } from 'next/navigation';
 import axios from 'axios';
 import DataTable from 'react-data-table-component';
@@ -10,6 +10,7 @@ import { Button } from '@/components/ui/button';
 import { DialogModalForm } from '@/components/DialogModalForm';
 import { checkForm } from '@/utils/checkForm';
 import ImageEditor from '@/components/atur-foto/ImageEditor'; // Import the ImageEditor component
+import { FaTimes } from 'react-icons/fa';
 
 const Result = ({ params }) => {
     const router = useRouter();
@@ -258,12 +259,12 @@ const Result = ({ params }) => {
                         className="max-w-full max-h-full object-contain"
                         onLoadingComplete={handleImageLoadComplete}
                     />
-                    <Button
-                        onClick={handleCloseFullScreen}
-                        className="absolute top-4 right-4 bg-red-500 text-white rounded-full p-2"
-                    >
-                        <BiX className="h-6 w-6" />
-                    </Button>
+<Button
+    onClick={handleCloseFullScreen}
+    className="absolute top-4 right-4 bg-red-500 text-white rounded-full w-12 h-12 flex items-center justify-center"
+>
+    <FaTimes className="text-2xl" /> {/* Increase the size of the X icon */}
+</Button>
                 </div>
             )}
 
