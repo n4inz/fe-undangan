@@ -10,7 +10,7 @@ import { Button } from '@/components/ui/button';
 import { DialogModalForm } from '@/components/DialogModalForm';
 import { checkForm } from '@/utils/checkForm';
 import ImageEditor from '@/components/atur-foto/ImageEditor'; // Import the ImageEditor component
-import { FaTimes } from 'react-icons/fa';
+import { FaTimes, FaWhatsapp } from 'react-icons/fa';
 
 const Result = ({ params }) => {
     const router = useRouter();
@@ -196,7 +196,7 @@ const Result = ({ params }) => {
     }
 
     return (
-        <div className="flex items-center justify-center bg-gray-100">
+        <div className="flex items-center justify-center bg-gray-100 mb-20 md:mb-0">
             <div className="h-full min-h-screen bg-white rounded-lg shadow-lg max-w-xl w-full flex items-center flex-col relative">
 
                 {/* Back Button */}
@@ -242,6 +242,15 @@ const Result = ({ params }) => {
                     className="mb-8"
                 />
 
+                {/* <div className="fixed right-4 bottom-4 md:mr-40 md:bottom-4">
+                    <Button
+                        className="bg-green-500 hover:bg-green-600 text-white py-2 px-4 rounded-full flex items-center shadow-lg"
+                    >
+                        <FaWhatsapp className="mr-2 text-xl" />
+                        Hubungi Admin
+                    </Button>
+                </div> */}
+
             </div>
 
             {isFullScreen && (
@@ -259,12 +268,12 @@ const Result = ({ params }) => {
                         className="max-w-full max-h-full object-contain"
                         onLoadingComplete={handleImageLoadComplete}
                     />
-<Button
-    onClick={handleCloseFullScreen}
-    className="absolute top-4 right-4 bg-red-500 text-white rounded-full w-12 h-12 flex items-center justify-center"
->
-    <FaTimes className="text-2xl" /> {/* Increase the size of the X icon */}
-</Button>
+                    <Button
+                        onClick={handleCloseFullScreen}
+                        className="absolute top-4 right-4 bg-red-500 text-white rounded-full w-12 h-12 flex items-center justify-center"
+                    >
+                        <FaTimes className="text-2xl" /> {/* Increase the size of the X icon */}
+                    </Button>
                 </div>
             )}
 

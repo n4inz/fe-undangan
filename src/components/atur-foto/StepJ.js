@@ -26,6 +26,7 @@ import {
   horizontalListSortingStrategy,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
+import { toast } from "../ui/use-toast";
 
 // Sortable item component
 const SortableItem = ({ item, onRemove, uploading, remove }) => {
@@ -157,13 +158,14 @@ const StepJ = (props) => {
     // Validate file types
     const nonImageFiles = selectedFiles.filter((file) => !file.type.startsWith("image/"));
     if (nonImageFiles.length > 0) {
-      setErrors({ ...errors, images: "Only image files are allowed" });
+      toast({ title: 'File bukan gambar !', variant: 'destructive', });
       return;
     }
 
     // Validate max 5 images
     if (images.length + selectedFiles.length > 5) {
-      setErrors({ ...errors, images: "Maximum upload is 5 images" });
+      // setErrors({ ...errors, images: "Maximum upload is 5 images" });
+      toast({ title: 'Maksimum upload foto adalah 5 !', variant: 'destructive', });
       return;
     }
 

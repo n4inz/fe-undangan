@@ -194,8 +194,8 @@ export default function PaymentModal({ formId, phoneNumber }) {
     return (
         <Dialog>
             <DialogTrigger asChild>
-                <Button className="bg-slate-700 hover:bg-slate-900 text-white font-bold py-2 px-4 rounded-full flex items-center">
-                    <BiMoney className="h-6 w-6 mr-2" />
+                <Button className="bg-green-700 hover:bg-green-900 text-white font-bold py-4 px-4 rounded-full flex items-center text-md">
+                    <BiMoney className="h-8 w-8" />
                     Bayar Sekarang
                 </Button>
             </DialogTrigger>

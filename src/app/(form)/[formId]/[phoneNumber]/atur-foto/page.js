@@ -6,6 +6,7 @@ import { checkForm } from '@/utils/checkForm'
 import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { BiArrowBack } from 'react-icons/bi'
+import { Toaster } from '@/components/ui/toaster'
 
 const AturFoto = ({ params }) => {
   const router = useRouter()
@@ -65,6 +66,7 @@ const AturFoto = ({ params }) => {
           <div className="p-4 text-center">
             <h1 className="text-3xl underline">Atur Foto</h1>
           </div>
+          <Toaster className="z-50" />
           <MultiStepForm onFormChange={checkHeight} />
         </div>
       </div>

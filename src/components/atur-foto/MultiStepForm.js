@@ -12,6 +12,7 @@ import StepJ from "./StepJ";
 import axios from "axios";
 import { useRouter, usePathname, useParams } from "next/navigation";
 import StepI1 from "./StepI1";
+import { Toaster } from "../ui/toaster";
 
 const MultiStepForm = ({ onFormChange }) => {
   const router = useRouter();
@@ -208,7 +209,7 @@ const MultiStepForm = ({ onFormChange }) => {
           number={8}
         />
       );
-      case 10:
+    case 10:
       return (
         <StepI1
           nextStep={nextStep}
@@ -222,15 +223,14 @@ const MultiStepForm = ({ onFormChange }) => {
       );
     case 11:
       return (
-        <StepJ
-          nextStep={nextStep}
-          formData={formData}
-          setFormData={setFormData}
-          onFormChange={onFormChange}
-          partName="background"
-          title="Background"
-          number={10}
-        />
+          <StepJ
+            nextStep={nextStep}
+            formData={formData}
+            setFormData={setFormData}
+            onFormChange={onFormChange}
+            partName="background"
+            title="Background"
+            number={10} />
       );
     default:
       handleFinalStep();

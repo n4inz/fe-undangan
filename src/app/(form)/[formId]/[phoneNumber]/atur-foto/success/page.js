@@ -2,7 +2,7 @@
 import { useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { BiArrowBack, BiPhone, BiPhotoAlbum } from "react-icons/bi";
+import { BiArrowBack, BiEnvelope, BiPhone, BiPhotoAlbum } from "react-icons/bi";
 import { usePathname, useRouter } from "next/navigation";
 import { checkForm } from "@/utils/checkForm";
 import PaymentModal from "./paymentModal";
@@ -12,8 +12,9 @@ const Success = ({ params }) => {
   const pathname = usePathname();
   const router = useRouter();
   const [loading, setLoading] = useState(true);
+  const [form, setForm] = useState([]);
 
-  const contactUrl = `https://wa.me/${process.env.NEXT_PUBLIC_WA_NUMBER}?text=Halo,%0ASaya%20ingin%20memesan%20undangan%20dengan%20kode%20id%20:%20${params.formId}`;
+  // const contactUrl = `https://wa.me/${process.env.NEXT_PUBLIC_WA_NUMBER}?text=Halo,%0ASaya%20ingin%20memesan%20undangan%20dengan%20kode%20id%20:%20${params.formId}`;
 
   useEffect(() => {
     const fetchData = async () => {
@@ -24,6 +25,10 @@ const Success = ({ params }) => {
         router.replace('/'); // Redirect on error
       } else {
         setLoading(false);
+        setForm({
+          ...data.form,
+          slug: `${process.env.NEXT_PUBLIC_LINK_UNDANGAN}/${data.form.slug}?to=Nama Tamu`
+        });
       }
     };
 
@@ -59,7 +64,7 @@ const Success = ({ params }) => {
         />
 
         {/* Contact Admin Button */}
-        <div className="flex mt-4 items-center">
+        {/* <div className="flex mt-4 items-center">
           <Link
             href={contactUrl}
             target="_blank"
@@ -68,7 +73,25 @@ const Success = ({ params }) => {
             <BiPhone className="h-6 w-6 mr-2" />
             Hubungi Admin
           </Link>
-        </div>
+        </div> */}
+
+        {/* <div className="flex mt-4 items-center">
+          <Link
+            href={contactUrl}
+            target="_blank"
+            className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-full flex items-center"
+          >
+            <BiPhone className="h-6 w-6 mr-2" />
+            Hubungi Admin
+          </Link>
+        </div> */}
+
+        {form.slug && (
+          <Link href={form.slug} target='_blank' className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-full flex items-center">
+            <BiEnvelope className="h-6 w-6 mr-2" />
+            Link Undangan
+          </Link>
+        )}
 
         <div className="flex mt-4 items-center">
           <PaymentModal
@@ -84,7 +107,7 @@ const Success = ({ params }) => {
             className="bg-slate-500 hover:bg-slate-700 text-white font-bold py-2 px-4 rounded-full flex items-center"
           >
             <BiPhotoAlbum className="h-6 w-6 mr-2" />
-            Tabel Foto
+            Edit Data
           </Link>
         </div>
 

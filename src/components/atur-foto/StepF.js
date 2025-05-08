@@ -7,6 +7,7 @@ import { useParams } from "next/navigation";
 import placeholder from "/public/images/placeholder.png";
 import { BiX } from "react-icons/bi";
 import LoadingOverlay from "./LoadingOverlay"; // Import the LoadingOverlay component
+import { toast } from "../ui/use-toast";
 
 const StepF = ({ number, nextStep, formData, setFormData, onFormChange, partName, title }) => {
   const params = useParams();
@@ -33,13 +34,13 @@ const StepF = ({ number, nextStep, formData, setFormData, onFormChange, partName
     // Validate only images
     const nonImageFiles = selectedFiles.filter((file) => !file.type.startsWith("image/"));
     if (nonImageFiles.length > 0) {
-      setErrors((prev) => ({ ...prev, images: "Only image files are allowed" }));
+      toast({ title: 'File bukan gambar !', variant: 'destructive', });
       return;
     }
 
     // Validate max 15
     if (images.length + selectedFiles.length > 15) {
-      setErrors((prev) => ({ ...prev, images: "Maximum upload is 15 images" }));
+      toast({ title: 'Maksimum upload foto adalah 15 !', variant: 'destructive', });
       return;
     }
 

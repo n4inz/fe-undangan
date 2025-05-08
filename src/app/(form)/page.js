@@ -26,6 +26,15 @@ import { DemoContainer } from '@mui/x-date-pickers/internals/demo';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
+import {
+  Command,
+  CommandInput,
+  CommandList,
+  CommandEmpty,
+  CommandGroup,
+  CommandItem,
+  CommandSeparator,
+} from "@/components/ui/command"; // adjust path as needed
 
 
 const formatDateTime = (datetime) => {
@@ -66,6 +75,9 @@ const Home = () => {
 
   const [currentlyPlaying, setCurrentlyPlaying] = useState(null);
   const audioRef = useRef(null);
+
+  const [commandOpen, setCommandOpen] = useState(false);
+  const [commandInput, setCommandInput] = useState("");
 
   useEffect(() => {
     setMounted(true);
@@ -1158,47 +1170,63 @@ const Home = () => {
 
                 <RadioGroup
                   value={formData.pilihanTema}
-                  name="pilihanTema"
-                  onValueChange={(value) => handleRadioChange(value)}
-                >
+                  onValueChange={(value) => setFormData({ ...formData, pilihanTema: value })}
+                  className="space-y-2" >
                   <div className="flex items-center space-x-2">
                     <RadioGroupItem value="Admin" id="PilihanAdmin" />
                     <Label htmlFor="PilihanAdmin">Admin Pilihkan</Label>
                   </div>
+                  {/* Radio options lainnya */}
 
                   <div className="flex items-center space-x-2">
                     <RadioGroupItem value="Lainnya" id="LainnyaPilihanTema" />
                     <Label htmlFor="LainnyaPilihanTema">Lainnya</Label>
-
-                    <Select
-                      value={selectedTema ? selectedTema.id : ''}
-                      onValueChange={(value) => {
-                        const selectedOption = options.find((option) => option.id === value);
-                        if (selectedOption) {
-                          handleSelectChange(selectedOption.id, selectedOption.name);
-                        }
-                      }}
-                      disabled={formData.pilihanTema !== "Lainnya"}
-                      className="w-full h-6 border border-gray-300 rounded-lg"
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Pilih Tema" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {isLoadingOptions ? (
-                          <SelectItem value="loading" disabled>Loading...</SelectItem>
-                        ) : options.length > 0 ? (
-                          options.map((option) => (
-                            <SelectItem key={option.id} value={option.id}>
-                              {option.name}
-                            </SelectItem>
-                          ))
-                        ) : (
-                          <SelectItem value="no-options" disabled>No options available</SelectItem>
-                        )}
-                      </SelectContent>
-                    </Select>
                   </div>
+
+                  {formData.pilihanTema === "Lainnya" && (
+                    <div className="relative w-full max-w-md">
+                      <Command className="border rounded-lg">
+                        <CommandInput
+                          placeholder="Pilih Tema..."
+                          value={commandInput}
+                          onValueChange={setCommandInput}
+                          onFocus={() => setCommandOpen(true)}
+                          onBlur={() => setTimeout(() => setCommandOpen(false), 200)}
+                          className="h-9 text-sm"
+                        />
+
+                        {commandOpen && (
+                          <CommandList className="absolute top-full w-full mt-1 z-50">
+                            <CommandGroup className="bg-popover shadow-lg rounded-md border">
+                              {isLoadingOptions ? (
+                                <CommandItem value="loading" className="text-sm h-8" disabled>
+                                  <span className="text-muted-foreground">Loading...</span>
+                                </CommandItem>
+                              ) : options.length > 0 ? (
+                                options.map((option) => (
+                                  <CommandItem
+                                    key={option.id}
+                                    value={option.id}
+                                    onSelect={() => {
+                                      handleSelectChange(option.id, option.name);
+                                      setCommandInput(option.name);
+                                      setCommandOpen(false);
+                                    }}
+                                    className="text-sm h-8">
+                                    {option.name}
+                                  </CommandItem>
+                                ))
+                              ) : (
+                                <CommandItem value="no-options" className="text-sm h-8" disabled>
+                                  <span className="text-muted-foreground">Tidak ada pilihan tersedia</span>
+                                </CommandItem>
+                              )}
+                            </CommandGroup>
+                          </CommandList>
+                        )}
+                      </Command>
+                    </div>
+                  )}
                 </RadioGroup>
 
                 {/* {errors.alamatResepsi && <p className="text-red-500 text-sm mt-1">{errors.alamatResepsi}</p>} */}
