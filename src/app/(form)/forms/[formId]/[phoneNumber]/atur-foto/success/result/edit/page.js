@@ -276,7 +276,7 @@ const Edit = ({ params }) => {
                 <div className="flex w-full px-4 py-2"> {/* Tambahkan w-full dan padding */}
                     <Button
                         onClick={() => {
-                            router.push(`/${params.formId}/${params.phoneNumber}/atur-foto/success/result`);
+                            router.push(`/forms/${params.formId}/${params.phoneNumber}/atur-foto/success/result`);
                         }}
                         className="cursor-pointer bg-white hover:bg-gray-50 rounded-full p-2" // Tambahkan styling hover
                     >

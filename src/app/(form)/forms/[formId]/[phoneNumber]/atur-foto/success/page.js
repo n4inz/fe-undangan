@@ -44,7 +44,7 @@ const Success = ({ params }) => {
       <Toaster className="z-50" /> {/* Tambahkan ini */}
       <div className="h-screen justify-center bg-white p-8 rounded-lg shadow-lg max-w-lg w-full flex items-center flex-col relative">
         {/* Back Button */}
-        <Link href={`/${params.formId}/${params.phoneNumber}/atur-foto`} className="absolute top-4 left-4">
+        <Link href={`/forms/${params.formId}/${params.phoneNumber}/atur-foto`} className="absolute top-4 left-4">
           <BiArrowBack className="h-8 w-8" />
         </Link>
 

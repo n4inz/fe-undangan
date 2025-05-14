@@ -1,17 +1,25 @@
+import { getServerSession } from 'next-auth';
+import { authOptions } from './api/auth/[...nextauth]/route';
 import { Inter } from "next/font/google";
-import "@/app/styles/globals.css";
+import Providers from './providers';
+import './styles/globals.css';
 
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata = {
-  title: "404 Halaman Tidak Ditemukan",
-  description: "Halaman Tidak Ditemukan",
+  title: "Login | Undangan Digital",
+  description: "Masuk untuk mengelola undangan digital Anda dengan mudah dan cepat.",
 };
 
-export default function AppLayout({ children }) {
+export default async function AppLayout({ children }) {
+  const session = await getServerSession(authOptions);
   return (
-    <html lang="en">
-      <body className={inter.className}>{children}</body>
+    <html lang="id">
+      <body>
+        <Providers session={session}>
+          {children}
+        </Providers>
+      </body>
     </html>
   );
 }

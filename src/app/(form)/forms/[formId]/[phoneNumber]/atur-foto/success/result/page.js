@@ -175,7 +175,7 @@ const Result = ({ params }) => {
     }, []);
 
     const handleBackButtonClick = () => {
-        router.push(`/${params.formId}/${params.phoneNumber}/atur-foto/success`);
+        router.push(`/forms/${params.formId}/${params.phoneNumber}/atur-foto/success`);
     };
 
     useEffect(() => {

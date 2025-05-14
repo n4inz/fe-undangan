@@ -35,6 +35,7 @@ import {
   CommandItem,
   CommandSeparator,
 } from "@/components/ui/command"; // adjust path as needed
+import { useSession } from 'next-auth/react';
 
 
 const formatDateTime = (datetime) => {
@@ -60,6 +61,27 @@ const isLocalStorageAccessible = () => {
 
 const Home = () => {
   const router = useRouter();
+  //   const { data: session, status } = useSession();
+
+  //   // when session is loaded, redirect if needed
+  //   useEffect(() => {
+  // if (status === 'authenticated') {
+  //       // kirim data user ke backend
+  //       const { name, email, image: avatar } = session.user;
+  //       axios.post(`${process.env.NEXT_PUBLIC_API_URL}/login-customer`, { name, email, avatar })
+  //         .then(res => {
+  //           console.log('User disimpan:', res.data);
+  //         })
+  //         .catch(err => {
+  //           console.error('Gagal simpan user:', err);
+  //         });
+  //     }
+  //     else{
+  //       // jika user tidak ada session, redirect ke login
+  //       router.push('/');
+  //     }
+  //     // Remove the console.log(session.user) line as it can cause errors
+  //   }, [status, session, router]);
 
   const [currentStep, setCurrentStep] = useState(1); // Track the current step
   const [mounted, setMounted] = useState(false); // Track if component is mounted
@@ -78,6 +100,8 @@ const Home = () => {
 
   const [commandOpen, setCommandOpen] = useState(false);
   const [commandInput, setCommandInput] = useState("");
+
+  const { data: session, status } = useSession();
 
   useEffect(() => {
     setMounted(true);
@@ -223,6 +247,9 @@ const Home = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsLoading(true);
+
+    const { name, email, image: avatar } = session?.user || {};
+
     try {
       // Validate `formData` using Zod schema
       schema.parse(formData);
@@ -231,11 +258,13 @@ const Home = () => {
       const fd = new FormData();
       fd.append("data", JSON.stringify(formData));
       fd.append("rekeningList", JSON.stringify(rekeningList)); // Add rekeningList to FormData
+      fd.append("session", JSON.stringify({ name, email, avatar })); // Add session data to FormData
 
       await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/forms`, fd, {
         headers: {
           "Content-Type": "application/json",
         },
+        withCredentials: true,
       })
         .then((response) => {
           if (isLocalStorageAccessibleState) {
@@ -245,7 +274,7 @@ const Home = () => {
               console.warn("Error removing localStorage item:", error);
             }
           }
-          router.push(`/${response.data.id}/${response.data.nomorWa}/atur-foto`);
+          router.push(`/forms/${response.data.id}/${response.data.nomorWa}/atur-foto`);
         })
         .catch((error) => {
           console.error("Error uploading files:", error);

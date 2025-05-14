@@ -1,5 +1,30 @@
 import Link from "next/link"
 import { Heart } from "lucide-react"
+
+export const metadata = {
+  title: "Halaman Tidak Ditemukan | Undangan Digital",
+  description: "Ups! Sepertinya halaman yang Anda cari telah kabur bersama pasangannya.",
+  // openGraph: {
+  //   title: "Halaman Tidak Ditemukan | Undangan Digital",
+  //   description: "Ups! Sepertinya halaman yang Anda cari telah kabur bersama pasangannya.",
+  //   url: "https://yourdomain.com/not-found",
+  //   images: [
+  //     {
+  //       url: "https://yourdomain.com/images/og-image.png",
+  //       width: 1200,
+  //       height: 630,
+  //       alt: "Undangan Digital"
+  //     }
+  //   ],
+  //   type: "website"
+  // },
+  // twitter: {
+  //   card: "summary_large_image",
+  //   title: "Halaman Tidak Ditemukan | Undangan Digital",
+  //   description: "Ups! Sepertinya halaman yang Anda cari telah kabur bersama pasangannya.",
+  //   images: ["https://yourdomain.com/images/twitter-image.png"]
+  // }
+}
  
 export default async function NotFound() {
 
