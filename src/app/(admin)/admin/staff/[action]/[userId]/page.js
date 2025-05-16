@@ -104,10 +104,6 @@ const FormStaff = ({ params }) => {
     }
   }, []); // Include params.action and params.userId as dependencies
 
-  useEffect(() => {
-    console.log(formData); // Log formData whenever it changes
-  }, [formData]);
-
   return (
     <>
       <div className="h-10 bg-white border-b w-full"></div>

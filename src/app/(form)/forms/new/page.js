@@ -12,7 +12,7 @@ import { Button } from '@/components/ui/button';
 import { ClipLoader } from 'react-spinners'; // Import the spinner
 import { useRouter } from 'next/navigation';
 // import { XMarkIcon } from '@heroicons/react/24/solid';
-import { BiX } from "react-icons/bi";
+import { BiArrowBack, BiX } from "react-icons/bi";
 import { schema } from '@/lib/validation'
 import { Loader2 } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger } from '@/components/ui/select';
@@ -36,6 +36,7 @@ import {
   CommandSeparator,
 } from "@/components/ui/command"; // adjust path as needed
 import { useSession } from 'next-auth/react';
+import Link from 'next/link';
 
 
 const formatDateTime = (datetime) => {
@@ -61,7 +62,6 @@ const isLocalStorageAccessible = () => {
 
 const Home = () => {
   const router = useRouter();
-  //   const { data: session, status } = useSession();
 
   //   // when session is loaded, redirect if needed
   //   useEffect(() => {
@@ -432,11 +432,20 @@ const Home = () => {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-100">
-      <div className="bg-white p-8 rounded-lg shadow-lg max-w-lg w-full">
-        <h1 className="text-2xl font-bold mb-2">SewaUndangan</h1>
-        <h2 className="text-2xl font-medium mb-4"> {/* Add classes for size and alignment */}
-          {currentStep}/{maxStep}  {/* Assuming 3 steps */}
-        </h2>
+<div className="bg-white p-8 rounded-lg shadow-lg max-w-lg w-full">
+  <div className="flex items-center mb-2">
+    {session && (
+      <Link href="/forms" className="mr-4">
+        <BiArrowBack className="h-8 w-8" />
+      </Link>
+    )}
+
+    <h1 className="text-2xl font-bold">SewaUndangan</h1>
+  </div>
+
+  <h2 className="text-2xl font-medium mb-4">
+    {currentStep}/{maxStep}
+  </h2>
         <form onSubmit={handleSubmit} encType='multipart/form-data'>
           {currentStep === 1 && (
             <>

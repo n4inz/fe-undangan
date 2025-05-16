@@ -28,7 +28,7 @@ export default function Dashboard() {
         if (status === "authenticated") {
             const { name, email, image: avatar } = session.user;
             const { accessToken } = session;
-            
+
             // Post user data to login endpoint
             axios.post(
                 `${process.env.NEXT_PUBLIC_API_URL}/login-customer`,
@@ -39,14 +39,14 @@ export default function Dashboard() {
                     },
                 }
             )
-            .then(() => {
-                // After successful login, fetch user's forms
-                fetchForms(accessToken);
-            })
-            .catch(err => {
-                console.error("Gagal simpan user:", err);
-                setLoading(false);
-            });
+                .then(() => {
+                    // After successful login, fetch user's forms
+                    fetchForms(accessToken);
+                })
+                .catch(err => {
+                    console.error("Gagal simpan user:", err);
+                    setLoading(false);
+                });
         } else if (status === "unauthenticated") {
             router.push("/");
         }
@@ -62,6 +62,7 @@ export default function Dashboard() {
             setForms(response.data.form || []);
         } catch (error) {
             console.error('Error fetching forms:', error);
+            router.push("/");
         } finally {
             setLoading(false);
         }
@@ -87,7 +88,7 @@ export default function Dashboard() {
             <div className="fixed inset-0 bg-gray-100" />
 
             {/* Content Container */}
-            <div className="relative z-10 flex flex-col items-center justify-center min-h-screen">
+            <div className="relative z-10 flex flex-col items-center justify-start min-h-screen py-8">
                 {/* Container with max-width */}
                 <div className="w-full max-w-md bg-white rounded-lg shadow-sm">
                     {/* Top Bar */}
@@ -144,49 +145,49 @@ export default function Dashboard() {
                         {/* Single Column Card List */}
                         <div className="space-y-4">
                             {forms.length > 0 ? (
-    forms.map((form) => (
-        <Card key={form.id} className="hover:shadow-md transition-shadow">
-            <CardHeader className="pb-2">
-                <CardTitle className="text-lg">
-                    {(form.namaPanggilanPria && form.namaPanggilanWanita 
-                      ? `${form.namaPanggilanPria} & ${form.namaPanggilanWanita}` 
-                      : 'Undangan Pernikahan')}
-                </CardTitle>
-                <p className="text-sm text-muted-foreground">
-                    {form.pilihanTema && `Tema: ${form.pilihanTema}`}
-                </p>
-                <p className="text-sm text-muted-foreground">
-                    Dibuat: {new Date(form.createdAt).toLocaleDateString('id-ID', {
-                        day: 'numeric',
-                        month: 'long',
-                        year: 'numeric'
-                    })}
-                </p>
-            </CardHeader>
-            <CardContent className="pt-0">
-                <div className="flex items-center text-muted-foreground">
-                    <MessageCircle className="h-4 w-4 mr-2" />
-                    <span>{form.commentCount || 0} komentar</span>
-                </div>
-            </CardContent>
-            <CardFooter className="flex justify-between bg-muted/50 p-4">
-                <Button variant="outline" size="sm" asChild>
-                    <Link href={`/invitations/${form.id}/comments`}>Lihat Komentar</Link>
-                </Button>
-                <Button variant="default" size="sm" asChild>
-                    <Link href={`/invitations/${form.id}/edit`}>Edit</Link>
-                </Button>
-            </CardFooter>
-        </Card>
-    ))
-) : (
-    <div className="text-center py-8">
-        <p className="text-muted-foreground">Belum ada undangan yang dibuat</p>
-        <Button variant="link" asChild>
-            <Link href="/forms/new">Buat undangan pertama Anda</Link>
-        </Button>
-    </div>
-)}
+                                forms.map((form) => (
+                                    <Card key={form.id} className="hover:shadow-md transition-shadow">
+                                        <CardHeader className="pb-2">
+                                            <CardTitle className="text-lg">
+                                                {(form.namaPanggilanPria && form.namaPanggilanWanita
+                                                    ? `${form.namaPanggilanPria} & ${form.namaPanggilanWanita}`
+                                                    : 'Undangan Pernikahan')}
+                                            </CardTitle>
+                                            <p className="text-sm text-muted-foreground">
+                                                {form.pilihanTema && `Tema: ${form.pilihanTema}`}
+                                            </p>
+                                            <p className="text-sm text-muted-foreground">
+                                                Dibuat: {new Date(form.createdAt).toLocaleDateString('id-ID', {
+                                                    day: 'numeric',
+                                                    month: 'long',
+                                                    year: 'numeric'
+                                                })}
+                                            </p>
+                                        </CardHeader>
+                                        <CardContent className="pt-0">
+                                            <div className="flex items-center text-muted-foreground">
+                                                <MessageCircle className="h-4 w-4 mr-2" />
+                                                <span>{form.commentCount || 0} komentar</span>
+                                            </div>
+                                        </CardContent>
+                                        <CardFooter className="flex justify-between bg-muted/50 p-4">
+                                            <Button variant="outline" size="sm" asChild>
+                                                <Link href={`/forms/${form.id}/${form.nomorWa}/comments`}>Lihat Komentar</Link>
+                                            </Button>
+                                            <Button variant="default" size="sm" asChild>
+                                                <Link href={`/forms/${form.id}/${form.nomorWa}/atur-foto/success/result`}>Edit</Link>
+                                            </Button>
+                                        </CardFooter>
+                                    </Card>
+                                ))
+                            ) : (
+                                <div className="text-center py-8">
+                                    <p className="text-muted-foreground">Belum ada undangan yang dibuat</p>
+                                    <Button variant="link" asChild>
+                                        <Link href="/forms/new">Buat undangan pertama Anda</Link>
+                                    </Button>
+                                </div>
+                            )}
                         </div>
                     </main>
                 </div>
