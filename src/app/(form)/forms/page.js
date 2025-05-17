@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useSession, signOut } from 'next-auth/react';
 import Link from 'next/link';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -24,35 +24,7 @@ export default function Dashboard() {
     const [loading, setLoading] = useState(true);
 
     // Handle session and fetch forms data
-    useEffect(() => {
-        if (status === "authenticated") {
-            const { name, email, image: avatar } = session.user;
-            const { accessToken } = session;
-
-            // Post user data to login endpoint
-            axios.post(
-                `${process.env.NEXT_PUBLIC_API_URL}/login-customer`,
-                { name, email, avatar },
-                {
-                    headers: {
-                        Authorization: `Bearer ${accessToken}`,
-                    },
-                }
-            )
-                .then(() => {
-                    // After successful login, fetch user's forms
-                    fetchForms(accessToken);
-                })
-                .catch(err => {
-                    console.error("Gagal simpan user:", err);
-                    setLoading(false);
-                });
-        } else if (status === "unauthenticated") {
-            router.push("/");
-        }
-    }, [status, session, router]);
-
-    const fetchForms = async (token) => {
+    const fetchForms = useCallback(async (token) => {
         try {
             const response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/get-form-customer`, {
                 headers: {
@@ -66,7 +38,42 @@ export default function Dashboard() {
         } finally {
             setLoading(false);
         }
-    };
+    }, [router]);
+
+    useEffect(() => {
+        if (status === "authenticated") {
+            const { name, email, image: avatar } = session.user;
+            const { accessToken } = session;
+
+            axios.post(
+                `${process.env.NEXT_PUBLIC_API_URL}/login-customer`,
+                { name, email, avatar },
+                {
+                    headers: {
+                        Authorization: `Bearer ${accessToken}`,
+                    },
+                    validateStatus: () => true, // allow handling all status codes
+                }
+            )
+                .then(async (res) => {
+                    if (res.status !== 200) {
+                        // Remove next-auth cookies and redirect
+                        await signOut({ redirect: false });
+                        router.push("/");
+                    } else {
+                        fetchForms(accessToken);
+                    }
+                })
+                .catch(async (err) => {
+                    console.error("Gagal simpan user:", err);
+                    await signOut({ redirect: false });
+                    router.push("/");
+                    setLoading(false);
+                });
+        } else if (status === "unauthenticated") {
+            router.push("/");
+        }
+    }, [status, session, router, fetchForms]);
 
     useEffect(() => {
         if (!loading) {
