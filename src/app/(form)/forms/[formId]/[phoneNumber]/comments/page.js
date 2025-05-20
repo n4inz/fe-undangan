@@ -135,14 +135,14 @@ export default function CommentSection({ params }) {
                                             <div className="flex gap-3">
                                                 <Avatar className="h-10 w-10">
                                                     <AvatarFallback>
-                                                        {comment.user?.name?.charAt(0) || 'U'}
+                                                        {comment.name.charAt(0) || 'U'}
                                                     </AvatarFallback>
                                                 </Avatar>
 
                                                 <div className="flex-1">
                                                     <div className="flex items-center justify-between">
                                                         <h4 className="font-medium">
-                                                            {comment.user?.name || 'Anonymous'}
+                                                            {comment.name || 'Anonymous'}
                                                         </h4>
                                                         <span className="text-xs text-gray-500">
                                                             {formatDate(comment.createdAt)}

@@ -12,7 +12,7 @@ const formatTime = (seconds) => {
   return `${minutes.toString().padStart(2, '0')}:${remainingSeconds.toString().padStart(2, '0')}`;
 };
 
-const MusicList = ({ currentlyPlaying, setCurrentlyPlaying, audioRef, onSongSelected, selectedSongId: initialSelectedSongId }) => {
+const MusicList = ({ currentlyPlaying, setCurrentlyPlaying, audioRef, onSongSelected, selectedSongId: initialSelectedSongId, role = "user" }) => {
   const [data, setData] = useState([]);
   const [totalRows, setTotalRows] = useState(0);
   const [perPage, setPerPage] = useState(10);
@@ -33,7 +33,8 @@ const MusicList = ({ currentlyPlaying, setCurrentlyPlaying, audioRef, onSongSele
 
   const fetchData = useCallback(async (page, limit, searchQuery) => {
     try {
-      const response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/music`, {
+      const endpoint = role === "admin" ? "music" : "music-list";
+      const response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/${endpoint}`, {
         params: { page, limit, search: searchQuery },
         withCredentials: true,
       });

@@ -16,6 +16,7 @@ import { Card, CardHeader, CardTitle, CardContent, CardFooter } from '@/componen
 import { MessageCircle, Plus } from 'lucide-react';
 import axios from 'axios';
 import { useRouter } from 'next/navigation';
+import { FaMoneyBillWave } from 'react-icons/fa';
 
 export default function Dashboard() {
     const router = useRouter();
@@ -153,12 +154,23 @@ export default function Dashboard() {
                         <div className="space-y-4">
                             {forms.length > 0 ? (
                                 forms.map((form) => (
-                                    <Card key={form.id} className="hover:shadow-md transition-shadow">
+                                    <Card key={form.id} className="relative hover:shadow-md transition-shadow">
+                                        {form.isPaid === 1 && (
+                                            <FaMoneyBillWave className="absolute top-2 right-2 text-green-500 text-xl" />
+                                        )}
+
                                         <CardHeader className="pb-2">
                                             <CardTitle className="text-lg">
-                                                {(form.namaPanggilanPria && form.namaPanggilanWanita
-                                                    ? `${form.namaPanggilanPria} & ${form.namaPanggilanWanita}`
-                                                    : 'Undangan Pernikahan')}
+                                                <Link
+                                                    href={`${process.env.NEXT_PUBLIC_LINK_UNDANGAN}/${form.slug}`}
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                    className="text-black hover:text-blue-600 transition-colors duration-200 underline"
+                                                >
+                                                    {form.namaPanggilanPria && form.namaPanggilanWanita
+                                                        ? `${form.namaPanggilanPria} & ${form.namaPanggilanWanita}`
+                                                        : 'Undangan Pernikahan'}
+                                                </Link>
                                             </CardTitle>
                                             <p className="text-sm text-muted-foreground">
                                                 {form.pilihanTema && `Tema: ${form.pilihanTema}`}
@@ -171,12 +183,14 @@ export default function Dashboard() {
                                                 })}
                                             </p>
                                         </CardHeader>
+
                                         <CardContent className="pt-0">
                                             <div className="flex items-center text-muted-foreground">
                                                 <MessageCircle className="h-4 w-4 mr-2" />
                                                 <span>{form.commentCount || 0} komentar</span>
                                             </div>
                                         </CardContent>
+
                                         <CardFooter className="flex justify-between bg-muted/50 p-4">
                                             <Button variant="outline" size="sm" asChild>
                                                 <Link href={`/forms/${form.id}/${form.nomorWa}/comments`}>Lihat Komentar</Link>

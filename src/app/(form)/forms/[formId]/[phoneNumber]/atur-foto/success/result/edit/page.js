@@ -89,7 +89,7 @@ const Edit = ({ params }) => {
             const response = await axios.put(`${process.env.NEXT_PUBLIC_API_URL}/form-edit/${params.formId}/${params.phoneNumber}`, formData);
 
             console.log('Form updated successfully:', response);
-            router.push(`/${params.formId}/${params.phoneNumber}/atur-foto/success/result`);
+            router.push(`/forms/${params.formId}/${params.phoneNumber}/atur-foto/success/result`);
         } catch (error) {
             if (error instanceof z.ZodError) {
                 // Capture validation errors
@@ -115,9 +115,9 @@ const Edit = ({ params }) => {
 
     const fetchMusicList = async (e) => {
         try {
-            const response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/music`);
+            const response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/music-list`);
             setMusicList(response.data.data);
-            console.log("musicList", response.data.data);
+            // console.log("musicList", response.data.data);
         } catch (error) {
             console.error('Error fetching music list:', error);
         }

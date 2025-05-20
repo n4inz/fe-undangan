@@ -8,18 +8,19 @@ import { Loader2 } from "lucide-react";
 import { assetSchema } from '@/lib/validation';
 import { useRouter } from "next/navigation";
 import { toast } from "@/components/ui/use-toast";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Checkbox } from "@/components/ui/checkbox"; // GANTI RADIO DENGAN CHECKBOX
 import { Label } from "@/components/ui/label";
 
 const FormMusic = ({ params }) => {
   const router = useRouter();
   const [formData, setFormData] = useState({
     name: '',
+    isVisible: true,
   });
   const [isLoading, setIsLoading] = useState(false);
   const [errors, setErrors] = useState({});
-  const [file, setFile] = useState(null); // State to hold the file for the asset music
-  const [musicUrl, setMusicUrl] = useState(null); // State to hold the URL for the selected music
+  const [file, setFile] = useState(null);
+  const [musicUrl, setMusicUrl] = useState(null);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -33,11 +34,9 @@ const FormMusic = ({ params }) => {
     const { files } = e.target;
     const selectedFile = files[0];
     if (selectedFile) {
-      // Hapus URL lama sebelum membuat yang baru
       if (musicUrl) {
         URL.revokeObjectURL(musicUrl);
       }
-
       setFile(selectedFile);
       const newMusicUrl = URL.createObjectURL(selectedFile);
       setMusicUrl(newMusicUrl);
@@ -49,14 +48,13 @@ const FormMusic = ({ params }) => {
     setIsLoading(true);
 
     try {
-      // Validate the form data
       assetSchema.parse(formData);
       setErrors({});
 
       const data = new FormData();
       data.append("name", formData.name);
+      data.append("isVisible", formData.isVisible.toString());
 
-      // Append the selected file if available
       if (file) {
         data.append("music", file);
       }
@@ -107,9 +105,12 @@ const FormMusic = ({ params }) => {
         withCredentials: true,
       });
       const data = response.data.data;
-      setFormData({ name: data.name });
 
-      // If there's a file, set the music URL for preview in edit mode
+      setFormData({
+        name: data.name || '',
+        isVisible: Boolean(data.isVisible),
+      });
+
       if (data.file) {
         setMusicUrl(`${process.env.NEXT_PUBLIC_API_URL}/music/${data.file}`);
       }
@@ -135,7 +136,9 @@ const FormMusic = ({ params }) => {
           </h1>
           <form onSubmit={handleSubmit}>
             <div className="mb-4">
-              <label className="block text-gray-700">Music Name <span className='text-red-500'>*</span></label>
+              <label className="block text-gray-700">
+                Music Name <span className='text-red-500'>*</span>
+              </label>
               <Input
                 type="text"
                 name="name"
@@ -145,6 +148,7 @@ const FormMusic = ({ params }) => {
               />
               {errors.name && <p className="text-red-500 text-sm mt-1">{errors.name}</p>}
             </div>
+
             <div className="mb-4">
               <label className="block text-gray-700">Upload Music</label>
               <Input
@@ -155,17 +159,33 @@ const FormMusic = ({ params }) => {
                 onChange={handleMusicChange}
               />
             </div>
+
             {musicUrl && (
               <div className="my-4">
-                <audio
-                  controls
-                  key={musicUrl} // Force re-render when URL changes
-                >
+                <audio controls key={musicUrl}>
                   <source src={musicUrl} type="audio/mpeg" />
                   Your browser does not support the audio element.
                 </audio>
               </div>
             )}
+
+            <div className="mb-4">
+              
+                <label className="block text-gray-700">Tampilkan Lagu ?</label>
+                <div className="flex items-center space-x-2">
+                <Checkbox
+                  id="isVisible"
+                  checked={formData.isVisible}
+                  onCheckedChange={(checked) =>
+                    setFormData({ ...formData, isVisible: !!checked })
+                  }
+                />
+                <Label htmlFor="isVisible" className="text-gray-700">
+                  Ya
+                </Label>
+                </div>
+            </div>
+
             <div className="flex justify-start">
               <Button
                 type="submit"
