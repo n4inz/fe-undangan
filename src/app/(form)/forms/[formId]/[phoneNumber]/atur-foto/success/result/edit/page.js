@@ -872,7 +872,7 @@ const Edit = ({ params }) => {
                             className="mt-1 p-2 w-full border border-gray-300 rounded-lg"
                         />
                     </div>
-                    <div className="mb-4">
+                    <div className="mb-4 w-full max-w-full">
                         <label className="block text-gray-700">Pilih Musik</label>
                         <MusicCombobox
                             value={formData.idMusic || ''}
@@ -881,15 +881,6 @@ const Edit = ({ params }) => {
                             isLoading={isLoading}
                         />
                     </div>
-                    
-
-
-                    
-
-
-
-
-
 
                     <Button type="submit" className="bg-blue-500 text-white px-4 py-2 rounded-lg" disabled={isLoading}>
                         {isLoading ? (

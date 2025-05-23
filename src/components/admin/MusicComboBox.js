@@ -27,57 +27,61 @@ const MusicCombobox = ({ value, onValueChange, list = [], isLoading }) => {
                     variant="outline"
                     role="combobox"
                     aria-expanded={open}
-                    className="w-full h-6 justify-between"
+                    className="flex w-full max-w-full h-10 justify-between px-3 py-2 text-sm text-left"
                 >
-                    {selectedMusic ? (
-                        <div className="flex items-center">
-                            {selectedMusic.name}
-                        </div>
-                    ) : (
-                        "Pilih Musik"
-                    )}
+                    <span className="flex-1 overflow-hidden text-ellipsis whitespace-nowrap text-left">
+                        {selectedMusic
+                            ? selectedMusic.name.length > 32
+                                ? selectedMusic.name.slice(0, 32) + "..."
+                                : selectedMusic.name
+                            : "Pilih Musik"}
+                    </span>
                     <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                 </Button>
             </PopoverTrigger>
-            <PopoverContent className="w-full p-0">
+            <PopoverContent className="w-[var(--radix-popover-trigger-width)] p-0 max-w-[95vw]">
                 <Command>
                     <CommandInput
                         placeholder="Search music by name..."
                         value={searchQuery}
-                        onValueChange={setSearchQuery} // Update search query
+                        onValueChange={setSearchQuery}
+                        className="text-sm"
                     />
                     <CommandList>
                         <CommandEmpty>No music found.</CommandEmpty>
                         {isLoading ? (
                             <CommandGroup>
-                                <CommandItem disabled>Loading...</CommandItem>
+                                <CommandItem disabled className="text-sm text-left">Loading...</CommandItem>
                             </CommandGroup>
                         ) : filteredList.length > 0 ? (
                             <CommandGroup>
-                                {list.map((data) => (
+                                {filteredList.map((data) => (
                                     <CommandItem
                                         key={data.id}
-                                        value={data.name} // Use name for search filtering
+                                        value={data.name}
                                         onSelect={() => {
-                                            onValueChange(String(data.id)); // Store id in formData (converted to string if needed)
+                                            onValueChange(String(data.id));
                                             setOpen(false);
                                         }}
+                                        className="text-sm text-left"
                                     >
-                                        <div className="flex items-center w-full">
+                                        <div className="flex w-full">
                                             <Check
                                                 className={cn(
-                                                    "mr-2 h-4 w-4",
+                                                    "mr-2 h-4 w-4 flex-shrink-0",
                                                     Number(value) === data.id ? "opacity-100" : "opacity-0"
                                                 )}
                                             />
-                                            {data.name}
+                                            <span className="overflow-hidden text-ellipsis whitespace-nowrap text-left">
+                                                {data.name}
+                                            </span>
                                         </div>
                                     </CommandItem>
                                 ))}
                             </CommandGroup>
                         ) : (
                             <CommandGroup>
-                                <CommandItem disabled>No options available</CommandItem>
+                                <CommandItem disabled className="text-sm text-left">No options available</CommandItem>
                             </CommandGroup>
                         )}
                     </CommandList>

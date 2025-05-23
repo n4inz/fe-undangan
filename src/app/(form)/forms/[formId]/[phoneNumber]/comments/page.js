@@ -96,12 +96,16 @@ export default function CommentSection({ params }) {
     if (error) {
         return (
             <div className="relative min-h-screen">
-                <div className="fixed inset-0 bg-gray-100" />
-                <div className="relative z-10 flex flex-col items-center justify-center min-h-screen py-8">
-                    <div className="w-full max-w-md p-4 bg-white rounded-lg shadow-sm">
-                        <div className="text-red-500 text-center">{error}</div>
-                    </div>
+            <div className="fixed inset-0 bg-gray-100" />
+            <div className="relative z-10 flex flex-col items-center justify-center min-h-screen py-8">
+                <div className="w-full max-w-md p-6 bg-white rounded-lg shadow shadow-gray-200 flex flex-col items-center">
+                <div className="text-red-600 text-center font-medium mb-4">{error}</div>
+                <Link href="/forms" className="flex items-center gap-2 text-blue-600 hover:underline">
+                    <BiArrowBack className="h-5 w-5" />
+                    <span>Kembali</span>
+                </Link>
                 </div>
+            </div>
             </div>
         );
     }
