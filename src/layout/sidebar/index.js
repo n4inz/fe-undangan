@@ -4,7 +4,7 @@ import Link from "next/link";
 import { redirect, useRouter } from "next/navigation";
 import { SlHome } from "react-icons/sl";
 import { FaListUl, FaClipboardList } from "react-icons/fa";
-import { BiLogOut, BiUser, BiMenu, BiMoney, BiHeartSquare, BiImages, BiSolidMusic, BiUserPlus, BiUserCircle } from "react-icons/bi";
+import { BiLogOut, BiUser, BiMenu, BiMoney, BiHeartSquare, BiImages, BiSolidMusic, BiUserPlus, BiUserCircle, BiCog, BiX } from "react-icons/bi";
 import Image from "next/image";
 
 import logo from "../../../public/logo/Sewa.png";
@@ -88,7 +88,7 @@ export default function Sidebar({ authenticated }) {
                     onClick={() => setIsSidebarOpen(!isSidebarOpen)}
                     className="text-3xl text-black p-2"
                 >
-                    <BiMenu />
+                    {isSidebarOpen ? <BiX /> : <BiMenu />}
                 </button>
             </div>
 
@@ -106,7 +106,7 @@ export default function Sidebar({ authenticated }) {
                     </Link>
                 </div>
                 {/* Scrollable menu items */}
-                <div className="flex flex-col overflow-y-auto max-h-[calc(100vh-150px)]">
+                <div className="flex flex-col overflow-y-auto max-h-[calc(100vh-150px)] pb-4">
                     {isAdmin === 1 &&
                         <MenuItem name="Dashboard" route="/admin/dashboard" icon={<SlHome />} />
                     }
@@ -120,6 +120,7 @@ export default function Sidebar({ authenticated }) {
                             <MenuItem name="Tema" route="/admin/tema" icon={<BiHeartSquare />} />
                             <MenuItem name="Asset" route="/admin/asset" icon={<BiImages />} />
                             <MenuItem name="Musik" route="/admin/music" icon={<BiSolidMusic />} />
+                            <MenuItem name="Setting" route="/admin/setting" icon={<BiCog />} />
                         </>
                     }
                     <MenuItem name="Logout" route="#logout" icon={<BiLogOut />} onClick={handleLogout} />

@@ -17,15 +17,25 @@ const FormTema = ({ params }) => {
   const router = useRouter();
   const [formData, setFormData] = useState({
     name: '',
+    slug: '',
     link: '',
-    loveStory: false, // Add loveStory with default value
+    loveStory: false,
   });
   const [isLoading, setIsLoading] = useState(false);
   const [errors, setErrors] = useState({});
   const [coverImage, setCoverImage] = useState(null);
   const [subcoverImage, setSubcoverImage] = useState(null);
 
-  const [slug, setSlug] = useState(''); // State for the slug
+  // Function to convert text to slug format
+  const convertToSlug = (text) => {
+    return text
+      .toLowerCase()
+      .trim()
+      .replace(/\s+/g, '-')        // Convert spaces to hyphens
+      .replace(/[^a-z0-9-]/g, '')  // Remove any character that isn't lowercase letter, number, or hyphen
+      .replace(/-+/g, '-')         // Collapse multiple hyphens into one
+      .replace(/^-|-$/g, '');      // Remove leading/trailing hyphens
+  };
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -34,15 +44,36 @@ const FormTema = ({ params }) => {
       [name]: type === 'checkbox' ? checked : value,
     });
 
-    // Update the slug dynamically when the name changes
+    // Update the slug when the name changes
     if (name === 'name') {
-      const generatedSlug = value
-        .toLowerCase()
-        .trim()
-        .replace(/[^a-z0-9]+/g, '-') // Replace spaces or special characters with hyphens
-        .replace(/^-+|-+$/g, ''); // Remove leading or trailing hyphens
-      setSlug(generatedSlug);
+      const generatedSlug = convertToSlug(value);
+      setFormData(prev => ({
+        ...prev,
+        slug: generatedSlug
+      }));
     }
+  };
+
+  // Handle direct slug input with strict validation
+  const handleSlugChange = (e) => {
+    const { value } = e.target;
+    // Allow only lowercase letters, numbers, and hyphens
+    const filteredValue = value
+      .toLowerCase()
+      .replace(/[^a-z0-9-]/g, ''); // Remove any character that isn't a lowercase letter, number, or hyphen
+    setFormData(prev => ({
+      ...prev,
+      slug: filteredValue
+    }));
+  };
+
+  // Format slug on blur
+  const handleSlugBlur = () => {
+    const formattedSlug = convertToSlug(formData.slug);
+    setFormData(prev => ({
+      ...prev,
+      slug: formattedSlug
+    }));
   };
 
   const handleImageChange = (e) => {
@@ -62,15 +93,22 @@ const FormTema = ({ params }) => {
     e.preventDefault();
     setIsLoading(true);
 
+    // Ensure slug is formatted before submission
+    const finalFormData = {
+      ...formData,
+      slug: convertToSlug(formData.slug), // Final slug validation
+    };
+
     try {
-      themeSchema.parse(formData);
+      themeSchema.parse(finalFormData);
       setErrors({});
 
       const data = new FormData();
-      data.append("name", formData.name);
-      data.append("link", formData.link);
-      data.append("loveStory", formData.loveStory); // Add loveStory to the form data
-      data.append("totalWeddingPhoto", formData.totalWeddingPhoto);
+      data.append("name", finalFormData.name);
+      data.append("slug", finalFormData.slug);
+      data.append("link", finalFormData.link);
+      data.append("loveStory", finalFormData.loveStory);
+      data.append("totalWeddingPhoto", finalFormData.totalWeddingPhoto);
 
       if (coverImage) data.append("cover", document.querySelector("input[name='cover']").files[0]);
       if (subcoverImage) data.append("subcover", document.querySelector("input[name='subcover']").files[0]);
@@ -124,8 +162,9 @@ const FormTema = ({ params }) => {
 
       setFormData({
         ...data,
+        slug: data.slug || convertToSlug(data.name),
         totalWeddingPhoto: String(data.totalWeddingPhoto),
-        loveStory: data.loveStory || false, // Ensure loveStory is a boolean
+        loveStory: data.loveStory || false,
       });
 
       if (data.ssCover) {
@@ -165,9 +204,26 @@ const FormTema = ({ params }) => {
                 onChange={handleChange}
                 className="mt-1 p-2 w-full border border-gray-300 rounded-lg"
               />
-              {slug && <p className="text-gray-500 text-sm mt-1">Slug: {slug}</p>}
               {errors.name && <p className="text-red-500 text-sm mt-1">{errors.name}</p>}
             </div>
+            
+            {/* Slug Input Field */}
+            <div className="mb-4">
+              <label className="block text-gray-700">Slug <span className='text-red-500'>*</span></label>
+              <Input
+                type="text"
+                name="slug"
+                value={formData.slug}
+                onChange={handleSlugChange}
+                onBlur={handleSlugBlur}
+                className="mt-1 p-2 w-full border border-gray-300 rounded-lg"
+              />
+              <p className="text-gray-500 text-sm mt-1">
+                Slug will be used in URLs. Only lowercase letters, numbers, and hyphens are allowed (no spaces).
+              </p>
+              {errors.slug && <p className="text-red-500 text-sm mt-1">{errors.slug}</p>}
+            </div>
+
             <div className="mb-4">
               <label className="block text-gray-700">Link Tema <span className='text-red-500'>*</span></label>
               <Input
@@ -179,6 +235,7 @@ const FormTema = ({ params }) => {
               />
               {errors.link && <p className="text-red-500 text-sm mt-1">{errors.link}</p>}
             </div>
+            
             <div className="mb-4">
               <label className="block text-gray-700">Screenshot Cover</label>
               <Input
@@ -186,7 +243,7 @@ const FormTema = ({ params }) => {
                 name="cover"
                 accept="image/*"
                 className="mt-1 p-2 w-full border border-gray-300 rounded-lg"
-                onChange={handleImageChange} // Handle cover image change
+                onChange={handleImageChange}
               />
             </div>
             {coverImage && (
@@ -206,7 +263,7 @@ const FormTema = ({ params }) => {
                 name="subcover"
                 accept="image/*"
                 className="mt-1 p-2 w-full border border-gray-300 rounded-lg"
-                onChange={handleImageChange} // Handle subcover image change
+                onChange={handleImageChange}
               />
             </div>
             {subcoverImage && (

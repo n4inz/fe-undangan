@@ -261,6 +261,14 @@ const StepF = ({ number, nextStep, formData, setFormData, onFormChange, partName
           {uploading ? "Uploading..." : "Selanjutnya"}
         </Button>
       </div>
+      <Button
+        variant="ghost"
+        className="text-gray-700 hover:text-gray-900 text-sm mb-8"
+        onClick={() => nextStep()}
+        disabled={uploading}
+      >
+        Skip
+      </Button>
     </div>
   );
 };
