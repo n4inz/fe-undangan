@@ -32,7 +32,18 @@ export default function Dashboard() {
                     Authorization: `Bearer ${token}`,
                 },
             });
-            setForms(response.data.form || []);
+
+            const formData = response.data.form || [];
+            setForms(
+                Array.isArray(formData)
+                    ? formData.map(form => ({
+                        ...form,
+                        slug: form.linkUndangan
+                            ? form.linkUndangan
+                            : `${process.env.NEXT_PUBLIC_LINK_UNDANGAN}/${form.slug || ''}`
+                    }))
+                    : []
+            );
         } catch (error) {
             console.error('Error fetching forms:', error);
             router.push("/");
@@ -162,7 +173,7 @@ export default function Dashboard() {
                                         <CardHeader className="pb-2">
                                             <CardTitle className="text-lg">
                                                 <Link
-                                                    href={`${process.env.NEXT_PUBLIC_LINK_UNDANGAN}/${form.slug}`}
+                                                    href={`${form.slug}`}
                                                     target="_blank"
                                                     rel="noopener noreferrer"
                                                     className="text-black hover:text-blue-600 transition-colors duration-200 underline"

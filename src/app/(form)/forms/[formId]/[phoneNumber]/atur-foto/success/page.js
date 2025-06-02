@@ -25,10 +25,14 @@ const Success = ({ params }) => {
         router.replace('/'); // Redirect on error
       } else {
         setLoading(false);
+        const formData = data.form || {};
         setForm({
           ...data.form,
-          slug: `${process.env.NEXT_PUBLIC_LINK_UNDANGAN}/${data.form.slug}?to=Nama Tamu`
+          slug: formData.linkUndangan
+            ? formData.linkUndangan
+            : `${process.env.NEXT_PUBLIC_LINK_UNDANGAN}/${formData.slug || ''}`
         });
+
       }
     };
 

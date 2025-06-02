@@ -15,13 +15,13 @@ import { dataURLtoBlob } from "@/utils/helpers";
 const StepI1 = ({ number, nextStep, formData, setFormData, onFormChange, partName, title }) => {
   const params = useParams();
   const [uploading, setUploading] = useState(false);
-  const [uploadProgress, setUploadProgress] = useState(0); // Track upload progress
+  const [uploadProgress, setUploadProgress] = useState(0);
   const [selectedImage, setSelectedImage] = useState(null);
   const [file, setFile] = useState(null);
   const [imageExist, setImageExist] = useState(false);
   const fileInputRef = useRef(null);
   const [runTour, setRunTour] = useState(false);
-  const [isModalOpen, setIsModalOpen] = useState(false); // State to control modal visibility
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const [statusAsset, setStatusAsset] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
 
@@ -66,29 +66,37 @@ const StepI1 = ({ number, nextStep, formData, setFormData, onFormChange, partNam
       alert("Please select a file first!");
       setUploading(false);
       return;
-    } else if (statusAsset && selectedImage) {
-      console.log('finally');
+    }
 
+    const uploadData = new FormData();
+    uploadData.append('partName', partName);
+
+    // Handle asset upload
+    if (statusAsset && file?.idAsset) {
       try {
         const response = await axios.post(
-          `${process.env.NEXT_PUBLIC_API_URL}/upload-photo-v2/${params.formId}`, file
-        )
+          `${process.env.NEXT_PUBLIC_API_URL}/upload-photo-v2/${params.formId}`,
+          { idAsset: file.idAsset, partName }, // Send asset data as JSON
+          {
+            headers: {
+              "Content-Type": "application/json",
+            },
+          }
+        );
         setSelectedImage(null);
         setFile(null);
         onFormChange();
         nextStep();
       } catch (error) {
-        console.error("Error uploading the image", error);
+        console.error("Error uploading the asset", error);
       } finally {
         setUploading(false);
         setUploadProgress(0);
       }
-
-    } else if (file === 1) {
-      const uploadData = new FormData();
-      uploadData.append('partName', partName);
+    }
+    // Handle existing image (file === 1)
+    else if (file === 1) {
       uploadData.append('dataFile', file);
-
       try {
         const response = await axios.post(
           `${process.env.NEXT_PUBLIC_API_URL}/upload-photo-v2/${params.formId}`,
@@ -100,7 +108,7 @@ const StepI1 = ({ number, nextStep, formData, setFormData, onFormChange, partNam
             onUploadProgress: (progressEvent) => {
               const { loaded, total } = progressEvent;
               const percent = Math.floor((loaded / total) * 100);
-              setUploadProgress(percent);  // Update progress
+              setUploadProgress(percent);
             },
           }
         );
@@ -113,11 +121,10 @@ const StepI1 = ({ number, nextStep, formData, setFormData, onFormChange, partNam
         setUploading(false);
         setUploadProgress(0);
       }
-    } else {
-      const uploadData = new FormData();
+    }
+    // Handle regular file upload (including cropped images)
+    else {
       uploadData.append('file', file);
-      uploadData.append('partName', partName);
-
       try {
         const response = await axios.post(
           `${process.env.NEXT_PUBLIC_API_URL}/upload-photo-v2/${params.formId}`,
@@ -129,11 +136,10 @@ const StepI1 = ({ number, nextStep, formData, setFormData, onFormChange, partNam
             onUploadProgress: (progressEvent) => {
               const { loaded, total } = progressEvent;
               const percent = Math.floor((loaded / total) * 100);
-              setUploadProgress(percent);  // Update progress
+              setUploadProgress(percent); // Corrected here
             },
           }
         );
-
         setSelectedImage(null);
         setFile(null);
         onFormChange();
@@ -165,7 +171,9 @@ const StepI1 = ({ number, nextStep, formData, setFormData, onFormChange, partNam
 
       if (imagesData.length > 0) {
         let imageUrl;
-        if (imagesData[0].fileImage || imagesData[0].file) {
+        if (imagesData[0].ssSubCover) {
+          imageUrl = `${process.env.NEXT_PUBLIC_API_URL}/images/${imagesData[0].ssSubCover}`;
+        } else if (imagesData[0].fileImage || imagesData[0].file) {
           imageUrl = `${process.env.NEXT_PUBLIC_API_URL}/${response.data.type}/${response.data.type === 'images' ? imagesData[0].fileImage : imagesData[0].file}`;
           setFile(1);
         } else {
@@ -197,7 +205,7 @@ const StepI1 = ({ number, nextStep, formData, setFormData, onFormChange, partNam
       console.warn('LocalStorage is not supported:', error);
     }
     if (!tourShown) {
-      setRunTour(true); // Start the tour when the component mounts
+      setRunTour(true);
       try {
         localStorage.setItem('tourShown', 'true');
       } catch (error) {
@@ -221,8 +229,8 @@ const StepI1 = ({ number, nextStep, formData, setFormData, onFormChange, partNam
         file: file,
       }));
     }
-  }
-  , [selectedImage, file, setFormData]);
+    console.log("FILE: " + file);
+  }, [selectedImage, file, setFormData]);
 
   return (
     <>
@@ -237,7 +245,7 @@ const StepI1 = ({ number, nextStep, formData, setFormData, onFormChange, partNam
           callback={handleJoyrideCallback}
           styles={{
             options: {
-              primaryColor: '#4F46E5', // Indigo color to match your theme
+              primaryColor: '#4F46E5',
             }
           }}
         />
@@ -301,11 +309,11 @@ const StepI1 = ({ number, nextStep, formData, setFormData, onFormChange, partNam
             onSave={(editedImage) => {
               setSelectedImage(editedImage);
               setIsEditing(false);
-              // setFile(1); // Reset file after editing
               // Create a file object from the edited image
               const blob = dataURLtoBlob(editedImage);
               const editedFile = new File([blob], 'edited-image.jpg', { type: 'image/jpeg' });
               setFile(editedFile);
+              setStatusAsset(false); // Reset statusAsset after cropping
             }}
             onCancel={() => setIsEditing(false)}
           />

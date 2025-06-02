@@ -26,7 +26,7 @@ const Result = ({ params }) => {
     const [imageLoading, setImageLoading] = useState(false);
     const [isFullScreen, setIsFullScreen] = useState(false);
     const [fullScreenImage, setFullScreenImage] = useState(null);
-    const [form, setForm] = useState([]);
+    const [form, setForm] = useState({});
     const [editingImage, setEditingImage] = useState(null);
     const [editingRow, setEditingRow] = useState(null);
 
@@ -155,14 +155,22 @@ const Result = ({ params }) => {
 
     const fetchData = async () => {
         try {
-            const response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/get-photo-order/${params.formId}/${params.phoneNumber}`);
-            setData(response.data.images);
+            const response = await axios.get(
+                `${process.env.NEXT_PUBLIC_API_URL}/get-photo-order/${params.formId}/${params.phoneNumber}`
+            );
+            setData(response.data.images || []);
+            const formData = response.data.form || {};
             setForm({
-                ...response.data.form,
-                slug: `${process.env.NEXT_PUBLIC_LINK_UNDANGAN}/${response.data.form.slug}?to=Nama Tamu`
+                ...formData,
+                slug: formData.linkUndangan
+                    ? formData.linkUndangan
+                    : `${process.env.NEXT_PUBLIC_LINK_UNDANGAN}/${formData.slug || ''}`
             });
+            console.log('Form data:', response.data.form?.linkUndangan);
         } catch (error) {
             console.error('Error fetching data:', error);
+            setData([]);
+            setForm({});
         }
     };
 
@@ -172,7 +180,7 @@ const Result = ({ params }) => {
 
     useEffect(() => {
         fetchData();
-    }, []);
+    }, [params.formId, params.phoneNumber]);
 
     const handleBackButtonClick = () => {
         router.push(`/forms/${params.formId}/${params.phoneNumber}/atur-foto/success`);
