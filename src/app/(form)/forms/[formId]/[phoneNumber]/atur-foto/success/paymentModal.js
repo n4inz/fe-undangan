@@ -15,6 +15,7 @@ import { Loader2 } from 'lucide-react';
 import axios from 'axios';
 import Image from 'next/image';
 import placeholder from '/public/images/placeholder.png';
+import { getBankAccounts, getCompanyProfile } from '@/lib/company';
 
 export default function PaymentModal({ formId, phoneNumber }) {
     const [formData, setFormData] = useState({
@@ -30,8 +31,44 @@ export default function PaymentModal({ formId, phoneNumber }) {
     const [errors, setErrors] = useState({});
     const [isLoading, setIsLoading] = useState(false);
     const [paymentStatus, setPaymentStatus] = useState(false);
+    const [bankAccounts, setBankAccounts] = useState([]); // State for bank accounts
+    const [company, setCompany] = useState(null); // State for company profile
 
     const fileInputRef = useRef(null); // Tambahkan useRef
+
+    // Fetch bank accounts and company profile on mount
+    useEffect(() => {
+        const fetchBankAccounts = async () => {
+            try {
+                const data = await getBankAccounts();
+                setBankAccounts(data.data || []); // Set bank accounts from API response
+            } catch (error) {
+                toast({
+                    title: 'Error',
+                    description: 'Failed to load bank accounts. Using defaults.',
+                    variant: 'destructive',
+                });
+                setBankAccounts([]); // Fallback to empty array on error
+            }
+        };
+
+        const fetchCompanyProfile = async () => {
+            try {
+                const data = await getCompanyProfile();
+                setCompany(data.data); // Set company profile data
+            } catch (error) {
+                toast({
+                    title: 'Error',
+                    description: 'Failed to load company profile.',
+                    variant: 'destructive',
+                });
+                setCompany(null); // Fallback to null on error
+            }
+        };
+
+        fetchBankAccounts();
+        fetchCompanyProfile();
+    }, []);
 
     const handleChange = (e) => {
         const { name, value, type, checked, files } = e.target;
@@ -176,7 +213,6 @@ export default function PaymentModal({ formId, phoneNumber }) {
             });
     };
 
-
     const checkPayment = async () => {
         const response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/payment/${formId}/${phoneNumber}`);
         if (response.data != null) {
@@ -272,7 +308,7 @@ export default function PaymentModal({ formId, phoneNumber }) {
                                     name="file"
                                     accept="image/*"
                                     onChange={handleChange}
-                                    ref={fileInputRef} // Tambahkan ref di sini
+                                    ref={fileInputRef}
                                 />
                                 {errors.file && <p className="text-red-500 text-sm mt-1">{errors.file}</p>}
                             </div>
@@ -301,32 +337,22 @@ export default function PaymentModal({ formId, phoneNumber }) {
                             <div>
                                 <Label>Metode Pembayaran</Label>
                                 <ul className="text-sm">
-                                    <li className="flex items-center justify-between">
-                                        BRI: 501801024504537
-                                        <Button type="button" variant="ghost" size="sm" onClick={(e) => handleCopy('501801024504537', e)}>
-                                            <BiCopy className="w-4 h-4" />
-                                        </Button>
-                                    </li>
-                                    <li className="flex items-center justify-between">
-                                        BSI: 7188520604
-                                        <Button type="button" variant="ghost" size="sm" onClick={(e) => handleCopy('7188520604', e)}>
-                                            <BiCopy className="w-4 h-4" />
-                                        </Button>
-                                    </li>
-                                    <li className="flex items-center justify-between">
-                                        Dana: 085340910179
-                                        <Button type="button" variant="ghost" size="sm" onClick={(e) => handleCopy('085340910179', e)}>
-                                            <BiCopy className="w-4 h-4" />
-                                        </Button>
-                                    </li>
-                                    <li className="flex items-center justify-between">
-                                        Shoopepay: 085340910179
-                                        <Button type="button" variant="ghost" size="sm" onClick={(e) => handleCopy('085340910179', e)}>
-                                            <BiCopy className="w-4 h-4" />
-                                        </Button>
-                                    </li>
+                                    {bankAccounts.length > 0 ? (
+                                        bankAccounts.map((account) => (
+                                            <li key={account.id} className="flex items-center justify-between">
+                                                {account.name}: {account.number}
+                                                <Button type="button" variant="ghost" size="sm" onClick={(e) => handleCopy(account.number, e)}>
+                                                    <BiCopy className="w-4 h-4" />
+                                                </Button>
+                                            </li>
+                                        ))
+                                    ) : (
+                                        <li className="text-red-500">No bank accounts available</li>
+                                    )}
                                 </ul>
-                                <p className="text-sm mt-2">Atas nama Zulkarnain</p>
+                                <p className="text-sm mt-2">
+                                    Atas nama {company?.ownerName || 'Unknown'}
+                                </p>
                             </div>
                             <Button type="submit" className="w-full" disabled={isLoading}>
                                 {isLoading ? (

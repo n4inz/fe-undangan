@@ -49,9 +49,10 @@ export const staffSchema = z.object({
 
 export const expendSchema = z.object({
   name: requeiredInput,
-  totalSpending: z.string()
-    .regex(/^[\d+\s-]+$/, { message: "Total spending mengharuskan angka" })
-    .refine((val) => val !== "", { message: "Total spending harus diisi" }),
+  totalSpending: z.union([
+    z.number(),
+    z.string().regex(/^\d+$/, { message: "Total spending mengharuskan angka" })
+  ]).refine(val => val !== "", { message: "Total spending harus diisi" }),
 });
 
 export const themeSchema = z.object({

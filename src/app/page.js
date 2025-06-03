@@ -6,11 +6,15 @@ import { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { ClipLoader } from 'react-spinners';
+import { getCompanyProfile } from '@/lib/company';
 
 export default function LoginPage() {
     const { data: session } = useSession();
     const router = useRouter();
     const [isLoading, setIsLoading] = useState(false);
+    const [company, setCompany] = useState(null); // Initialize as null for a single object
+    const [error, setError] = useState(null); // Add error state
+    const [profileLoading, setProfileLoading] = useState(true); // Add loading state for profile
 
     useEffect(() => {
         if (session) router.push('/forms');
@@ -25,27 +29,62 @@ export default function LoginPage() {
         }
     };
 
+    const fetchCompanyProfile = async () => {
+        setProfileLoading(true);
+        setError(null);
+        try {
+            const data = await getCompanyProfile();
+            setCompany(data.data); // Set the company data (object or array, based on API)
+        } catch (error) {
+            setError('Failed to load company profile');
+            setCompany(null); // Reset on error
+        } finally {
+            setProfileLoading(false);
+        }
+    };
+
+    useEffect(() => {
+        fetchCompanyProfile();
+    }, []);
+
+    // Construct the full logo URL using the environment variable
+    const logoUrl = company?.logo
+        ? `${process.env.NEXT_PUBLIC_API_URL}/asset/${company.logo}`
+        : null;
+
     return (
         <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
             <div className="w-full max-w-md">
                 {/* Logo Perusahaan */}
                 <div className="flex justify-center mb-6">
                     <div className="bg-white p-3 rounded-full shadow-md">
-                        <svg
-                            className="w-16 h-16 text-primary"
-                            fill="currentColor"
-                            viewBox="0 0 24 24"
-                        >
-                            <path d="M21.64,13a1,1,0,0,0-1.05-.14,8.05,8.05,0,0,1-3.37.73A8.15,8.15,0,0,1,9.08,5.49a8.59,8.59,0,0,1,.25-2A1,1,0,0,0,8,2.36,10.14,10.14,0,1,0,22,14.05,1,1,0,0,0,21.64,13Zm-9.5,6.69A8.14,8.14,0,0,1,7.08,5.22v.27A10.15,10.15,0,0,0,17.22,15.63a9.79,9.79,0,0,0,2.1-.22A8.11,8.11,0,0,1,12.14,19.73Z" />
-                        </svg>
+                        {profileLoading ? (
+                            <ClipLoader size={20} color="#000000" />
+                        ) : company && logoUrl ? (
+                            <img
+                                src={logoUrl}
+                                alt="Company Logo"
+                                className="w-16 h-16 object-contain"
+                            />
+                        ) : (
+                            <svg
+                                className="w-16 h-16 text-primary"
+                                fill="currentColor"
+                                viewBox="0 0 24 24"
+                            >
+                                <path d="M21.64,13a1,1,0,0,0-1.05-.14,8.05,8.05,0,0,1-3.37.73A8.15,8.15,0,0,1,9.08,5.49a8.59,8.59,0,0,1,.25-2A1,1,0,0,0,8,2.36,10.14,10.14,0,1,0,22,14.05,1,1,0,0,0,21.64,13Zm-9.5,6.69A8.14,8.14,0,0,1,7.08,5.22v.27A10.15,10.15,0,0,0,17.22,15.63a9.79,9.79,0,0,0,2.1-.22A8.11,8.11,0,0,1,12.14,19.73Z" />
+                            </svg>
+                        )}
                     </div>
                 </div>
 
                 <Card className="shadow-lg border-0">
                     <CardHeader className="space-y-1 text-center">
-                        <CardTitle className="text-2xl font-bold">Selamat Datang</CardTitle>
+                        <CardTitle className="text-2xl font-bold">
+                            {profileLoading ? 'Loading...' : company?.name || 'Selamat Datang'}
+                        </CardTitle>
                         <CardDescription>
-                            Masuk untuk mengelola undangan digital Anda
+                            {error ? error : 'Masuk untuk mengelola undangan digital Anda'}
                         </CardDescription>
                     </CardHeader>
                     <CardContent className="flex flex-col items-center space-y-4 pt-4 pb-6">
