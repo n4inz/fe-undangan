@@ -10,11 +10,14 @@ import Image from "next/image";
 import logo from "../../../public/logo/Sewa.png";
 import axios from "axios";
 import Cookies from "js-cookie";
+import { getCompanyProfile } from "@/lib/company";
 
 export default function Sidebar({ authenticated }) {
     const router = useRouter();
     const [isAdmin, setIsAdmin] = useState(0);
     const [isSidebarOpen, setIsSidebarOpen] = useState(false); // State to handle sidebar visibility
+    const [company, setCompany] = useState(null);
+    const [profileLoading, setProfileLoading] = useState(false);
 
     if (!authenticated) {
         redirect("/login");
@@ -32,10 +35,30 @@ export default function Sidebar({ authenticated }) {
         }
     };
 
+    const fetchProfile = async () => {
+        setProfileLoading(true);
+        // setError(null);
+        try {
+            const data = await getCompanyProfile();
+            setCompany(data.data);
+        } catch (err) {
+            // setError('Failed to load company profile');
+            setCompany(null);
+        } finally {
+            setProfileLoading(false);
+        }
+    };
+
     useEffect(() => {
         fetchUserStatus();
-        console.log("CHECK: " + authenticated);
+        fetchProfile();
+
+        // console.log("CHECK: " + authenticated);
     }, []);
+
+    const logoUrl = company?.logo
+        ? `${process.env.NEXT_PUBLIC_API_URL}/asset/${company.logo}`
+        : null;
 
     // Define base class for sidebar
     const className =
@@ -96,13 +119,25 @@ export default function Sidebar({ authenticated }) {
             <div className={`${className}${appendClass}`}>
                 <div className="p-2 flex items-center justify-center">
                     <Link href="#">
-                        <Image
-                            className="rounded-full"
-                            src={logo.src}
-                            alt="Company Logo"
-                            width={100}
-                            height={100}
-                        />
+                        {profileLoading ? (
+                            <div className="animate-pulse bg-gray-200 rounded-full w-24 h-24"></div>
+                        ) : company && company.logo ? (
+                            <Image
+                                className="rounded-full"
+                                src={logoUrl}
+                                alt="Company Logo"
+                                width={100}
+                                height={100}
+                            />
+                        ) : (
+                            <Image
+                                className="rounded-full"
+                                src={logo.src}
+                                alt="Default Logo"
+                                width={100}
+                                height={100}
+                            />
+                        )}
                     </Link>
                 </div>
                 {/* Scrollable menu items */}

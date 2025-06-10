@@ -75,6 +75,7 @@ export function DialogModalLinkUndangan({ open, onOpenChange, index, row, formId
             </div>
           </div>
           <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
             <Button type="submit" disabled={isLoading}>
               {isLoading ? (
                 <>
@@ -85,8 +86,6 @@ export function DialogModalLinkUndangan({ open, onOpenChange, index, row, formId
                 "Submit"
               )}
             </Button>
-
-              <AlertDialogCancel>Cancel</AlertDialogCancel>
           </AlertDialogFooter>
         </form>
       </AlertDialogContent>

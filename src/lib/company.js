@@ -2,7 +2,7 @@ import axios from "axios";
 
 export const getCompanyProfile = async () => {
     try {
-        const response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/company-profile`);
+        const response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/company`);
         // Check the response structure in your API docs or logs
         return response.data; // Adjust based on API: response.data or response.data.data
     } catch (error) {

@@ -37,6 +37,7 @@ import {
 } from "@/components/ui/command"; // adjust path as needed
 import { useSession } from 'next-auth/react';
 import Link from 'next/link';
+import { getCompanyProfile } from '@/lib/company';
 
 
 const formatDateTime = (datetime) => {
@@ -100,6 +101,9 @@ const Home = () => {
 
   const [commandOpen, setCommandOpen] = useState(false);
   const [commandInput, setCommandInput] = useState("");
+
+  const [company, setCompany] = useState(null);
+  const [profileLoading, setProfileLoading] = useState(true);
 
   const { data: session, status } = useSession();
 
@@ -425,6 +429,24 @@ const Home = () => {
     fetchOptions();
   }, [formData.idTema]);
 
+  useEffect(() => {
+    const fetchProfile = async () => {
+      setProfileLoading(true);
+      // setError(null);
+      try {
+        const data = await getCompanyProfile();
+        setCompany(data.data);
+      } catch (err) {
+        // setError('Failed to load company profile');
+        setCompany(null);
+      } finally {
+        setProfileLoading(false);
+      }
+    };
+
+    fetchProfile();
+  }, []);
+
   if (!mounted) {
     return null;
   }
@@ -432,20 +454,22 @@ const Home = () => {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-100">
-<div className="bg-white p-8 rounded-lg shadow-lg max-w-lg w-full">
-  <div className="flex items-center mb-2">
-    {session && (
-      <Link href="/forms" className="mr-4">
-        <BiArrowBack className="h-8 w-8" />
-      </Link>
-    )}
+      <div className="bg-white p-8 rounded-lg shadow-lg max-w-lg w-full">
+        <div className="flex items-center mb-2">
+          {session && (
+            <Link href="/forms" className="mr-4">
+              <BiArrowBack className="h-8 w-8" />
+            </Link>
+          )}
 
-    <h1 className="text-2xl font-bold">SewaUndangan</h1>
-  </div>
+          <h1 className="text-2xl font-bold">
+            {profileLoading ? 'Form Undangan' : company?.name}
+          </h1>
+        </div>
 
-  <h2 className="text-2xl font-medium mb-4">
-    {currentStep}/{maxStep}
-  </h2>
+        <h2 className="text-2xl font-medium mb-4">
+          {currentStep}/{maxStep}
+        </h2>
         <form onSubmit={handleSubmit} encType='multipart/form-data'>
           {currentStep === 1 && (
             <>
@@ -1200,8 +1224,13 @@ const Home = () => {
               <div className="mb-4">
                 <label className="block text-gray-700">
                   Pilihan Thema Ceknya di{' '}
-                  <a href='https://sewaundangan.com/#chat_me' target='_blank' rel='noopener noreferrer' className="text-blue-500 hover:underline">
-                    Sewaundangan.com
+                  <a
+                    href={profileLoading ? '#' : (company?.url || '#')}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-blue-500 hover:underline"
+                  >
+                    {profileLoading ? 'website' : company?.name}
                   </a>
                   <span className='text-red-500'>*</span>
                 </label>

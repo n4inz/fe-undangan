@@ -25,28 +25,31 @@ export default function DialogModalProofPayment({ formId, phoneNumber }) {
         isFont: false,
         revisi: false,
         total: 0,
-        totalPayment: 0
+        totalPayment: 0,
     });
     const [errors, setErrors] = useState({});
     const [isLoading, setIsLoading] = useState(false);
     const [paymentStatus, setPaymentStatus] = useState(false);
 
-    const fileInputRef = useRef(null); // Tambahkan useRef
-
+    const fileInputRef = useRef(null);
 
     const checkPayment = async () => {
-        const response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/payment/${formId}/${phoneNumber}`);
-        if (response.data != null) {
-            setFormData({
-                ...response.data
-            });
-            setPaymentStatus(true);
+        try {
+            const response = await axios.get(
+                `${process.env.NEXT_PUBLIC_API_URL}/payment/${formId}/${phoneNumber}`
+            );
+            if (response.data) {
+                setFormData(response.data);
+                setPaymentStatus(true);
+            }
+        } catch (error) {
+            console.error('Error fetching payment:', error);
         }
-    }
+    };
 
     useEffect(() => {
         checkPayment();
-    }, [formData]);
+    }, [formId, phoneNumber]); // Only depend on formId and phoneNumber
 
     return (
         <Dialog>
@@ -70,24 +73,56 @@ export default function DialogModalProofPayment({ formId, phoneNumber }) {
                     </div>
                     <div className="mt-4">
                         <p className="font-bold">Ekstra:</p>
-                        <p className="flex items-center">{formData.isMusic ? (<BiCheck className="mr-2 text-green-600" />) : (<BiX className="mr-2 text-red-600" />)} Custom Musik</p>
-                        <p className='flex items-center'>{formData.isFont ? (<BiCheck className="mr-2 text-green-600" />) : (<BiX className="mr-2 text-red-600" />)} Custom Font</p>
-                        <p className='flex items-center'><BiCheck className="mr-2 text-green-600" /> Thema</p>
-                        <p className='flex items-center'><BiCheck className="mr-2 text-green-600" /> Revisi 5x</p>
+                        <p className="flex items-center">
+                            {formData.isMusic ? (
+                                <BiCheck className="mr-2 text-green-600" />
+                            ) : (
+                                <BiX className="mr-2 text-red-600" />
+                            )}{' '}
+                            Custom Musik
+                        </p>
+                        <p className="flex items-center">
+                            {formData.isFont ? (
+                                <BiCheck className="mr-2 text-green-600" />
+                            ) : (
+                                <BiX className="mr-2 text-red-600" />
+                            )}{' '}
+                            Custom Font
+                        </p>
+                        <p className="flex items-center">
+                            {formData.tema ? (
+                                <BiCheck className="mr-2 text-green-600" />
+                            ) : (
+                                <BiX className="mr-2 text-red-600" />
+                            )}{' '}
+                            Thema
+                        </p>
+                        <p className="flex items-center">
+                            {formData.revisi ? (
+                                <BiCheck className="mr-2 text-green-600" />
+                            ) : (
+                                <BiX className="mr-2 text-red-600" />
+                            )}{' '}
+                            Revisi 5x
+                        </p>
                     </div>
                     <div className="mt-4">
                         <p className="font-bold">Total:</p>
                         <p>Rp. {formData.totalPayment.toLocaleString('id-ID')}</p>
                     </div>
                     <div className="mt-4">
-                        <p className='font-bold'>Screenshot:</p>
-                        <Image
-                            src={`${process.env.NEXT_PUBLIC_API_URL}/payment/${formData.file}`}
-                            alt="Payment"
-                            width={400}
-                            height={400}
-                            className="rounded-lg"
-                        />
+                        <p className="font-bold">Screenshot:</p>
+                        {formData.file ? (
+                            <Image
+                                src={`${process.env.NEXT_PUBLIC_API_URL}/payment/${formData.file}`}
+                                alt="Payment"
+                                width={400}
+                                height={400}
+                                className="rounded-lg"
+                            />
+                        ) : (
+                            <p>No screenshot available</p>
+                        )}
                     </div>
                 </ScrollArea>
             </DialogContent>
