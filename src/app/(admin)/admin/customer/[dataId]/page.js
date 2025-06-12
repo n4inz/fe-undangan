@@ -6,12 +6,18 @@ import DataTable from 'react-data-table-component';
 import { DebounceInput } from 'react-debounce-input';
 import { Button } from '@/components/ui/button'; // pastikan ini mengarah ke komponen `shadcn/ui`
 import Link from 'next/link';
+import StatusSelect from '@/components/StatusSelect';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { BiMoneyWithdraw } from 'react-icons/bi';
 
 const CustomerTablePage = ({ params }) => {
   const [data, setData] = useState([]);
   const [search, setSearch] = useState('');
   const [filteredData, setFilteredData] = useState([]);
   const [totalRows, setTotalRows] = useState(0);
+  const [customer, setCustomer] = useState(null);
+  const [updatedStatus, setUpdatedStatus] = useState(null);
+  const [isAdmin, setIsAdmin] = useState(0);
 
   const fetchData = async () => {
     try {
@@ -22,6 +28,8 @@ const CustomerTablePage = ({ params }) => {
       setData(forms);
       setFilteredData(forms);
       setTotalRows(forms.length);
+      setCustomer(response.data.user); // <-- store the whole customer object
+      setIsAdmin(response.data.isAdmin || 0); // <-- store the admin status
     } catch (err) {
       console.error('Error fetching data:', err);
     }
@@ -41,15 +49,21 @@ const CustomerTablePage = ({ params }) => {
     setTotalRows(filtered.length);
   };
 
-  const handlePageChange = () => {};
-  const handlePerRowsChange = () => {};
+  const handleStatusUpdate = (updatedStatus) => {
+    setUpdatedStatus(updatedStatus);
+    fetchData();
+  };
+
+
+  const handlePageChange = () => { };
+  const handlePerRowsChange = () => { };
 
   const columns = [
     {
       name: 'ID',
       selector: row => `${row.id}`,
       sortable: true,
-    },    
+    },
     {
       name: 'Name',
       selector: row => `${row.namaPanggilanPria} & ${row.namaPanggilanWanita}`,
@@ -61,20 +75,40 @@ const CustomerTablePage = ({ params }) => {
       center: true,
     },
     {
-      name: 'Music',
-      selector: row => row.music?.name || '-',
+      name: 'Status',
+      cell: row => (
+        <StatusSelect
+          status={row}
+          onDataUpdate={handleStatusUpdate}
+        />
+      ),
+      wrap: true, // Allows text to wrap and avoid overflow
     },
+
     {
       name: 'Aksi',
       cell: row => (
-        <Link href={`/admin/detail/${row.id}`}>
-          <Button variant="outline">Detail</Button>
-        </Link>
-      ),
-      ignoreRowClick: true,
-      allowOverflow: true,
-      button: true,
-    },
+        <>
+          <Link href={`/admin/detail/${row.id}`}>
+            <Button variant="outline">Detail</Button>
+          </Link>
+          <div className='flex-row items-center gap-x-2 ml-2'>
+            {row.isPaid === 1 && (
+              <Popover className="inline-block">
+                <PopoverTrigger>
+                  <BiMoneyWithdraw className="mr-2 h-4 w-4 text-green-600" />
+                </PopoverTrigger>
+                {isAdmin === 1 && (
+                  <PopoverContent className="w-20 p-2 text-xs text-center">
+                    {row.paymentAmount}
+                  </PopoverContent>
+                )}
+              </Popover>
+
+            )}
+          </div>
+        </>
+      )},
   ];
 
   return (
@@ -86,7 +120,9 @@ const CustomerTablePage = ({ params }) => {
 
         <div className="flex flex-col flex-grow w-full md:pl-24">
           <div className="p-4">
-            <div className="py-4 text-xl font-semibold">Customer</div>
+            <div className="py-4 text-xl font-semibold">
+              Customer : {customer?.email || '-'}
+            </div>
 
             <DebounceInput
               minLength={2}
