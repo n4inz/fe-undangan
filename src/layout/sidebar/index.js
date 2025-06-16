@@ -4,13 +4,15 @@ import Link from "next/link";
 import { redirect, useRouter } from "next/navigation";
 import { SlHome } from "react-icons/sl";
 import { FaListUl, FaClipboardList } from "react-icons/fa";
-import { BiLogOut, BiUser, BiMenu, BiMoney, BiHeartSquare, BiImages, BiSolidMusic, BiUserPlus, BiUserCircle, BiCog, BiX } from "react-icons/bi";
+import { BiLogOut, BiUser, BiMenu, BiMoney, BiHeartSquare, BiImages, BiSolidMusic, BiUserPlus, BiUserCircle, BiCog, BiX, BiImage } from "react-icons/bi";
 import Image from "next/image";
 
 import logo from "../../../public/logo/Sewa.png";
 import axios from "axios";
 import Cookies from "js-cookie";
 import { getCompanyProfile } from "@/lib/company";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { ChevronDown } from "lucide-react";
 
 export default function Sidebar({ authenticated }) {
     const router = useRouter();
@@ -18,6 +20,7 @@ export default function Sidebar({ authenticated }) {
     const [isSidebarOpen, setIsSidebarOpen] = useState(false); // State to handle sidebar visibility
     const [company, setCompany] = useState(null);
     const [profileLoading, setProfileLoading] = useState(false);
+    const [isFileManagerOpen, setFileManagerOpen] = useState(false);
 
     if (!authenticated) {
         redirect("/login");
@@ -142,12 +145,13 @@ export default function Sidebar({ authenticated }) {
                 </div>
                 {/* Scrollable menu items */}
                 <div className="flex flex-col overflow-y-auto max-h-[calc(100vh-150px)] pb-4">
-                    {isAdmin === 1 &&
+                    {isAdmin === 1 && (
                         <MenuItem name="Dashboard" route="/admin/dashboard" icon={<SlHome />} />
-                    }
+                    )}
                     <MenuItem name="List" route="/admin/list" icon={<FaListUl />} />
                     <MenuItem name="MyList" route="/admin/mylist" icon={<FaClipboardList />} />
-                    {isAdmin === 1 &&
+
+                    {isAdmin === 1 && (
                         <>
                             <MenuItem name="Staff" route="/admin/staff" icon={<BiUser />} />
                             <MenuItem name="Customer" route="/admin/customer" icon={<BiUserCircle />} />
@@ -155,10 +159,27 @@ export default function Sidebar({ authenticated }) {
                             <MenuItem name="Tema" route="/admin/tema" icon={<BiHeartSquare />} />
                             <MenuItem name="Asset" route="/admin/asset" icon={<BiImages />} />
                             <MenuItem name="Musik" route="/admin/music" icon={<BiSolidMusic />} />
+                            {/* File Manager Group */}
+                            <Collapsible open={isFileManagerOpen} onOpenChange={setFileManagerOpen} className="pl-3">
+                                <CollapsibleTrigger className="w-full flex items-center justify-between px-4 py-2 hover:bg-muted rounded-md">
+                                    <div className="flex items-center gap-2">
+                                        <BiImages className="text-lg" />
+                                        <span>File Manager</span>
+                                    </div>
+                                    <ChevronDown className={`transition-transform ${isFileManagerOpen ? "rotate-180" : ""}`} size={16} />
+                                </CollapsibleTrigger>
+
+                                <CollapsibleContent className="ml-6 mt-1 space-y-1">
+                                    <MenuItem name="Gallery" route="/admin/gallery" icon={<BiImage />} />
+                                </CollapsibleContent>
+                            </Collapsible>
+
                             <MenuItem name="Setting" route="/admin/setting" icon={<BiCog />} />
                         </>
-                    }
+                    )}
+
                     <MenuItem name="Logout" route="#logout" icon={<BiLogOut />} onClick={handleLogout} />
+
                 </div>
             </div>
 

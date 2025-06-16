@@ -23,68 +23,139 @@ export default function Dashboard() {
     const { data: session, status } = useSession();
     const [forms, setForms] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
 
-    // Handle session and fetch forms data
-    const fetchForms = useCallback(async (token) => {
+    const getBackendToken = async () => {
+        const res = await fetch('/api/get-backend-token', {
+            method: 'GET',
+            credentials: 'include',
+        });
+        if (!res.ok) {
+            throw new Error(`Failed to get backend token: ${res.statusText}`);
+        }
+        const data = await res.json();
+        if (!data.token) {
+            throw new Error('No token received from backend');
+        }
+        return data.token;
+    };
+
+    const fetchForms = useCallback(async () => {
         try {
+            const backendToken = await getBackendToken();
             const response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/get-form-customer`, {
                 headers: {
-                    Authorization: `Bearer ${token}`,
+                    Authorization: `Bearer ${backendToken}`,
                 },
             });
 
             const formData = response.data.form || [];
-            setForms(
-                Array.isArray(formData)
-                    ? formData.map(form => ({
-                        ...form,
-                        slug: form.linkUndangan
-                            ? form.linkUndangan
-                            : `${process.env.NEXT_PUBLIC_LINK_UNDANGAN}/${form.slug || ''}`
-                    }))
-                    : []
-            );
+            const formattedForms = Array.isArray(formData)
+                ? formData.map(form => ({
+                      ...form,
+                      slug: form.linkUndangan
+                          ? form.linkUndangan
+                          : `${process.env.NEXT_PUBLIC_LINK_UNDANGAN}/${form.slug || ''}`,
+                  }))
+                : [];
+            setForms(formattedForms); // Fixed typo: formatedForms -> formattedForms
+            setError(null);
         } catch (error) {
             console.error('Error fetching forms:', error);
-            router.push("/");
+            setError(error.message || 'Failed to load forms');
+            throw error;
         } finally {
             setLoading(false);
         }
-    }, [router]);
+    }, []);
 
     useEffect(() => {
-        if (status === "authenticated") {
-            const { name, email, image: avatar } = session.user;
-            const { accessToken } = session;
+        const loadData = async () => {
+            if (status === "authenticated") {
+                try {
+                    const { idToken, email } = session.user;
+                    const userKey = `user-registered-${email}`;
+                    const isUserRegistered = localStorage.getItem(userKey);
 
-            axios.post(
-                `${process.env.NEXT_PUBLIC_API_URL}/login-customer`,
-                { name, email, avatar },
-                {
-                    headers: {
-                        Authorization: `Bearer ${accessToken}`,
-                    },
-                    validateStatus: () => true, // allow handling all status codes
-                }
-            )
-                .then(async (res) => {
-                    if (res.status !== 200) {
-                        // Remove next-auth cookies and redirect
-                        await signOut({ redirect: false });
-                        router.push("/");
+                    if (!isUserRegistered) {
+                        // Initial login: Call login-customer
+                        const res = await axios.post(
+                            `${process.env.NEXT_PUBLIC_API_URL}/login-customer`,
+                            {},
+                            {
+                                headers: {
+                                    Authorization: `Bearer ${idToken}`,
+                                },
+                                validateStatus: () => true,
+                            }
+                        );
+
+                        if (res.status !== 200) {
+                            setError(`Login failed: ${res.data.message || 'Unknown error'}`);
+                            await signOut({ redirect: false });
+                            router.push("/");
+                            setLoading(false);
+                            return;
+                        }
+
+                        // Mark user as registered
+                        localStorage.setItem(userKey, 'true');
                     } else {
-                        fetchForms(accessToken);
+                        // Check user existence
+                        const backendToken = await getBackendToken();
+                        const checkRes = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/check-user`, {
+                            headers: {
+                                Authorization: `Bearer ${backendToken}`,
+                            },
+                            validateStatus: () => true,
+                        });
+
+                        if (checkRes.status === 404) {
+                            // User not found: Clear flag and retry login-customer
+                            localStorage.removeItem(userKey);
+                            const retryRes = await axios.post(
+                                `${process.env.NEXT_PUBLIC_API_URL}/login-customer`,
+                                {},
+                                {
+                                    headers: { Authorization: `Bearer ${idToken}` },
+                                    validateStatus: () => true,
+                                }
+                            );
+
+                            if (retryRes.status !== 200) {
+                                setError(`Login retry failed: ${retryRes.data.message || 'Unknown error'}`);
+                                await signOut({ redirect: false });
+                                router.push("/");
+                                setLoading(false);
+                                return;
+                            }
+
+                            localStorage.setItem(userKey, 'true');
+                        } else if (checkRes.status !== 200) {
+                            setError(`User check failed: ${checkRes.data.message || 'Unknown error'}`);
+                            await signOut({ redirect: false });
+                            router.push("/");
+                            setLoading(false);
+                            return;
+                        }
                     }
-                })
-                .catch(async (err) => {
-                    console.error("Gagal simpan user:", err);
+
+                    // Fetch forms data
+                    await fetchForms();
+                } catch (err) {
+                    console.error("Error:", err);
+                    setError(err.message || 'An unexpected error occurred');
                     await signOut({ redirect: false });
                     router.push("/");
                     setLoading(false);
-                });
-        } else if (status === "unauthenticated") {
-            router.push("/");
-        }
+                }
+            } else if (status === "unauthenticated") {
+                router.push("/");
+                setLoading(false);
+            }
+        };
+
+        loadData();
     }, [status, session, router, fetchForms]);
 
     useEffect(() => {
@@ -153,6 +224,13 @@ export default function Dashboard() {
 
                     {/* Main Content */}
                     <main className="p-4">
+                        {/* Error Message */}
+                        {error && (
+                            <div className="mb-4 p-3 bg-red-100 text-red-700 rounded">
+                                {error}
+                            </div>
+                        )}
+
                         {/* Create Invitation Button */}
                         <Button className="w-full mb-6" asChild>
                             <Link href="/forms/new">
