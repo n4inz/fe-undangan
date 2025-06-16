@@ -40,9 +40,10 @@ export const authOptions = {
 
     callbacks: {
         async jwt({ token, account, user }) {
-            // Store Google ID token and user info on initial login
+            // Store Google ID token, refresh token, and user info on initial login
             if (account && user) {
                 token.idToken = account.id_token; // Store Google ID token
+                token.refreshToken = account.refresh_token; // Store refresh token
                 token.name = user.name;
                 token.email = user.email;
                 token.picture = user.image;
@@ -51,8 +52,9 @@ export const authOptions = {
         },
 
         async session({ session, token }) {
-            // Pass Google ID token and user info to session
+            // Pass Google ID token, refresh token, and user info to session
             session.user.idToken = token.idToken;
+            session.user.refreshToken = token.refreshToken; // Optional, if needed on client-side
             session.user.name = token.name;
             session.user.email = token.email;
             session.user.image = token.picture;
@@ -63,6 +65,13 @@ export const authOptions = {
             return `${baseUrl}/forms`;
         },
     },
+
+    // Optional: Enable debug mode and custom pages
+    // debug: process.env.NODE_ENV === 'development',
+    // pages: {
+    //     signIn: '/auth/signin', // Custom sign-in page
+    //     error: '/auth/error',   // Custom error page
+    // },
 };
 
 const handler = NextAuth(authOptions);
