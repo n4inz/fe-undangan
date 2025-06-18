@@ -1,5 +1,6 @@
 import NextAuth from "next-auth";
 import GoogleProvider from "next-auth/providers/google";
+import axios from 'axios';
 
 export const authOptions = {
   providers: [
@@ -8,7 +9,7 @@ export const authOptions = {
       clientSecret: process.env.GOOGLE_CLIENT_SECRET,
       authorization: {
         params: {
-          access_type: "offline", // Ensure refresh token is requested
+          access_type: "offline",
         },
       },
     }),
@@ -28,9 +29,9 @@ export const authOptions = {
       name: `next-auth.session-token`,
       options: {
         httpOnly: true,
-        sameSite: "none", // Changed from 'lax' to allow cross-site requests
-        path: "/",
-        secure: true, // Required for sameSite: 'none' and production
+        sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+        path: '/',
+        secure: process.env.NODE_ENV === 'production',
         maxAge: 30 * 24 * 60 * 60, // 30 days in seconds
       },
     },
@@ -39,23 +40,67 @@ export const authOptions = {
   secret: process.env.NEXTAUTH_SECRET,
 
   callbacks: {
-    async jwt({ token, account, user }) {
-      if (account && user) {
-        token.idToken = account.id_token;
-        token.refreshToken = account.refresh_token;
+    async signIn({ user, account }) {
+      try {
+        const response = await axios.post(
+          `${process.env.NEXT_PUBLIC_API_URL}/login-customer`,
+          {},
+          {
+            headers: {
+              Authorization: `Bearer ${account.id_token}`,
+            },
+            validateStatus: () => true,
+          }
+        );
+
+        console.log('SignIn Callback - Backend Response:', {
+          status: response.status,
+          data: response.data,
+        });
+
+        if (response.status !== 200 || !response.data.sessionToken || !response.data.user) {
+          console.error('SignIn Callback - Invalid response:', response.data);
+          return false;
+        }
+
+        user.sessionToken = response.data.sessionToken;
+        user.email = response.data.user.email;
+        user.name = response.data.user.name;
+        user.image = response.data.user.avatar;
+        return true;
+      } catch (error) {
+        console.error('SignIn Callback - Error:', {
+          message: error.message,
+          response: error.response?.data,
+          status: error.response?.status,
+        });
+        return false;
+      }
+    },
+
+    async jwt({ token, user }) {
+      if (user) {
+        token.sessionToken = user.sessionToken;
         token.name = user.name;
         token.email = user.email;
         token.picture = user.image;
       }
+      console.log('JWT Callback - Token:', {
+        sessionToken: token.sessionToken,
+        email: token.email,
+      });
       return token;
     },
 
     async session({ session, token }) {
-      session.user.idToken = token.idToken;
-      session.user.refreshToken = token.refreshToken;
+      session.user.sessionToken = token.sessionToken;
       session.user.name = token.name;
       session.user.email = token.email;
       session.user.image = token.picture;
+      console.log('Session Callback - Session:', {
+        sessionToken: session.user.sessionToken,
+        email: session.user.email,
+      });
       return session;
     },
 
@@ -64,7 +109,7 @@ export const authOptions = {
     },
   },
 
-  debug: true, // Enable debug logs to diagnose issues
+  debug: process.env.NODE_ENV !== 'production',
 };
 
 const handler = NextAuth(authOptions);
