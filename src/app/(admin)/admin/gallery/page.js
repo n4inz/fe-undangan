@@ -78,44 +78,43 @@ const Gallery = () => {
     setMonthData(newMonthData);
   }, [selectedYear, imageData]);
 
-  const handleDeleteMonth = useCallback(async () => {
-    if (!selectedMonth || !selectedYear) return;
+const handleDeleteMonth = useCallback(async () => {
+  if (!selectedMonth || !selectedYear) return;
 
-    setIsDeleting(true);
-    try {
-      const response = await axios.delete(`${process.env.NEXT_PUBLIC_API_URL}/delete-month-images`, {
-        data: { year: selectedYear, month: selectedMonth },
-        withCredentials: true,
-      });
-      console.log('Delete response:', response.data);
-      toast({ title: "Success", description: `All images in ${selectedMonth} ${selectedYear} deleted` });
+  setIsDeleting(true);
+  try {
+    const response = await axios.delete(`${process.env.NEXT_PUBLIC_API_URL}/delete-month-images?year=${selectedYear}&month=${selectedMonth}`, {
+      withCredentials: true,
+    });
+    console.log('Delete response:', response.data);
+    toast({ title: "Success", description: `All images in ${selectedMonth} ${selectedYear} deleted` });
 
-      const [refreshImageResponse, refreshUncompressedResponse] = await Promise.all([
-        axios.get(`${process.env.NEXT_PUBLIC_API_URL}/get-image-data`, { withCredentials: true }),
-        axios.get(`${process.env.NEXT_PUBLIC_API_URL}/get-uncompressed-data`, { withCredentials: true }),
-      ]);
-      const { imageData: fetchedData, yearTotals: newYearTotals } = refreshImageResponse.data;
-      const { uncompressedCount: newUncompressedCount } = refreshUncompressedResponse.data;
+    const [refreshImageResponse, refreshUncompressedResponse] = await Promise.all([
+      axios.get(`${process.env.NEXT_PUBLIC_API_URL}/get-image-data`, { withCredentials: true }),
+      axios.get(`${process.env.NEXT_PUBLIC_API_URL}/get-uncompressed-data`, { withCredentials: true }),
+    ]);
+    const { imageData: fetchedData, yearTotals: newYearTotals } = refreshImageResponse.data;
+    const { uncompressedCount: newUncompressedCount } = refreshUncompressedResponse.data;
 
-      setImageData(fetchedData);
-      setYearTotals(newYearTotals || {});
-      setUncompressedCount(newUncompressedCount);
+    setImageData(fetchedData);
+    setYearTotals(newYearTotals || {});
+    setUncompressedCount(newUncompressedCount);
 
-      const newMonthData = { ...monthData };
-      const selectedYearData = fetchedData[selectedYear] || {};
-      months.forEach(month => {
-        newMonthData[month] = selectedYearData[month] || 0;
-      });
-      setMonthData(newMonthData);
-      setSelectedMonth(null);
-    } catch (error) {
-      console.error('Error deleting images:', error.response?.data || error.message);
-      toast({ title: "Error", description: `Failed to delete images: ${error.response?.data?.error || error.message}` });
-    } finally {
-      setIsDeleting(false);
-      setIsMonthDialogOpen(false);
-    }
-  }, [selectedMonth, selectedYear, monthData]);
+    const newMonthData = { ...monthData };
+    const selectedYearData = fetchedData[selectedYear] || {};
+    months.forEach(month => {
+      newMonthData[month] = selectedYearData[month] || 0;
+    });
+    setMonthData(newMonthData);
+    setSelectedMonth(null);
+  } catch (error) {
+    console.error('Error deleting images:', error.response?.data || error.message);
+    toast({ title: "Error", description: `Failed to delete images: ${error.response?.data?.error || error.message}` });
+  } finally {
+    setIsDeleting(false);
+    setIsMonthDialogOpen(false);
+  }
+}, [selectedMonth, selectedYear, monthData]);
 
   const handleDeleteUncompressedFiles = useCallback(async () => {
     setIsDeleting(true);
