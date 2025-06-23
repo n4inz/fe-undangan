@@ -85,10 +85,10 @@ export const authOptions = {
         token.email = user.email;
         token.picture = user.image;
       }
-      console.log('JWT Callback - Token:', {
-        sessionToken: token.sessionToken,
-        email: token.email,
-      });
+      // console.log('JWT Callback - Token:', {
+      //   sessionToken: token.sessionToken,
+      //   email: token.email,
+      // });
       return token;
     },
 
@@ -97,10 +97,10 @@ export const authOptions = {
       session.user.name = token.name;
       session.user.email = token.email;
       session.user.image = token.picture;
-      console.log('Session Callback - Session:', {
-        sessionToken: session.user.sessionToken,
-        email: session.user.email,
-      });
+      // console.log('Session Callback - Session:', {
+      //   sessionToken: session.user.sessionToken,
+      //   email: session.user.email,
+      // });
       return session;
     },
 

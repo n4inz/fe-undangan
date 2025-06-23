@@ -162,11 +162,11 @@ export default function Dashboard() {
                                             </p>
                                         </div>
                                     </DropdownMenuLabel>
-                                    <DropdownMenuSeparator />
+                                    {/* <DropdownMenuSeparator />
                                     <DropdownMenuItem asChild>
                                         <Link href="/profile">Profile</Link>
                                     </DropdownMenuItem>
-                                    <DropdownMenuSeparator />
+                                    <DropdownMenuSeparator /> */}
                                     <DropdownMenuItem onClick={() => signOut()}>
                                         Log out
                                     </DropdownMenuItem>

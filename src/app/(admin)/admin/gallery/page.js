@@ -30,19 +30,24 @@ const Gallery = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [selectedMonth, setSelectedMonth] = useState(null);
   const [isDeleting, setIsDeleting] = useState(false);
-  const [isDialogOpen, setIsDialogOpen] = useState(false); // Single dialog state
+  const [isMonthDialogOpen, setIsMonthDialogOpen] = useState(false);
+  const [isUncompressedDialogOpen, setIsUncompressedDialogOpen] = useState(false);
+  const [uncompressedCount, setUncompressedCount] = useState(0);
 
   useEffect(() => {
     const fetchInitialData = async () => {
       setIsLoading(true);
       try {
-        const response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/get-image-data`, {
-          withCredentials: true,
-        });
-        const { imageData: fetchedData, yearTotals: newYearTotals } = response.data;
+        const [imageResponse, uncompressedResponse] = await Promise.all([
+          axios.get(`${process.env.NEXT_PUBLIC_API_URL}/get-image-data`, { withCredentials: true }),
+          axios.get(`${process.env.NEXT_PUBLIC_API_URL}/get-uncompressed-data`, { withCredentials: true }),
+        ]);
+        const { imageData: fetchedData, yearTotals: newYearTotals } = imageResponse.data;
+        const { uncompressedCount: newUncompressedCount } = uncompressedResponse.data;
 
         setImageData(fetchedData);
         setYearTotals(newYearTotals || {});
+        setUncompressedCount(newUncompressedCount);
 
         const allYears = Object.keys(newYearTotals || {}).map(Number);
         const minYear = Math.min(...allYears);
@@ -53,8 +58,8 @@ const Gallery = () => {
         const initialYear = yearRange[0];
         setSelectedYear(initialYear);
       } catch (error) {
-        console.error('Error fetching image data:', error.response?.data || error.message);
-        toast({ title: "Error", description: "Failed to fetch image data. Check authentication." });
+        console.error('Error fetching data:', error.response?.data || error.message);
+        toast({ title: "Error", description: "Failed to fetch data. Check authentication." });
       } finally {
         setIsLoading(false);
       }
@@ -85,12 +90,17 @@ const Gallery = () => {
       console.log('Delete response:', response.data);
       toast({ title: "Success", description: `All images in ${selectedMonth} ${selectedYear} deleted` });
 
-      const refreshResponse = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/get-image-data`, {
-        withCredentials: true,
-      });
-      const { imageData: fetchedData, yearTotals: newYearTotals } = refreshResponse.data;
+      const [refreshImageResponse, refreshUncompressedResponse] = await Promise.all([
+        axios.get(`${process.env.NEXT_PUBLIC_API_URL}/get-image-data`, { withCredentials: true }),
+        axios.get(`${process.env.NEXT_PUBLIC_API_URL}/get-uncompressed-data`, { withCredentials: true }),
+      ]);
+      const { imageData: fetchedData, yearTotals: newYearTotals } = refreshImageResponse.data;
+      const { uncompressedCount: newUncompressedCount } = refreshUncompressedResponse.data;
+
       setImageData(fetchedData);
       setYearTotals(newYearTotals || {});
+      setUncompressedCount(newUncompressedCount);
+
       const newMonthData = { ...monthData };
       const selectedYearData = fetchedData[selectedYear] || {};
       months.forEach(month => {
@@ -103,9 +113,31 @@ const Gallery = () => {
       toast({ title: "Error", description: `Failed to delete images: ${error.response?.data?.error || error.message}` });
     } finally {
       setIsDeleting(false);
-      setIsDialogOpen(false); // Close dialog after operation
+      setIsMonthDialogOpen(false);
     }
   }, [selectedMonth, selectedYear, monthData]);
+
+  const handleDeleteUncompressedFiles = useCallback(async () => {
+    setIsDeleting(true);
+    try {
+      const response = await axios.delete(`${process.env.NEXT_PUBLIC_API_URL}/delete-uncompressed-files`, {
+        withCredentials: true,
+      });
+      console.log('Delete uncompressed response:', response.data);
+      toast({ title: "Success", description: response.data.message });
+
+      const uncompressedResponse = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/get-uncompressed-data`, {
+        withCredentials: true,
+      });
+      setUncompressedCount(uncompressedResponse.data.uncompressedCount);
+    } catch (error) {
+      console.error('Error deleting uncompressed files:', error.response?.data || error.message);
+      toast({ title: "Error", description: `Failed to delete uncompressed files: ${error.response?.data?.error || error.message}` });
+    } finally {
+      setIsDeleting(false);
+      setIsUncompressedDialogOpen(false);
+    }
+  }, []);
 
   return (
     <>
@@ -121,21 +153,55 @@ const Gallery = () => {
                   ? Array.from({ length: 4 }).map((_, i) => (
                     <Skeleton key={i} className="h-10 w-full rounded-md" />
                   ))
-                  : years.slice().reverse().map((year) => (
-                    <Button
-                      key={year}
-                      variant={selectedYear === year ? "default" : "outline"}
-                      onClick={() => setSelectedYear(year)}
-                      className="w-full justify-between"
-                    >
-                      {year}
-                      <span className="bg-blue-500 text-white text-xs font-semibold px-2 py-1 rounded-full ml-2">
-                        {yearTotals[year] || 0} {yearTotals[year] <= 1 ? 'image' : 'images'}
-                      </span>
-                    </Button>
-                  ))}
+                  : <>
+                    {years.slice().reverse().map((year) => (
+                      <Button
+                        key={year}
+                        variant={selectedYear === year ? "default" : "outline"}
+                        onClick={() => setSelectedYear(year)}
+                        className="w-full justify-between"
+                      >
+                        {year}
+                        <span className="bg-blue-500 text-white text-xs font-semibold px-2 py-1 rounded-full ml-2">
+                          {yearTotals[year] || 0} {yearTotals[year] <= 1 ? 'image' : 'images'}
+                        </span>
+                      </Button>
+                    ))}
+                    <AlertDialog open={isUncompressedDialogOpen} onOpenChange={setIsUncompressedDialogOpen}>
+                      <AlertDialogTrigger asChild>
+                        <Button
+                          variant="outline"
+                          className="w-full justify-between mt-2"
+                        >
+                          Uncompressed
+                          <span className="bg-green-500 text-white text-xs font-semibold px-2 py-1 rounded-full ml-2">
+                            {uncompressedCount} {uncompressedCount <= 1 ? 'file' : 'files'}
+                          </span>
+                        </Button>
+                      </AlertDialogTrigger>
+                      <AlertDialogContent>
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>Confirm Deletion</AlertDialogTitle>
+                          <AlertDialogDescription>
+                            Are you sure you want to delete all {uncompressedCount} uncompressed file(s)?
+                          </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel>Cancel</AlertDialogCancel>
+                          <AlertDialogAction
+                            onClick={handleDeleteUncompressedFiles}
+                            disabled={isDeleting}
+                          >
+                            {isDeleting ? 'Deleting...' : 'Yes'}
+                          </AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
+                    {/* Peringatan merah di bawah pilihan */}
+                  </>
+                }
               </div>
-              <div className="md:col-span-10 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+              <div className="md:col-span-10 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-x-4">
                 {isLoading
                   ? Array.from({ length: 12 }).map((_, i) => (
                     <div key={i} className="h-10 w-full bg-gray-200 animate-pulse rounded-md" />
@@ -143,9 +209,9 @@ const Gallery = () => {
                   : months
                     .filter(month => monthData[month] > 0)
                     .map((month) => (
-                      <AlertDialog key={month} open={isDialogOpen && selectedMonth === month} onOpenChange={(open) => {
-                        setIsDialogOpen(open);
-                        if (!open) setSelectedMonth(null); // Reset selected month when closed
+                      <AlertDialog key={month} open={isMonthDialogOpen && selectedMonth === month} onOpenChange={(open) => {
+                        setIsMonthDialogOpen(open);
+                        if (!open) setSelectedMonth(null);
                       }}>
                         <AlertDialogTrigger asChild>
                           <Button
@@ -153,7 +219,7 @@ const Gallery = () => {
                             className="w-full justify-between"
                             onClick={() => {
                               setSelectedMonth(month);
-                              setIsDialogOpen(true); // Open dialog on click
+                              setIsMonthDialogOpen(true);
                             }}
                           >
                             {month}
@@ -184,12 +250,15 @@ const Gallery = () => {
               </div>
             </div>
           </div>
+          <div className="text-red-600 text-center font-bold mt-2">
+            Peringatan: Hapus file dengan hati-hati!
+          </div>
         </div>
       </div>
       {isDeleting && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white p-4 rounded shadow-lg">
-            <p className="text-lg">Deleting images, please wait...</p>
+            <p className="text-lg">Deleting files, please wait...</p>
           </div>
         </div>
       )}

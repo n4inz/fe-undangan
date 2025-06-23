@@ -9,53 +9,72 @@ import PaymentModal from "./paymentModal";
 import { Toaster } from "@/components/ui/toaster";
 
 const Success = ({ params }) => {
+  const { formId, phoneNumber } = params; // Destructure params for cleaner access
   const pathname = usePathname();
   const router = useRouter();
-  const [loading, setLoading] = useState(true);
-  const [form, setForm] = useState([]);
 
-  // const contactUrl = `https://wa.me/${process.env.NEXT_PUBLIC_WA_NUMBER}?text=Halo,%0ASaya%20ingin%20memesan%20undangan%20dengan%20kode%20id%20:%20${params.formId}`;
+  const [loading, setLoading] = useState(true);
+  const [form, setForm] = useState(null); // Initialize form as null
 
   useEffect(() => {
     const fetchData = async () => {
-      const { data, error } = await checkForm(params.formId, params.phoneNumber);
+      try {
+        const { data, error } = await checkForm(formId, phoneNumber);
 
-      if (error) {
-        console.error(error);
-        router.replace('/'); // Redirect on error
-      } else {
-        setLoading(false);
+        if (error) {
+          console.error("Error fetching form data:", error);
+          router.replace("/"); // Redirect on error
+          return; // Stop execution if there's an error
+        }
+
         const formData = data.form || {};
         setForm({
-          ...data.form,
+          ...formData,
           slug: formData.linkUndangan
             ? formData.linkUndangan
-            : `${process.env.NEXT_PUBLIC_LINK_UNDANGAN}/${formData.slug || ''}`
+            : `${process.env.NEXT_PUBLIC_LINK_UNDANGAN}/${formData.slug || ""}`,
         });
-
+      } catch (e) {
+        console.error("Failed to fetch form data:", e);
+        router.replace("/");
+      } finally {
+        setLoading(false); // Ensure loading is set to false after fetch attempt
       }
     };
 
     fetchData();
-  }, [params.formId, params.phoneNumber, router]);
+  }, [formId, phoneNumber, router]); // Dependency array remains the same
 
+  // --- Render Logic ---
   if (loading) {
-    return null; // Render nothing while loading
+    return null; // Or a loading spinner/component
   }
+
+  // Handle case where form data might not be available after loading
+  if (!form) {
+    router.replace("/"); // Redirect if form data is unexpectedly empty
+    return null;
+  }
+
+  // Original button classes from your code
+  const buttonContainerClasses = "w-64 mt-4 flex items-center justify-center";
+  const linkButtonClasses = "bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-full flex items-center justify-center w-full";
+  const editButtonClasses = "bg-slate-500 hover:bg-slate-700 text-white font-bold py-2 px-4 rounded-full flex items-center justify-center w-full";
+
 
   return (
     <div className="flex items-center justify-center bg-gray-100">
-      <Toaster className="z-50" /> {/* Tambahkan ini */}
+      <Toaster className="z-50" />
       <div className="h-screen justify-center bg-white p-8 rounded-lg shadow-lg max-w-lg w-full flex items-center flex-col relative">
         {/* Back Button */}
-        <Link href={`/forms/${params.formId}/${params.phoneNumber}/atur-foto`} className="absolute top-4 left-4">
+        <Link href={`/forms/${formId}/${phoneNumber}/atur-foto`} className="absolute top-4 left-4">
           <BiArrowBack className="h-8 w-8" />
         </Link>
 
         {/* Success Message */}
         <div className="text-center">
           <p className="text-lg font-semibold">
-            Terima Kasih Telah Mengisi Form SewaUndangan. Pesanan dengan ID {params.formId} Akan Segera Kami Proses setelah melakukan pembayaran 🙏
+            Terima Kasih Telah Mengisi Form SewaUndangan. Pesanan dengan ID {formId} Akan Segera Kami Proses setelah melakukan pembayaran 🙏
           </p>
         </div>
 
@@ -67,54 +86,36 @@ const Success = ({ params }) => {
           height={100}
         />
 
-        {/* Contact Admin Button */}
-        {/* <div className="flex mt-4 items-center">
-          <Link
-            href={contactUrl}
-            target="_blank"
-            className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-full flex items-center"
-          >
-            <BiPhone className="h-6 w-6 mr-2" />
-            Hubungi Admin
-          </Link>
-        </div> */}
-
-        {/* <div className="flex mt-4 items-center">
-          <Link
-            href={contactUrl}
-            target="_blank"
-            className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-full flex items-center"
-          >
-            <BiPhone className="h-6 w-6 mr-2" />
-            Hubungi Admin
-          </Link>
-        </div> */}
-
+        {/* Link Undangan Button */}
         {form.slug && (
-          <Link href={form.slug} target='_blank' className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-full flex items-center">
-            <BiEnvelope className="h-6 w-6 mr-2" />
-            Link Undangan
-          </Link>
+          <div className={buttonContainerClasses}>
+            <Link href={form.slug} target='_blank' className={linkButtonClasses}>
+              <BiEnvelope className="h-6 w-6 mr-2" />
+              Link Undangan
+            </Link>
+          </div>
         )}
 
-        <div className="flex mt-4 items-center">
+        {/* Payment Modal Button */}
+        <div className={buttonContainerClasses}>
           <PaymentModal
-            formId={params.formId}
-            phoneNumber={params.phoneNumber}
+            formId={formId}
+            phoneNumber={phoneNumber}
+            // Pass a className to the button within PaymentModal if it renders one
+            buttonClassName={linkButtonClasses}
           />
         </div>
 
-        {/* Atur Foto Button */}
-        <div className="flex mt-4 items-center">
+        {/* Edit Data Button */}
+        <div className={buttonContainerClasses}>
           <Link
             href={`${pathname}/result`}
-            className="bg-slate-500 hover:bg-slate-700 text-white font-bold py-2 px-4 rounded-full flex items-center"
+            className={editButtonClasses}
           >
             <BiPhotoAlbum className="h-6 w-6 mr-2" />
             Edit Data
           </Link>
         </div>
-
       </div>
     </div>
   );
