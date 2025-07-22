@@ -153,50 +153,51 @@ const StepH = ({ number, nextStep, formData, setFormData, onFormChange, partName
     }
   };
 
-  const fetchData = async () => {
-    try {
-      const response = await axios.get(
-        `${process.env.NEXT_PUBLIC_API_URL}/get-selected-photo/${params.formId}/${params.phoneNumber}`,
-        {
-          params: {
-            partName: partName,
-          },
-        }
-      );
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const response = await axios.get(
+          `${process.env.NEXT_PUBLIC_API_URL}/get-selected-photo/${params.formId}/${params.phoneNumber}`,
+          { params: { partName } }
+        );
 
-      const imagesData = response.data.data;
-      const imagesDataxx = response.data;
+        const responseData = response.data;
+        const imagesData = responseData.data;
 
-      console.log("Images Data:", imagesDataxx);
-
-      if (imagesData.length > 0) {
-        let imageUrl;
-        if (imagesData[0].ssSubCover) {
-          imageUrl = `${process.env.NEXT_PUBLIC_API_URL}/images/${imagesData[0].ssSubCover}`;
-        } else if (imagesData[0].fileImage || imagesData[0].file) {
-          imageUrl = `${process.env.NEXT_PUBLIC_API_URL}/${response.data.type}/${response.data.type === 'images' ? imagesData[0].fileImage : imagesData[0].file}`;
-          setFile(1);
-        } else {
-          console.error('Image data does not contain expected fields');
+        // Moved skip condition inside fetch
+        if (responseData?.form?.ceritaJadian == null) {
+          nextStep();
+          console.log("Skipping step because ceritaAwal is null");
           return;
         }
 
-        console.log("Imageurl:", imageUrl);
+        if (imagesData.length > 0) {
+          let imageUrl;
+          if (imagesData[0].ssSubCover) {
+            imageUrl = `${process.env.NEXT_PUBLIC_API_URL}/images/${imagesData[0].ssSubCover}`;
+          } else if (imagesData[0].fileImage || imagesData[0].file) {
+            imageUrl = `${process.env.NEXT_PUBLIC_API_URL}/${response.data.type}/${response.data.type === 'images' ? imagesData[0].fileImage : imagesData[0].file}`;
+            setFile(1);
+          } else {
+            console.error('Image data does not contain expected fields');
+            return;
+          }
 
-        setSelectedImage(imageUrl);
-        setUploading(false);
-        onFormChange();
-      } else {
-        console.error('No images found');
+          console.log("Imageurl:", imageUrl);
+
+          setSelectedImage(imageUrl);
+          setUploading(false);
+          onFormChange();
+        } else {
+          console.error('No images found');
+          setUploading(false);
+        }
+      } catch (error) {
+        console.error('Error fetching data:', error);
         setUploading(false);
       }
-    } catch (error) {
-      console.error('Error fetching data:', error);
-      setUploading(false);
-    }
-  };
+    };
 
-  useEffect(() => {
     fetchData();
     let tourShown = false;
     try {

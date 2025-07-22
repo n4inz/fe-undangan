@@ -4,7 +4,7 @@ import Link from "next/link";
 import { redirect, useRouter } from "next/navigation";
 import { SlHome } from "react-icons/sl";
 import { FaListUl, FaClipboardList } from "react-icons/fa";
-import { BiLogOut, BiUser, BiMenu, BiMoney, BiHeartSquare, BiImages, BiSolidMusic, BiUserPlus, BiUserCircle, BiCog, BiX, BiImage } from "react-icons/bi";
+import { BiLogOut, BiUser, BiMenu, BiMoney, BiHeartSquare, BiImages, BiSolidMusic, BiUserPlus, BiUserCircle, BiCog, BiX, BiImage, BiChat, BiFolder } from "react-icons/bi";
 import Image from "next/image";
 
 import logo from "../../../public/logo/Sewa.png";
@@ -159,11 +159,12 @@ export default function Sidebar({ authenticated }) {
                             <MenuItem name="Tema" route="/admin/tema" icon={<BiHeartSquare />} />
                             <MenuItem name="Asset" route="/admin/asset" icon={<BiImages />} />
                             <MenuItem name="Musik" route="/admin/music" icon={<BiSolidMusic />} />
+                            <MenuItem name="Quote" route="/admin/quotes" icon={<BiChat />} />
                             {/* File Manager Group */}
                             <Collapsible open={isFileManagerOpen} onOpenChange={setFileManagerOpen} className="pl-3">
                                 <CollapsibleTrigger className="w-full flex items-center justify-between px-4 py-2 hover:bg-muted rounded-md">
                                     <div className="flex items-center gap-2">
-                                        <BiImages className="text-lg" />
+                                        <BiFolder className="text-lg" />
                                         <span>File Manager</span>
                                     </div>
                                     <ChevronDown className={`transition-transform ${isFileManagerOpen ? "rotate-180" : ""}`} size={16} />

@@ -14,7 +14,7 @@ import { useRouter } from 'next/navigation';
 // import { XMarkIcon } from '@heroicons/react/24/solid';
 import { BiArrowBack, BiX } from "react-icons/bi";
 import { schema } from '@/lib/validation'
-import { Loader2 } from 'lucide-react';
+import { FileText, Loader2 } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger } from '@/components/ui/select';
 import { getTema } from '@/lib/tema';
 import { SelectValue } from '@radix-ui/react-select';
@@ -38,14 +38,8 @@ import {
 import { useSession } from 'next-auth/react';
 import Link from 'next/link';
 import { getCompanyProfile } from '@/lib/company';
-
-
-const formatDateTime = (datetime) => {
-  if (!datetime) return '';
-  const date = new Date(datetime);
-  const pad = (num) => String(num).padStart(2, '0');
-  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
-};
+import { getQuotes } from '@/lib/quote';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"; // shadcnui dialog
 
 const FORM_DATA_KEY = "formData";
 
@@ -93,7 +87,7 @@ const Home = () => {
   const [options, setOptions] = useState([]);
   const [selectedTema, setSelectedTema] = useState(null);
   const [isLoadingOptions, setIsLoadingOptions] = useState(true);
-  const [maxStep, setMaxStep] = useState(15);
+  const [maxStep, setMaxStep] = useState(16);
   const [bankList, setBankList] = useState([]);
 
   const [currentlyPlaying, setCurrentlyPlaying] = useState(null);
@@ -104,6 +98,9 @@ const Home = () => {
 
   const [company, setCompany] = useState(null);
   const [profileLoading, setProfileLoading] = useState(true);
+
+  const [isQuoteModalOpen, setIsQuoteModalOpen] = useState(false);
+  const [quotes, setQuotes] = useState([]); // State to hold quotes
 
   const { data: session, status } = useSession();
 
@@ -312,6 +309,15 @@ const Home = () => {
     }
   };
 
+  const handleSelectQuoteTemplate = (template) => {
+    setFormData({
+      ...formData,
+      source: template.source,
+      quote: template.quote,
+    });
+    setIsQuoteModalOpen(false);
+  };
+
 
   const getStepFromFieldName = (fieldName) => {
     // Map field names to their corresponding steps.  Adjust this mapping to match your form structure.
@@ -366,8 +372,15 @@ const Home = () => {
       setBankList(data.data);
       setIsLoading(false);
     };
+    const fetchQuote = async () => {
+      const data = await getQuotes();
+      setQuotes(data.data);
+    };
+
 
     fetchBankList();
+    fetchQuote();
+
   }, []);
 
   const handleSelectBankChange = (value, index) => {
@@ -466,6 +479,10 @@ const Home = () => {
             {profileLoading ? 'Form Undangan' : company?.name}
           </h1>
         </div>
+
+        <p className="text-red-500 mb-4">
+          Catatan : Harap kosongkan data yang tidak ingin diisi.
+        </p>
 
         <h2 className="text-2xl font-medium mb-4">
           {currentStep}/{maxStep}
@@ -1069,6 +1086,19 @@ const Home = () => {
                   className="mt-1 p-2 w-full border border-gray-300 rounded-lg"
                 />
               </div>
+              <div className="mb-4">
+                <label className="block text-gray-700">
+                  Link Video Youtube (Gallery)
+                </label>
+                <Input
+                  type="text"
+                  name="linkVideo"
+                  value={formData.linkVideo}
+                  onChange={handleChange}
+                  className="mt-1 p-2 w-full border border-gray-300 rounded-lg"
+                />
+
+              </div>
             </>
           )}
 
@@ -1219,6 +1249,85 @@ const Home = () => {
               </div>
             </>
           )}
+          {currentStep === 15 && (
+            <>
+              {/* Baris label + tombol, dua kolom rasio 3:2 */}
+              <div className="mb-4 grid grid-cols-5 gap-2 items-start">
+                {/* Kolom‑1: Label (3/5) */}
+                <label className="col-span-3 block text-gray-700">
+                  Sumber Quote
+                  <br />
+                  <span className="text-sm text-gray-500">
+                    Contoh: QS. Ar‑Rum : 21, Matius 22: 37‑40, dll
+                  </span>
+                </label>
+
+                {/* Kolom‑2: Tombol (2/5) */}
+                <div className="col-span-2 flex justify-end">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setIsQuoteModalOpen(true)}
+                    className="flex items-center gap-2 w-full md:w-auto"
+                  >
+                    <FileText className="h-4 w-4" />
+                    Template
+                  </Button>
+                </div>
+              </div>
+
+              <Input
+                type="text"
+                name="source"
+                value={formData.source}
+                onChange={handleChange}
+                className="mb-4"
+                placeholder="Sumber Quote..."
+              />
+
+              <div className="mb-4">
+                <label className="block text-gray-700 mb-1">Quote</label>
+                <Textarea
+                  name="quote"
+                  value={formData.quote}
+                  onChange={handleChange}
+                  className="w-full border border-gray-300 rounded-lg"
+                  placeholder="Masukkan Quote..."
+                />
+              </div>
+
+              {/* Modal untuk memilih template quote */}
+              <Dialog open={isQuoteModalOpen} onOpenChange={setIsQuoteModalOpen}>
+                <DialogContent className="max-w-md">
+                  <DialogHeader>
+                    <DialogTitle>Pilih Template Quote</DialogTitle>
+                  </DialogHeader>
+                  <div className="space-y-4 max-h-72 overflow-y-auto">
+                    {quotes.map((template, idx) => (
+                      <div
+                        key={idx}
+                        className="border rounded p-3 hover:bg-blue-50 cursor-pointer"
+                        onClick={() => handleSelectQuoteTemplate(template)}
+                      >
+                        <div className="font-semibold text-blue-700">{template.source}</div>
+                        <div className="text-gray-700 text-sm">{template.quote}</div>
+                      </div>
+                    ))}
+                  </div>
+                  <Button
+                    type="button"
+                    variant="secondary"
+                    className="w-full mt-4"
+                    onClick={() => setIsQuoteModalOpen(false)}
+                  >
+                    Tutup
+                  </Button>
+                </DialogContent>
+              </Dialog>
+            </>
+          )}
+
           {currentStep === maxStep && (
             <>
               <div className="mb-4">

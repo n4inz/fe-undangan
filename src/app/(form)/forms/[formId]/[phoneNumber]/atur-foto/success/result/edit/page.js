@@ -145,14 +145,12 @@ const Edit = ({ params }) => {
         setFormData({ ...formData, rekening: updatedRekening });
     };
 
-    const handleSelectMusicChange = (value, index) => {
-        setFormData((prevData) => ({
-            ...prevData,
-            idMusic: Number(value), // Convert to number
+    const handleSelectMusicChange = (value) => {
+        setFormData(prev => ({
+            ...prev,
+            idMusic: value ? Number(value) : null, // Ensure proper number conversion
         }));
-
     };
-
     // const handleRekeningChange = (e, index) => {
     //     const { name, value } = e.target;
     //     const updatedRekening = [...formData.rekening];
@@ -848,6 +846,18 @@ const Edit = ({ params }) => {
                     </div>
                     <div className="mb-4">
                         <label className="block text-gray-700">
+                            Link Video Youtube (Gallery)
+                        </label>
+                        <Input
+                            type="text"
+                            name="linkVideo"
+                            value={formData.linkVideo}
+                            onChange={handleChange}
+                            className="mt-1 p-2 w-full border border-gray-300 rounded-lg"
+                        />
+                    </div>
+                    <div className="mb-4">
+                        <label className="block text-gray-700">
                             Posisi Nama Penempatan Tulisan Untuk Mempelai
                             <span className='text-red-500'>*</span>
                         </label>
@@ -879,6 +889,31 @@ const Edit = ({ params }) => {
                             onValueChange={(value) => handleSelectMusicChange(value)}
                             list={musicList}
                             isLoading={isLoading}
+                        />
+                    </div>
+
+                    <div className="mb-4">
+                        {/* Kolom‑1: Label (3/5) */}
+                        <label className="col-span-3 block text-gray-700">
+                            Sumber Quote
+                        </label>
+
+                        <Input
+                            type="text"
+                            name="source"
+                            value={formData.source}
+                            onChange={handleChange}
+                            className="mb-4"
+                            placeholder="Sumber Quote..."
+                        />
+
+                        <label className="block text-gray-700 mb-1">Quote</label>
+                        <Textarea
+                            name="quote"
+                            value={formData.quote}
+                            onChange={handleChange}
+                            className="w-full border border-gray-300 rounded-lg"
+                            placeholder="Masukkan Quote..."
                         />
                     </div>
 

@@ -209,10 +209,10 @@ const EditDetail = ({ params }) => {
     const handleSelectBankChange = (value, index) => {
         const newRekeningList = [...rekeningList];
         newRekeningList[index].icon = value;
-    
+
         const updatedRekening = [...formData.rekening];
         updatedRekening[index] = { ...updatedRekening[index], icon: value };
-    
+
         setRekeningList(newRekeningList);
         setFormData({ ...formData, rekening: updatedRekening });
     };
@@ -250,12 +250,12 @@ const EditDetail = ({ params }) => {
             });
             return;
         }
-    
+
         try {
             await axios.delete(`${process.env.NEXT_PUBLIC_API_URL}/remove-rekening/${id}`, {
                 withCredentials: true // Include credentials with the request
             });
-    
+
             // Update rekeningList and formData.rekening simultaneously
             setRekeningList((prevRekeningList) => {
                 const updatedRekeningList = prevRekeningList.filter((_, i) => i !== index);
@@ -498,6 +498,18 @@ const EditDetail = ({ params }) => {
                                 className="mt-1 p-2 w-full border border-gray-300 rounded-lg"
                             />
                         </div>
+                        <div className="mb-4">
+                            <label className="block text-gray-700">
+                                Alamat (Mempelai Pria)
+                            </label>
+                            <Input
+                                type="text"
+                                name="alamatPria"
+                                value={formData.alamatPria}
+                                onChange={handleChange}
+                                className="mt-1 p-2 w-full border border-gray-300 rounded-lg"
+                            />
+                        </div>
                         {/* Mempelai Wanita */}
                         <div className="mb-4">
                             <label className="block text-gray-700">Nama Lengkap Mempelai Wanita
@@ -569,6 +581,18 @@ const EditDetail = ({ params }) => {
                                 type="text"
                                 name="anakKeberapaWanita"
                                 value={formData.anakKeberapaWanita}
+                                onChange={handleChange}
+                                className="mt-1 p-2 w-full border border-gray-300 rounded-lg"
+                            />
+                        </div>
+                        <div className="mb-4">
+                            <label className="block text-gray-700">
+                                Alamat (Mempelai Wanita)
+                            </label>
+                            <Input
+                                type="text"
+                                name="alamatWanita"
+                                value={formData.alamatWanita}
                                 onChange={handleChange}
                                 className="mt-1 p-2 w-full border border-gray-300 rounded-lg"
                             />
@@ -815,14 +839,14 @@ const EditDetail = ({ params }) => {
                                 >
                                     {/* Show Close Button for Second Input and Beyond */}
                                     {/* {index > 0 && ( */}
-                                        <button
-                                            type="button"
-                                            onClick={() => handleRemoveRekening(index, rekening.id)}
-                                            className="absolute top-2 right-2 text-red-500 hover:text-red-700"
-                                            title="Hapus Rekening"
-                                        >
-                                            ✖
-                                        </button>
+                                    <button
+                                        type="button"
+                                        onClick={() => handleRemoveRekening(index, rekening.id)}
+                                        className="absolute top-2 right-2 text-red-500 hover:text-red-700"
+                                        title="Hapus Rekening"
+                                    >
+                                        ✖
+                                    </button>
                                     {/* )} */}
                                     <label className="block text-gray-700">
                                         Icon Bank {index + 1}
@@ -983,6 +1007,18 @@ const EditDetail = ({ params }) => {
                         </div>
                         <div className="mb-4">
                             <label className="block text-gray-700">
+                                Link Video Youtube (Gallery)
+                            </label>
+                            <Input
+                                type="text"
+                                name="linkVideo"
+                                value={formData.linkVideo}
+                                onChange={handleChange}
+                                className="mt-1 p-2 w-full border border-gray-300 rounded-lg"
+                            />
+                        </div>
+                        <div className="mb-4">
+                            <label className="block text-gray-700">
                                 Posisi Nama Penempatan Tulisan Untuk Mempelai
                                 <span className='text-red-500'>*</span>
                             </label>
@@ -1016,6 +1052,33 @@ const EditDetail = ({ params }) => {
                                 isLoading={isLoading}
                             />
                         </div>
+
+                        {/* Baris label + tombol, dua kolom rasio 3:2 */}
+                        <div className="mb-4">
+                            {/* Kolom‑1: Label (3/5) */}
+                            <label className="col-span-3 block text-gray-700">
+                                Sumber Quote
+                            </label>
+
+                            <Input
+                                type="text"
+                                name="source"
+                                value={formData.source}
+                                onChange={handleChange}
+                                className="mb-4"
+                                placeholder="Sumber Quote..."
+                            />
+
+                            <label className="block text-gray-700 mb-1">Quote</label>
+                            <Textarea
+                                name="quote"
+                                value={formData.quote}
+                                onChange={handleChange}
+                                className="w-full border border-gray-300 rounded-lg"
+                                placeholder="Masukkan Quote..."
+                            />
+                        </div>
+
                         <div className="mb-4">
                             <label className="block text-gray-700">
                                 Pilihan Thema Ceknya di{' '}

@@ -71,3 +71,8 @@ export const paymentSchema = z.object({
       message: 'File is required',
     })
 })
+
+export const quoteSchema = z.object({
+  source: requeiredInput,
+  quote: requeiredInput,
+})
