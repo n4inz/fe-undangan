@@ -14,11 +14,9 @@ export const mainSchema = z.object({
   namaLengkapPria: requeiredInput,
   namaPanggilanPria: requeiredInput,
   namaOrtuPria: requeiredInput,
-  tempatLahirPria: requeiredInput,
   namaLengkapWanita: requeiredInput,
   namaPanggilanWanita: requeiredInput,
   namaOrtuWanita: requeiredInput,
-  tempatLahirWanita: requeiredInput,
   alamatAkad: requeiredInput,
   alamatResepsi: requeiredInput,
   nomorWa: z

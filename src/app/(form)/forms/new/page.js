@@ -557,7 +557,7 @@ const Home = () => {
               </div>
               <div className="mb-4">
                 <label className="block text-gray-700">Tempat Lahir Mempelai Pria
-                  <span className='text-red-500'>*</span></label>
+                  </label>
                 <Input
                   type="text"
                   name="tempatLahirPria"
@@ -565,7 +565,6 @@ const Home = () => {
                   onChange={handleChange}
                   className="mt-1 p-2 w-full border border-gray-300 rounded-lg"
                 />
-                {errors.tempatLahirPria && <p className="text-red-500 text-sm mt-1">{errors.tempatLahirPria}</p>}
               </div>
               <div className="mb-4">
                 <label className="block text-gray-700">Tanggal Lahir Mempelai Pria</label>
@@ -662,7 +661,7 @@ const Home = () => {
               </div>
               <div className="mb-4">
                 <label className="block text-gray-700">Tempat Lahir Mempelai Wanita
-                  <span className='text-red-500'>*</span></label>
+                  </label>
                 <Input
                   type="text"
                   name="tempatLahirWanita"
@@ -670,7 +669,6 @@ const Home = () => {
                   onChange={handleChange}
                   className="mt-1 p-2 w-full border border-gray-300 rounded-lg"
                 />
-                {errors.tempatLahirWanita && <p className="text-red-500 text-sm mt-1">{errors.tempatLahirWanita}</p>}
               </div>
               <div className="mb-4">
                 <label className="block text-gray-700">Tanggal Lahir Mempelai Wanita</label>
@@ -764,6 +762,20 @@ const Home = () => {
               {/* Acara */}
               <div className="mb-4">
                 <label className="block text-gray-700">
+                  Judul Acara 1
+                  <br></br>
+                  Ex: Akad Nikah / Pemberkatan
+                </label>
+                <input
+                  type="text"
+                  name="judulAcara1"
+                  value={formData.judulAcara1}
+                  onChange={handleChange}
+                  className="mt-1 p-2 w-full border border-gray-300 rounded-lg"
+                />
+              </div>
+              <div className="mb-4">
+                <label className="block text-gray-700">
                   Tanggal Acara (Akad / Pemberkatan )
                   <span className='text-red-500'>*</span>
                 </label>
@@ -788,6 +800,20 @@ const Home = () => {
                   </DemoContainer>
                 </LocalizationProvider>
                 {errors.datetimeAkad && <p className="text-red-500 text-sm mt-1">{errors.datetimeAkad}</p>}
+              </div>
+                            <div className="mb-4">
+                <label className="block text-gray-700">
+                  Judul Acara 2
+                  <br></br>
+                  Ex: Resepsi / Mapparola dan lain-lain
+                </label>
+                <input
+                  type="text"
+                  name="judulAcara2"
+                  value={formData.judulAcara2}
+                  onChange={handleChange}
+                  className="mt-1 p-2 w-full border border-gray-300 rounded-lg"
+                />
               </div>
               <div className="mb-4">
                 <label className="block text-gray-700">
@@ -1299,26 +1325,30 @@ const Home = () => {
 
               {/* Modal untuk memilih template quote */}
               <Dialog open={isQuoteModalOpen} onOpenChange={setIsQuoteModalOpen}>
-                <DialogContent className="max-w-md">
+                <DialogContent className="w-full max-w-full sm:max-w-md">
                   <DialogHeader>
-                    <DialogTitle>Pilih Template Quote</DialogTitle>
+                    <DialogTitle className="text-lg sm:text-xl">Pilih Template Quote</DialogTitle>
                   </DialogHeader>
-                  <div className="space-y-4 max-h-72 overflow-y-auto">
+                  <div className="space-y-3 max-h-72 overflow-y-auto">
                     {quotes.map((template, idx) => (
                       <div
                         key={idx}
-                        className="border rounded p-3 hover:bg-blue-50 cursor-pointer"
+                        className="border rounded p-2 sm:p-3 hover:bg-blue-50 cursor-pointer"
                         onClick={() => handleSelectQuoteTemplate(template)}
                       >
-                        <div className="font-semibold text-blue-700">{template.source}</div>
-                        <div className="text-gray-700 text-sm">{template.quote}</div>
+                        <div className="font-semibold text-blue-700 text-sm sm:text-base">
+                          {template.source}
+                        </div>
+                        <div className="text-gray-700 text-xs sm:text-sm">
+                          {template.quote}
+                        </div>
                       </div>
                     ))}
                   </div>
                   <Button
                     type="button"
                     variant="secondary"
-                    className="w-full mt-4"
+                    className="w-full mt-3 sm:mt-4 text-xs sm:text-sm"
                     onClick={() => setIsQuoteModalOpen(false)}
                   >
                     Tutup

@@ -1230,8 +1230,8 @@ const EditDetail = ({ params }) => {
                         </Button>
                         {Object.keys(errors).length > 0 && <p className="text-red-500 text-sm mt-1">Semua Form (<span className="text-lg">*</span>) harus diisi</p>}
                     </form>
-
                 </div >
+                
             </div >
         </>
     );

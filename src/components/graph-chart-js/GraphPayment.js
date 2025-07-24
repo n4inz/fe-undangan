@@ -44,17 +44,17 @@ const GraphPayment = () => {
     const lineChartData = {
         labels: paymentData
             .slice()
-            .reverse() // Reverse the data order to show from latest to oldest
+            .reverse()
             .map(
                 (item) =>
-                    `${new Date(item.startDate).toLocaleDateString()}` // Only show the start date
+                    `${new Date(item.endDate).toLocaleDateString()}`
             ),
         datasets: [
             {
                 label: 'Total Payment',
                 data: paymentData
                     .slice()
-                    .reverse() // Reverse the data order to match labels
+                    .reverse()
                     .map((item) => item.paymentAmount),
                 fill: false,
                 borderColor: 'green',
@@ -62,7 +62,6 @@ const GraphPayment = () => {
             },
         ],
     };
-
 
     return (
         <>
