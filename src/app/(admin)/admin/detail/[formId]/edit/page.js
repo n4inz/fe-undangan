@@ -598,6 +598,13 @@ const EditDetail = ({ params }) => {
                             />
                         </div>
                         {/* Acara */}
+                        <input
+                            type="text"
+                            name="judulAcara1"
+                            value={formData.judulAcara1}
+                            onChange={handleChange}
+                            className="mt-1 p-2 w-full border border-gray-300 rounded-lg"
+                        />
                         <div className="mb-4">
                             <label className="block text-gray-700">
                                 Tanggal dan Jam Acara (Akad / Pemberkatan )
@@ -626,6 +633,13 @@ const EditDetail = ({ params }) => {
                                 className="mt-1 p-2 w-full border border-gray-300 rounded-lg"
                             />
                         </div>
+                        <input
+                            type="text"
+                            name="judulAcara2"
+                            value={formData.judulAcara2}
+                            onChange={handleChange}
+                            className="mt-1 p-2 w-full border border-gray-300 rounded-lg"
+                        />
                         <div className="mb-4">
                             <label className="block text-gray-700">
                                 Tanggal dan Jam Acara Resepsi
@@ -1231,7 +1245,7 @@ const EditDetail = ({ params }) => {
                         {Object.keys(errors).length > 0 && <p className="text-red-500 text-sm mt-1">Semua Form (<span className="text-lg">*</span>) harus diisi</p>}
                     </form>
                 </div >
-                
+
             </div >
         </>
     );
