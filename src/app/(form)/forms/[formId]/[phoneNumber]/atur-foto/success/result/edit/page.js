@@ -437,20 +437,20 @@ const Edit = ({ params }) => {
                         />
                     </div>
                     {/* Acara */}
-                                  <div className="mb-4">
-                <label className="block text-gray-700">
-                  Judul Acara 1
-                  <br></br>
-                  Ex: Akad Nikah / Pemberkatan
-                </label>
-                <input
-                  type="text"
-                  name="judulAcara1"
-                  value={formData.judulAcara1}
-                  onChange={handleChange}
-                  className="mt-1 p-2 w-full border border-gray-300 rounded-lg"
-                />
-              </div>
+                    <div className="mb-4">
+                        <label className="block text-gray-700">
+                            Judul Acara 1
+                            <br></br>
+                            Ex: Akad Nikah / Pemberkatan
+                        </label>
+                        <input
+                            type="text"
+                            name="judulAcara1"
+                            value={formData.judulAcara1}
+                            onChange={handleChange}
+                            className="mt-1 p-2 w-full border border-gray-300 rounded-lg"
+                        />
+                    </div>
                     <div className="mb-4">
                         <label className="block text-gray-700">
                             Tanggal dan Jam Acara (Akad / Pemberkatan )
@@ -479,20 +479,20 @@ const Edit = ({ params }) => {
                             className="mt-1 p-2 w-full border border-gray-300 rounded-lg"
                         />
                     </div>
-                                  <div className="mb-4">
-                <label className="block text-gray-700">
-                  Judul Acara 2
-                  <br></br>
-                  Ex: Resepsi / Pesta
-                </label>
-                <input
-                  type="text"
-                  name="judulAcara2"
-                  value={formData.judulAcara2}
-                  onChange={handleChange}
-                  className="mt-1 p-2 w-full border border-gray-300 rounded-lg"
-                />
-              </div>
+                    <div className="mb-4">
+                        <label className="block text-gray-700">
+                            Judul Acara 2
+                            <br></br>
+                            Ex: Resepsi / Pesta
+                        </label>
+                        <input
+                            type="text"
+                            name="judulAcara2"
+                            value={formData.judulAcara2}
+                            onChange={handleChange}
+                            className="mt-1 p-2 w-full border border-gray-300 rounded-lg"
+                        />
+                    </div>
                     <div className="mb-4">
                         <label className="block text-gray-700">
                             Tanggal dan Jam Acara Resepsi
