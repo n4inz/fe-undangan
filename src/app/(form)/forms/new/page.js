@@ -360,7 +360,8 @@ const Home = () => {
         return 6;
       // ...and so on for all your steps.
       case "pilihanTema":
-        return 15;
+      case "idTema":
+        return 16;
       default:
         return 1; // Default to step 1 if field name is not found
     }
