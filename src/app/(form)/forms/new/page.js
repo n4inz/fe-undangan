@@ -138,7 +138,7 @@ const Home = () => {
               opsiAkad: "Wanita",
               opsiResepsi: "Wanita",
               penempatanTulisan: "Wanita",
-              pilihanTema: "Admin",
+              pilihanTema: "",
             }
         );
       } catch (error) {
@@ -167,7 +167,7 @@ const Home = () => {
         opsiAkad: "Wanita",
         opsiResepsi: "Wanita",
         penempatanTulisan: "Wanita",
-        pilihanTema: "Admin",
+        pilihanTema: "Lainnya",
       });
     }
   }, []);
@@ -1378,10 +1378,6 @@ const Home = () => {
                   value={formData.pilihanTema}
                   onValueChange={(value) => setFormData({ ...formData, pilihanTema: value })}
                   className="space-y-2" >
-                  <div className="flex items-center space-x-2">
-                    <RadioGroupItem value="Admin" id="PilihanAdmin" />
-                    <Label htmlFor="PilihanAdmin">Admin Pilihkan</Label>
-                  </div>
                   {/* Radio options lainnya */}
 
                   <div className="flex items-center space-x-2">
@@ -1434,6 +1430,7 @@ const Home = () => {
                     </div>
                   )}
                 </RadioGroup>
+                                {errors.pilihanTema && <p className="text-red-500 text-sm mt-1">{errors.pilihanTema}</p>}
 
                 {/* {errors.alamatResepsi && <p className="text-red-500 text-sm mt-1">{errors.alamatResepsi}</p>} */}
               </div>

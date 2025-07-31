@@ -27,7 +27,12 @@ export const mainSchema = z.object({
   datetimeResepsi: requeiredDate,
   timeAkad: requeiredInput,
   timeResepsi: requeiredInput,
-})
+  pilihanTema: requeiredInput,
+  idTema: z.coerce.number({
+    required_error: "ID tema harus diisi",
+    invalid_type_error: "ID tema harus berupa angka",
+  }),
+});
 
 export const schema = z.object({
   ...mainSchema.shape,

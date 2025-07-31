@@ -13,10 +13,11 @@ import {
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Card, CardHeader, CardTitle, CardContent, CardFooter } from '@/components/ui/card';
-import { MessageCircle, Plus } from 'lucide-react';
+import { DollarSign, MessageCircle, Plus, RefreshCw } from 'lucide-react';
 import axios from 'axios';
 import { useRouter } from 'next/navigation';
 import { FaMoneyBillWave } from 'react-icons/fa';
+import PaymentModal from './[formId]/[phoneNumber]/atur-foto/success/paymentModal';
 
 export default function Dashboard() {
     const router = useRouter();
@@ -39,11 +40,11 @@ export default function Dashboard() {
             const formData = response.data.form || [];
             const formattedForms = Array.isArray(formData)
                 ? formData.map(form => ({
-                      ...form,
-                      slug: form.linkUndangan
-                          ? form.linkUndangan
-                          : `${process.env.NEXT_PUBLIC_LINK_UNDANGAN}/${form.slug || ''}`,
-                  }))
+                    ...form,
+                    slug: form.linkUndangan
+                        ? form.linkUndangan
+                        : `${process.env.NEXT_PUBLIC_LINK_UNDANGAN}/${form.slug || ''}`,
+                }))
                 : [];
             setForms(formattedForms);
             setError(null);
@@ -132,6 +133,9 @@ export default function Dashboard() {
         );
     }
 
+    const buttonContainerClasses = "absolute top-2 right-2 z-10";
+    const linkButtonClasses = "flex items-center gap-1 px-2 py-1 text-xs h-7";
+
     return (
         <div className="relative min-h-screen">
             <div className="fixed inset-0 bg-gray-100" />
@@ -190,26 +194,41 @@ export default function Dashboard() {
                             {forms.length > 0 ? (
                                 forms.map((form) => (
                                     <Card key={form.id} className="relative hover:shadow-md transition-shadow">
+
+                                        {/* Icon jika sudah dibayar */}
                                         {form.isPaid === 1 && (
-                                            <FaMoneyBillWave className="absolute top-2 right-2 text-green-500 text-xl" />
+                                            <FaMoneyBillWave className="absolute top-2 right-2 text-green-500 text-xl z-10" />
                                         )}
+
+                                        {/* Tombol Bayar Sekarang */}
+                                        {form.isPaid !== 1 && (
+                                            <div className={buttonContainerClasses}>
+                                                <PaymentModal
+                                                    formId={form.id}
+                                                    phoneNumber={form.phoneNumber}
+                                                    // Pass a className to the button within PaymentModal if it renders one
+                                                    buttonClassName={linkButtonClasses}
+                                                />
+                                            </div>
+                                        )}
+
                                         <CardHeader className="pb-2">
-                                            <CardTitle className="text-lg">
+                                            <CardTitle className="text-base font-semibold">
                                                 <Link
                                                     href={`${form.slug}`}
                                                     target="_blank"
                                                     rel="noopener noreferrer"
-                                                    className="text-black hover:text-blue-600 transition-colors duration-200 underline"
+                                                    className="text-black hover:text-blue-600 transition-colors underline"
                                                 >
                                                     {form.namaPanggilanPria && form.namaPanggilanWanita
                                                         ? `${form.namaPanggilanPria} & ${form.namaPanggilanWanita}`
                                                         : 'Undangan Pernikahan'}
                                                 </Link>
                                             </CardTitle>
-                                            <p className="text-sm text-muted-foreground">
+                                            <p className="text-xs text-muted-foreground mt-1">
                                                 {form.pilihanTema && `Tema: ${form.pilihanTema}`}
                                             </p>
-                                            <p className="text-sm text-muted-foreground">
+                                            <p className="text-xs text-muted-foreground">
                                                 Dibuat: {new Date(form.createdAt).toLocaleDateString('id-ID', {
                                                     day: 'numeric',
                                                     month: 'long',
@@ -217,21 +236,40 @@ export default function Dashboard() {
                                                 })}
                                             </p>
                                         </CardHeader>
+
                                         <CardContent className="pt-0">
-                                            <div className="flex items-center text-muted-foreground">
+                                            <div className="flex items-center text-muted-foreground text-sm">
                                                 <MessageCircle className="h-4 w-4 mr-2" />
                                                 <span>{form.commentCount || 0} komentar</span>
                                             </div>
                                         </CardContent>
-                                        <CardFooter className="flex justify-between bg-muted/50 p-4">
-                                            <Button variant="outline" size="sm" asChild>
-                                                <Link href={`/forms/${form.id}/${form.nomorWa}/comments`}>Lihat Komentar</Link>
+
+                                        <CardFooter className="flex justify-between bg-muted/50 p-4 gap-2 flex-wrap sm:flex-nowrap">
+                                            <Button variant="outline" size="sm" asChild className="w-full sm:w-auto">
+                                                <Link href={`/forms/${form.id}/${form.nomorWa}/comments`}>
+                                                    Lihat Komentar
+                                                </Link>
                                             </Button>
-                                            <Button variant="default" size="sm" asChild>
-                                                <Link href={`/forms/${form.id}/${form.nomorWa}/atur-foto/success/result`}>Edit</Link>
-                                            </Button>
+
+                                            <div className="flex gap-2 w-full sm:w-auto justify-end">
+                                                {/* Tombol Atur Foto */}
+                                                <Button variant="secondary" size="sm" asChild>
+                                                    <Link href={`/forms/${form.id}/${form.nomorWa}/atur-foto`}>
+                                                        <RefreshCw className="mr-1 h-4 w-4" />
+                                                        Atur Foto
+                                                    </Link>
+                                                </Button>
+
+                                                {/* Tombol Edit */}
+                                                <Button variant="default" size="sm" asChild>
+                                                    <Link href={`/forms/${form.id}/${form.nomorWa}/atur-foto/success/result`}>
+                                                        Edit
+                                                    </Link>
+                                                </Button>
+                                            </div>
                                         </CardFooter>
                                     </Card>
+
                                 ))
                             ) : (
                                 <div className="text-center py-8">
