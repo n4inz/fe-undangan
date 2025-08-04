@@ -20,6 +20,7 @@ const FormTema = ({ params }) => {
     slug: '',
     link: '',
     loveStory: false,
+    isSyari: false,
   });
   const [isLoading, setIsLoading] = useState(false);
   const [errors, setErrors] = useState({});
@@ -108,6 +109,7 @@ const FormTema = ({ params }) => {
       data.append("slug", finalFormData.slug);
       data.append("link", finalFormData.link);
       data.append("loveStory", finalFormData.loveStory);
+      data.append("isSyari", finalFormData.isSyari);
       data.append("totalWeddingPhoto", finalFormData.totalWeddingPhoto);
 
       if (coverImage) data.append("cover", document.querySelector("input[name='cover']").files[0]);
@@ -206,7 +208,7 @@ const FormTema = ({ params }) => {
               />
               {errors.name && <p className="text-red-500 text-sm mt-1">{errors.name}</p>}
             </div>
-            
+
             {/* Slug Input Field */}
             <div className="mb-4">
               <label className="block text-gray-700">Slug <span className='text-red-500'>*</span></label>
@@ -235,7 +237,7 @@ const FormTema = ({ params }) => {
               />
               {errors.link && <p className="text-red-500 text-sm mt-1">{errors.link}</p>}
             </div>
-            
+
             <div className="mb-4">
               <label className="block text-gray-700">Screenshot Cover</label>
               <Input
@@ -298,6 +300,18 @@ const FormTema = ({ params }) => {
                   onCheckedChange={(checked) => handleChange({ target: { name: 'loveStory', value: checked } })}
                 />
                 <label htmlFor="loveStory">Yes</label>
+              </div>
+            </div>
+            <div className="mb-4">
+              <label className="block text-gray-700">Tema Syar'i? (Hanya foto mempelai dan gallery)</label>
+              <div className="flex items-center space-x-2">
+                <Checkbox
+                  id="isSyari"
+                  name="isSyari"
+                  checked={formData.isSyari === true}
+                  onCheckedChange={(checked) => handleChange({ target: { name: 'isSyari', value: checked } })}
+                />
+                <label htmlFor="isSyari">Yes</label>
               </div>
             </div>
             <div className="flex justify-start">

@@ -46,6 +46,9 @@ const Edit = ({ params }) => {
     const [uploadComplete, setUploadComplete] = useState(false); // Track if upload is complete
     const [bankList, setBankList] = useState([]);
 
+    const [selectedTema, setSelectedTema] = useState(null);
+
+
     const handleFileChange = async (event) => {
         const file = event.target.files[0]; // Get only the first file
         if (file) {
@@ -194,6 +197,15 @@ const Edit = ({ params }) => {
         }
     };
 
+    const handleSelectChange = (id, name) => {
+        setSelectedTema({ id, name }); // Store the selected theme in selectedTema
+        setFormData(prev => ({
+            ...prev,
+            idTema: id, // Update idTema in formData
+            pilihanTema: "Lainnya" // Ensure this is set if needed
+        }));
+    };
+
 
     const fetchData = async () => {
         try {
@@ -235,6 +247,30 @@ const Edit = ({ params }) => {
             setIsLoading(false); // Ensure loading is stopped
         }
     };
+
+    useEffect(() => {
+        const fetchOptions = async () => {
+            try {
+                const data = await getTema();
+                setOptions(data || []);
+
+                // Set selectedTema after options are loaded
+                if (formData.idTema) {
+                    const theme = data.find((option) => option.id === formData.idTema);
+                    if (theme) {
+                        setSelectedTema({ id: theme.id, name: theme.name });
+                    }
+                }
+            } catch (error) {
+                console.error("Error fetching tema options:", error);
+                setOptions([]); // Ensure options remains an array in case of error
+            } finally {
+                setIsLoadingOptions(false);
+            }
+        };
+
+        fetchOptions();
+    }, [formData.idTema]);
 
 
     useEffect(() => {
@@ -943,6 +979,79 @@ const Edit = ({ params }) => {
                             className="w-full border border-gray-300 rounded-lg"
                             placeholder="Masukkan Quote..."
                         />
+                    </div>
+
+                    <div className="mb-4">
+                        <label className="block text-gray-700">
+                            Pilihan Thema Ceknya di{' '}
+                            <a
+                                href="https://sewaundangan.com/#chat_me"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-blue-500 hover:underline"
+                            >
+                                Sewaundangan.com
+                            </a>
+                            <span className="text-red-500">*</span>
+                        </label>
+
+                        <RadioGroup
+                            value={formData.pilihanTema}
+                            name="pilihanTema"
+                            onValueChange={(value) => {
+                                setFormData((prev) => ({
+                                    ...prev,
+                                    pilihanTema: value,
+                                    ...(value !== "Lainnya" && { idTema: "", LainnyaPilihanTema: "" }), // Clear idTema and LainnyaPilihanTema if not "Lainnya"
+                                }));
+                            }}
+                        >
+                            {/* Admin Option */}
+                            {/* <div className="flex items-center space-x-2">
+                                <RadioGroupItem value="Admin" id="PilihanAdmin" />
+                                <Label htmlFor="PilihanAdmin">Admin Pilihkan</Label>
+                            </div> */}
+
+                            {/* Lainnya Option */}
+                            <div className="flex items-center space-x-2">
+                                <RadioGroupItem value="Lainnya" id="LainnyaPilihanTema" />
+                                <Label htmlFor="LainnyaPilihanTema">Lainnya</Label>
+
+                                {/* Select Box */}
+                                <Select
+                                    value={formData.idTema || ''}
+                                    onValueChange={(value) => {
+                                        const selectedOption = options.find((option) => option.id === value);
+                                        if (selectedOption) {
+                                            handleSelectChange(selectedOption.id, selectedOption.name);
+                                        }
+                                    }}
+                                    className="w-full h-6 border border-gray-300 rounded-lg"
+                                >
+                                    <SelectTrigger>
+                                        <SelectValue placeholder="Pilih Tema" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        {isLoadingOptions ? (
+                                            <SelectItem value="loading" disabled>
+                                                Loading...
+                                            </SelectItem>
+                                        ) : options.length > 0 ? (
+                                            options.map((option) => (
+                                                <SelectItem key={option.id} value={option.id}>
+                                                    {option.name}
+                                                </SelectItem>
+                                            ))
+                                        ) : (
+                                            <SelectItem value="no-options" disabled>
+                                                No options available
+                                            </SelectItem>
+                                        )}
+                                    </SelectContent>
+                                </Select>
+                            </div>
+                        </RadioGroup>
+
                     </div>
 
                     <Button type="submit" className="bg-blue-500 text-white px-4 py-2 rounded-lg" disabled={isLoading}>

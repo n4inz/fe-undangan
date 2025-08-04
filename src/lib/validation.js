@@ -7,7 +7,7 @@ const requeiredDate = z.union([
   z.date(),
 ]);
 
-const optionalField = z.string().optional();
+const optionalStringWithMax = z.string().max(190, { message: "Field tidak boleh lebih dari 190 karakter" }).optional();
 
 export const mainSchema = z.object({
   name: requeiredInput,
@@ -32,11 +32,40 @@ export const mainSchema = z.object({
     required_error: "ID tema harus diisi",
     invalid_type_error: "ID tema harus berupa angka",
   }),
+  // linkVideo: optionalStringWithMax,
+  source: optionalStringWithMax,
+  // linkSherlokResepsi: optionalStringWithMax,
 });
 
-export const schema = z.object({
-  ...mainSchema.shape,
-}).passthrough(); // Allows additional fields of any type
+const excludedFields = ['ceritaAwal', 'ceritaJadian', 'ceritaLamaran', 'quote'];
+
+export const schema = mainSchema
+  .merge(z.object({}).passthrough()) // allow unknown fields
+  .superRefine((data, ctx) => {
+    Object.entries(data).forEach(([key, value]) => {
+      if (excludedFields.includes(key)) return;
+
+      const stringValue =
+        typeof value === 'string'
+          ? value
+          : value instanceof Date
+            ? value.toISOString()
+            : typeof value === 'number'
+              ? value.toString()
+              : '';
+
+      if (stringValue.length > 190) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.too_big,
+          maximum: 190,
+          type: 'string',
+          inclusive: true,
+          path: [key],
+          message: `Field "${key}" tidak boleh lebih dari 190 karakter`,
+        });
+      }
+    });
+  });
 
 
 export const loginSchema = z.object({

@@ -20,6 +20,7 @@ const MultiStepForm = ({ onFormChange }) => {
   const pathname = usePathname()
   const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
+  const [isSyari, setIsSyari] = useState(false);
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -74,17 +75,41 @@ const MultiStepForm = ({ onFormChange }) => {
       console.error("Error checking foto mempelai:", error);
     }
   };
+  const checkIsSyari = async () => {
+    try {
+      const response = await axios.get(
+        `${process.env.NEXT_PUBLIC_API_URL}/check-foto-mempelai/${params.formId}/${params.phoneNumber}`
+      );
+
+      const { data } = response.data;
+      if (data && data.isSyari == true && step === 10) {
+        handleFinalStep();
+      }
+      else if (data && data.isSyari == true) {
+        setStep(3);
+        setIsSyari(true);
+      }
+    } catch (error) {
+      console.error("Error checking foto mempelai:", error);
+    }
+  };
 
   useEffect(() => {
+    if (step == 1) {
+      checkIsSyari();
+    }
     if (step === 3) {
       checkFotoMempelai();
     }
     if (step === 7) {
       checkFotoLoveStory();
     }
+    if (step == 10) {
+      checkIsSyari();
+    }
     console.log("STEP:", step);
   }, [step]);
-
+  
   const handleFinalStep = async () => {
     setLoading(true);  // Show loading indicator
     await router.push(`${pathname}/success`);
@@ -223,14 +248,14 @@ const MultiStepForm = ({ onFormChange }) => {
       );
     case 11:
       return (
-          <StepJ
-            nextStep={nextStep}
-            formData={formData}
-            setFormData={setFormData}
-            onFormChange={onFormChange}
-            partName="background"
-            title="Background"
-            number={10} />
+        <StepJ
+          nextStep={nextStep}
+          formData={formData}
+          setFormData={setFormData}
+          onFormChange={onFormChange}
+          partName="background"
+          title="Background"
+          number={10} />
       );
     default:
       handleFinalStep();

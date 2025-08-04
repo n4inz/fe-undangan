@@ -358,6 +358,16 @@ const Home = () => {
       case "usernameIgPria":
       case "usernameIgWanita":
         return 6;
+
+      case "linkSherlokAkad":
+      case "linkSherlokResepsi":
+      case "linkVideo":
+        return 8;
+      case "turutMengundang":
+        return 13;
+      case "source":
+      case "quote":
+        return 15;
       // ...and so on for all your steps.
       case "pilihanTema":
       case "idTema":
@@ -558,7 +568,7 @@ const Home = () => {
               </div>
               <div className="mb-4">
                 <label className="block text-gray-700">Tempat Lahir Mempelai Pria
-                  </label>
+                </label>
                 <Input
                   type="text"
                   name="tempatLahirPria"
@@ -662,7 +672,7 @@ const Home = () => {
               </div>
               <div className="mb-4">
                 <label className="block text-gray-700">Tempat Lahir Mempelai Wanita
-                  </label>
+                </label>
                 <Input
                   type="text"
                   name="tempatLahirWanita"
@@ -802,7 +812,7 @@ const Home = () => {
                 </LocalizationProvider>
                 {errors.datetimeAkad && <p className="text-red-500 text-sm mt-1">{errors.datetimeAkad}</p>}
               </div>
-                            <div className="mb-4">
+              <div className="mb-4">
                 <label className="block text-gray-700">
                   Judul Acara 2
                   <br></br>
@@ -1100,6 +1110,11 @@ const Home = () => {
                   onChange={handleChange}
                   className="mt-1 p-2 w-full border border-gray-300 rounded-lg"
                 />
+                {/* {errors.linkSherlokAkad && (
+                  <p className="text-red-500 text-sm mt-1">
+                    {errors.linkSherlokAkad}
+                  </p>
+                )} */}
               </div>
               <div className="mb-4">
                 <label className="block text-gray-700">
@@ -1112,6 +1127,11 @@ const Home = () => {
                   onChange={handleChange}
                   className="mt-1 p-2 w-full border border-gray-300 rounded-lg"
                 />
+                {/* {errors.linkSherlokResepsi && (
+                  <p className="text-red-500 text-sm mt-1">
+                    {errors.linkSherlokResepsi}
+                  </p>
+                )} */}
               </div>
               <div className="mb-4">
                 <label className="block text-gray-700">
@@ -1124,7 +1144,11 @@ const Home = () => {
                   onChange={handleChange}
                   className="mt-1 p-2 w-full border border-gray-300 rounded-lg"
                 />
-
+                {errors.linkVideo && (
+                  <p className="text-red-500 text-sm mt-1">
+                    {errors.linkVideo}
+                  </p>
+                )}
               </div>
             </>
           )}
@@ -1313,6 +1337,12 @@ const Home = () => {
                 placeholder="Sumber Quote..."
               />
 
+              {errors.source && (
+                <p className="text-red-500 text-sm mt-1">
+                  {errors.source}
+                </p>
+              )}
+
               <div className="mb-4">
                 <label className="block text-gray-700 mb-1">Quote</label>
                 <Textarea
@@ -1431,7 +1461,7 @@ const Home = () => {
                     </div>
                   )}
                 </RadioGroup>
-                                {errors.pilihanTema && <p className="text-red-500 text-sm mt-1">{errors.pilihanTema}</p>}
+                {errors.pilihanTema && <p className="text-red-500 text-sm mt-1">{errors.pilihanTema}</p>}
 
                 {/* {errors.alamatResepsi && <p className="text-red-500 text-sm mt-1">{errors.alamatResepsi}</p>} */}
               </div>
