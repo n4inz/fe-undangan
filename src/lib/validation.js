@@ -37,7 +37,7 @@ export const mainSchema = z.object({
   // linkSherlokResepsi: optionalStringWithMax,
 });
 
-const excludedFields = ['ceritaAwal', 'ceritaJadian', 'ceritaLamaran', 'quote'];
+const excludedFields = ['ceritaAwal', 'ceritaJadian', 'ceritaLamaran', 'quote', 'linkSherlokAkad', 'linkSherlokResepsi', 'turutMengundang'];
 
 export const schema = mainSchema
   .merge(z.object({}).passthrough()) // allow unknown fields
