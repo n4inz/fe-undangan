@@ -153,14 +153,23 @@ const StepJ = (props) => {
   const handleFileChange = (e) => {
     const selectedFiles = Array.from(e.target.files);
 
-
-
     // Validate file types
     const nonImageFiles = selectedFiles.filter((file) => !file.type.startsWith("image/"));
     if (nonImageFiles.length > 0) {
       toast({ title: 'File bukan gambar !', variant: 'destructive', });
       return;
     }
+
+        // Validate allowed extensions
+        const allowedExtensions = ['.jpg', '.jpeg', '.png', '.webp', '.gif', '.avif'];
+        const invalidExtFiles = selectedFiles.filter((file) => {
+          const ext = file.name.toLowerCase().slice(file.name.lastIndexOf('.'));
+          return !allowedExtensions.includes(ext);
+        });
+        if (invalidExtFiles.length > 0) {
+          toast({ title: 'Format gambar harus .jpg, .jpeg, .png, .webp, .gif, .avif', variant: 'destructive', });
+          return;
+        }
 
     // Validate max 5 images
     if (images.length + selectedFiles.length > 5) {

@@ -38,6 +38,17 @@ const StepF = ({ number, nextStep, formData, setFormData, onFormChange, partName
       return;
     }
 
+    // Validate allowed extensions
+    const allowedExtensions = ['.jpg', '.jpeg', '.png', '.webp', '.gif', '.avif'];
+    const invalidExtFiles = selectedFiles.filter((file) => {
+      const ext = file.name.toLowerCase().slice(file.name.lastIndexOf('.'));
+      return !allowedExtensions.includes(ext);
+    });
+    if (invalidExtFiles.length > 0) {
+      toast({ title: 'Format gambar harus .jpg, .jpeg, .png, .webp, .gif, .avif', variant: 'destructive', });
+      return;
+    }
+
     // Validate max 15
     if (images.length + selectedFiles.length > 15) {
       toast({ title: 'Maksimum upload foto adalah 15 !', variant: 'destructive', });
