@@ -7,7 +7,14 @@ const requeiredDate = z.union([
   z.date(),
 ]);
 
-const optionalStringWithMax = z.string().max(190, { message: "Field tidak boleh lebih dari 190 karakter" }).optional();
+const optionalStringWithMax = z
+  .union([
+    z.string().max(190, { message: "Field tidak boleh lebih dari 190 karakter" }),
+    z.literal(''),
+    z.null(),
+    z.undefined()
+  ])
+  .optional();
 
 export const mainSchema = z.object({
   name: requeiredInput,

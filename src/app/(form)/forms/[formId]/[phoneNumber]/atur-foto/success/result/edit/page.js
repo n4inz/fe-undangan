@@ -960,6 +960,7 @@ const Edit = ({ params }) => {
                         {/* Kolom‑1: Label (3/5) */}
                         <label className="col-span-3 block text-gray-700">
                             Sumber Quote
+                            <p>Contoh: QS. Ar‑Rum 21, Matius dan lain2</p>
                         </label>
 
                         <Input
@@ -967,9 +968,14 @@ const Edit = ({ params }) => {
                             name="source"
                             value={formData.source}
                             onChange={handleChange}
-                            className="mb-4"
                             placeholder="Sumber Quote..."
                         />
+
+                        {errors.source && (
+                            <p className="text-red-500 text-sm mb-1">
+                                {errors.source}
+                            </p>
+                        )}
 
                         <label className="block text-gray-700 mb-1">Quote</label>
                         <Textarea

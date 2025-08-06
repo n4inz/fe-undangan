@@ -1333,12 +1333,11 @@ const Home = () => {
                 name="source"
                 value={formData.source}
                 onChange={handleChange}
-                className="mb-4"
                 placeholder="Sumber Quote..."
               />
 
               {errors.source && (
-                <p className="text-red-500 text-sm mt-1">
+                <p className="text-red-500 text-sm mb-1">
                   {errors.source}
                 </p>
               )}
