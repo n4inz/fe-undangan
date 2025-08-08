@@ -1489,7 +1489,7 @@ const Home = () => {
               </Button>
             )}
           </div>
-          {Object.keys(errors).length > 0 && <p className="text-red-500 text-sm mt-1">Semua Form (<span className="text-lg">*</span>) harus diisi</p>}
+          {Object.keys(errors).length > 0 && <p className="text-red-500 text-sm mt-1">Semua Form bertanda (<span className="text-lg">*</span>) harus diisi</p>}
         </form>
       </div>
     </div >
