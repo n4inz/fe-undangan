@@ -37,7 +37,7 @@ export const mainSchema = z.object({
   pilihanTema: z.string().min(1, { message: "Pilihan tema harus dipilih" }),
   idTema: z.coerce.number({
     required_error: "ID tema harus diisi",
-    invalid_type_error: "ID tema harus berupa angka",
+    invalid_type_error: "tema harus dipilih",
   }),
   // linkVideo: optionalStringWithMax,
   source: optionalStringWithMax,

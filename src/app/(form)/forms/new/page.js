@@ -138,7 +138,7 @@ const Home = () => {
               opsiAkad: "Wanita",
               opsiResepsi: "Wanita",
               penempatanTulisan: "Wanita",
-              pilihanTema: "",
+              pilihanTema: "Lainnya",
             }
         );
       } catch (error) {
@@ -1415,7 +1415,7 @@ const Home = () => {
                     <Label htmlFor="LainnyaPilihanTema">Lainnya</Label>
                   </div>
 
-                  {formData.pilihanTema === "Lainnya" && (
+                  {/* {formData.pilihanTema === "Lainnya" && ( */}
                     <div className="relative w-full max-w-md">
                       <Command className="border rounded-lg">
                         <CommandInput
@@ -1458,9 +1458,10 @@ const Home = () => {
                         )}
                       </Command>
                     </div>
-                  )}
+                  {/* )} */}
                 </RadioGroup>
                 {errors.pilihanTema && <p className="text-red-500 text-sm mt-1">{errors.pilihanTema}</p>}
+                {errors.idTema && <p className="text-red-500 text-sm mt-1">{errors.idTema}</p>}
 
                 {/* {errors.alamatResepsi && <p className="text-red-500 text-sm mt-1">{errors.alamatResepsi}</p>} */}
               </div>
