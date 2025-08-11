@@ -373,7 +373,7 @@ const Edit = ({ params }) => {
                         {errors.tempatLahirPria && <p className="text-red-500 text-sm mt-1">{errors.tempatLahirPria}</p>}
                     </div>
                     <div className="mb-4">
-                        <label className="block text-gray-700">Tanggal Lahir Mempelai Pria <span className='text-red-500'>*</span></label>
+                        <label className="block text-gray-700">Tanggal Lahir Mempelai Pria</label>
                         <input
                             type="date"
                             name="tglLahirPria"
@@ -448,7 +448,7 @@ const Edit = ({ params }) => {
                         {errors.tempatLahirWanita && <p className="text-red-500 text-sm mt-1">{errors.tempatLahirWanita}</p>}
                     </div>
                     <div className="mb-4">
-                        <label className="block text-gray-700">Tanggal Lahir Mempelai Wanita <span className='text-red-500'>*</span></label>
+                        <label className="block text-gray-700">Tanggal Lahir Mempelai Wanita</label>
                         <input
                             type="date"
                             name="tglLahirWanita"
