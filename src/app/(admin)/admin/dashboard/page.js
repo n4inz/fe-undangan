@@ -110,11 +110,6 @@ const Dashboard = () => {
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
-                  {loading.form ? (
-                    <div className="min-h-[300px] flex items-center justify-center">
-                      <p>Memuat data form...</p>
-                    </div>
-                  ) : (
                     <ChartContainer config={chartConfig}>
                       <BarChart data={formData} margin={{ top: 20, bottom: 5 }}>
                         <ChartTooltip content={<ChartTooltipContent />} />
@@ -134,7 +129,6 @@ const Dashboard = () => {
                         />
                       </BarChart>
                     </ChartContainer>
-                  )}
                 </CardContent>
               </Card>
             </div>
@@ -149,11 +143,6 @@ const Dashboard = () => {
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
-                  {loading.income ? (
-                    <div className="min-h-[300px] flex items-center justify-center">
-                      <p>Memuat data pendapatan...</p>
-                    </div>
-                  ) : (
                     <ChartContainer config={chartConfig}>
                       <BarChart data={incomeData} margin={{ top: 20, bottom: 5 }}>
                         <ChartTooltip
@@ -176,7 +165,6 @@ const Dashboard = () => {
                         />
                       </BarChart>
                     </ChartContainer>
-                  )}
                 </CardContent>
               </Card>
             </div>

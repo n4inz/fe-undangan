@@ -361,8 +361,9 @@ const Edit = ({ params }) => {
                         {errors.namaOrtuPria && <p className="text-red-500 text-sm mt-1">{errors.namaOrtuPria}</p>}
                     </div>
                     <div className="mb-4">
-                        <label className="block text-gray-700">Tempat Lahir Mempelai Pria
-                            <span className='text-red-500'>*</span></label>
+                        <label className="block text-gray-700">
+                            Tempat Lahir Mempelai Pria
+                            </label>
                         <Input
                             type="text"
                             name="tempatLahirPria"
@@ -437,7 +438,7 @@ const Edit = ({ params }) => {
                     </div>
                     <div className="mb-4">
                         <label className="block text-gray-700">Tempat Lahir Mempelai Wanita
-                            <span className='text-red-500'>*</span></label>
+                            </label>
                         <Input
                             type="text"
                             name="tempatLahirWanita"

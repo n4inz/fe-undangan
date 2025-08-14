@@ -275,7 +275,10 @@ const StepF = ({ number, nextStep, formData, setFormData, onFormChange, partName
       <Button
         variant="ghost"
         className="text-gray-700 hover:text-gray-900 text-sm mb-8"
-        onClick={() => nextStep()}
+        onClick={() => {
+          onFormChange();
+          nextStep();
+        }}
         disabled={uploading}
       >
         Skip

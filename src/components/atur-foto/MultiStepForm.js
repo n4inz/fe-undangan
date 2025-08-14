@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import StepA from "./StepA";
 import StepB from "./StepB";
 import StepC from "./StepC";
@@ -13,6 +13,7 @@ import axios from "axios";
 import { useRouter, usePathname, useParams } from "next/navigation";
 import StepI1 from "./StepI1";
 import { Toaster } from "../ui/toaster";
+import { max } from "date-fns";
 
 const MultiStepForm = ({ onFormChange }) => {
   const router = useRouter();
@@ -82,7 +83,7 @@ const MultiStepForm = ({ onFormChange }) => {
       );
 
       const { data } = response.data;
-      if (data && data.isSyari == true && step === 10) {
+      if (data && data.isSyari == true && step === 12) {
         handleFinalStep();
       }
       else if (data && data.isSyari == true) {
@@ -104,16 +105,35 @@ const MultiStepForm = ({ onFormChange }) => {
     if (step === 7) {
       checkFotoLoveStory();
     }
-    if (step == 10) {
-      checkIsSyari();
+    if (step === 10) {
+      handleFinalStep();
     }
+
     console.log("STEP:", step);
   }, [step]);
-  
+
+  const finalStepTriggered = useRef(false); // track if it's been called
+
   const handleFinalStep = async () => {
-    setLoading(true);  // Show loading indicator
-    await router.push(`${pathname}/success`);
-    setLoading(false); // Hide loading indicator after navigation
+    if (finalStepTriggered.current) return; // prevent multiple calls
+    finalStepTriggered.current = true;
+
+    setLoading(true);
+    try {
+      const response = await axios.post(
+        `${process.env.NEXT_PUBLIC_API_URL}/generate-thumbnail/${params.formId}`
+      );
+
+      if (response.status !== 200 && response.status !== 201) {
+        throw new Error(`API call failed with status: ${response.status}`);
+      }
+
+      await router.push(`${pathname}/success`);
+    } catch (error) {
+      console.error("Error generating thumbnail:", error);
+    } finally {
+      setLoading(false);
+    }
   };
 
   if (loading) {
@@ -257,10 +277,10 @@ const MultiStepForm = ({ onFormChange }) => {
           title="Background"
           number={10} />
       );
-    default:
+      default:
       handleFinalStep();
       return null;
-  }
+  }A
 };
 
 export default MultiStepForm;
