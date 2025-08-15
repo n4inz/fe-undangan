@@ -17,6 +17,8 @@ import { DollarSign, MessageCircle, Plus, RefreshCw } from 'lucide-react';
 import axios from 'axios';
 import { useRouter } from 'next/navigation';
 import { FaMoneyBillWave } from 'react-icons/fa';
+import { toast } from '@/components/ui/use-toast';
+import { getCompanyProfile, getBankAccounts } from '@/lib/company'; // Import getBankAccounts
 import PaymentModal from './[formId]/[phoneNumber]/atur-foto/success/paymentModal';
 
 export default function Dashboard() {
@@ -25,6 +27,8 @@ export default function Dashboard() {
     const [forms, setForms] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
+    const [company, setCompany] = useState(null); // State for company profile
+    const [bankAccounts, setBankAccounts] = useState([]); // State for bank accounts
 
     const fetchForms = useCallback(async () => {
         try {
@@ -40,11 +44,11 @@ export default function Dashboard() {
             const formData = response.data.form || [];
             const formattedForms = Array.isArray(formData)
                 ? formData.map(form => ({
-                    ...form,
-                    slug: form.linkUndangan
-                        ? form.linkUndangan
-                        : `${process.env.NEXT_PUBLIC_LINK_UNDANGAN}/${form.slug || ''}`,
-                }))
+                      ...form,
+                      slug: form.linkUndangan
+                          ? form.linkUndangan
+                          : `${process.env.NEXT_PUBLIC_LINK_UNDANGAN}/${form.slug || ''}`,
+                  }))
                 : [];
             setForms(formattedForms);
             setError(null);
@@ -70,10 +74,8 @@ export default function Dashboard() {
                     const isUserRegistered = localStorage.getItem(userKey);
 
                     if (!isUserRegistered) {
-                        // Mark user as registered after successful sign-in
                         localStorage.setItem(userKey, 'true');
                     } else {
-                        // Check user existence
                         const checkRes = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/check-user`, {
                             headers: {
                                 Authorization: `Bearer ${sessionToken}`,
@@ -96,6 +98,24 @@ export default function Dashboard() {
                             setLoading(false);
                             return;
                         }
+                    }
+
+                    // Fetch company profile and bank accounts
+                    try {
+                        const [companyData, bankData] = await Promise.all([
+                            getCompanyProfile(),
+                            getBankAccounts(),
+                        ]);
+                        setCompany(companyData.data || null);
+                        setBankAccounts(bankData.data || []);
+                    } catch (error) {
+                        toast({
+                            title: 'Error',
+                            description: 'Failed to load company profile or bank accounts.',
+                            variant: 'destructive',
+                        });
+                        setCompany(null);
+                        setBankAccounts([]);
                     }
 
                     await fetchForms();
@@ -122,8 +142,10 @@ export default function Dashboard() {
     useEffect(() => {
         if (!loading) {
             console.log("Forms data:", forms);
+            console.log("Company data:", company);
+            console.log("Bank accounts:", bankAccounts);
         }
-    }, [forms, loading]);
+    }, [forms, loading, company, bankAccounts]);
 
     if (loading) {
         return (
@@ -166,11 +188,6 @@ export default function Dashboard() {
                                             </p>
                                         </div>
                                     </DropdownMenuLabel>
-                                    {/* <DropdownMenuSeparator />
-                                    <DropdownMenuItem asChild>
-                                        <Link href="/profile">Profile</Link>
-                                    </DropdownMenuItem>
-                                    <DropdownMenuSeparator /> */}
                                     <DropdownMenuItem onClick={() => signOut()}>
                                         Log out
                                     </DropdownMenuItem>
@@ -194,24 +211,20 @@ export default function Dashboard() {
                             {forms.length > 0 ? (
                                 forms.map((form) => (
                                     <Card key={form.id} className="relative hover:shadow-md transition-shadow">
-
-                                        {/* Icon jika sudah dibayar */}
                                         {form.isPaid === 1 && (
                                             <FaMoneyBillWave className="absolute top-2 right-2 text-green-500 text-xl z-10" />
                                         )}
-
-                                        {/* Tombol Bayar Sekarang */}
                                         {form.isPaid !== 1 && (
                                             <div className={buttonContainerClasses}>
                                                 <PaymentModal
                                                     formId={form.id}
-                                                    phoneNumber={form.phoneNumber}
-                                                    // Pass a className to the button within PaymentModal if it renders one
+                                                    phoneNumber={form.nomorWa || ''} // Fallback for phoneNumber
                                                     buttonClassName={linkButtonClasses}
+                                                    company={company} // Pass company data
+                                                    bankAccounts={bankAccounts} // Pass bank accounts
                                                 />
                                             </div>
                                         )}
-
                                         <CardHeader className="pb-2">
                                             <CardTitle className="text-base font-semibold">
                                                 <Link
@@ -236,40 +249,33 @@ export default function Dashboard() {
                                                 })}
                                             </p>
                                         </CardHeader>
-
                                         <CardContent className="pt-0">
                                             <div className="flex items-center text-muted-foreground text-sm">
                                                 <MessageCircle className="h-4 w-4 mr-2" />
                                                 <span>{form.commentCount || 0} komentar</span>
                                             </div>
                                         </CardContent>
-
                                         <CardFooter className="flex justify-between bg-muted/50 p-4 gap-2 flex-wrap sm:flex-nowrap">
                                             <Button variant="outline" size="sm" asChild className="w-full sm:w-auto">
-                                                <Link href={`/forms/${form.id}/${form.nomorWa}/comments`}>
+                                                <Link href={`/forms/${form.id}/${form.nomorWa || ''}/comments`}>
                                                     Lihat Komentar
                                                 </Link>
                                             </Button>
-
                                             <div className="flex gap-2 w-full sm:w-auto justify-end">
-                                                {/* Tombol Atur Foto */}
                                                 <Button variant="secondary" size="sm" asChild>
-                                                    <Link href={`/forms/${form.id}/${form.nomorWa}/atur-foto`}>
+                                                    <Link href={`/forms/${form.id}/${form.nomorWa || ''}/atur-foto`}>
                                                         <RefreshCw className="mr-1 h-4 w-4" />
                                                         Atur Foto
                                                     </Link>
                                                 </Button>
-
-                                                {/* Tombol Edit */}
                                                 <Button variant="default" size="sm" asChild>
-                                                    <Link href={`/forms/${form.id}/${form.nomorWa}/atur-foto/success/result`}>
+                                                    <Link href={`/forms/${form.id}/${form.nomorWa || ''}/atur-foto/success/result`}>
                                                         Edit
                                                     </Link>
                                                 </Button>
                                             </div>
                                         </CardFooter>
                                     </Card>
-
                                 ))
                             ) : (
                                 <div className="text-center py-8">

@@ -59,6 +59,7 @@ const Success = ({ params }) => {
   // Original button classes from your code
   const buttonContainerClasses = "w-64 mt-4 flex items-center justify-center";
   const linkButtonClasses = "bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-full flex items-center justify-center w-full";
+  const paymentButtonClasses = "bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-full flex items-center justify-center w-full";
   const editButtonClasses = "bg-slate-500 hover:bg-slate-700 text-white font-bold py-2 px-4 rounded-full flex items-center justify-center w-full";
 
 
@@ -102,7 +103,7 @@ const Success = ({ params }) => {
             formId={formId}
             phoneNumber={phoneNumber}
             // Pass a className to the button within PaymentModal if it renders one
-            buttonClassName={linkButtonClasses}
+            buttonClassName={paymentButtonClasses}
           />
         </div>
 

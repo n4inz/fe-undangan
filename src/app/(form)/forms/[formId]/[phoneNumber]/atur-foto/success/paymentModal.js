@@ -15,9 +15,8 @@ import { Loader2 } from 'lucide-react';
 import axios from 'axios';
 import Image from 'next/image';
 import placeholder from '/public/images/placeholder.png';
-import { getBankAccounts, getCompanyProfile } from '@/lib/company';
 
-export default function PaymentModal({ formId, phoneNumber }) {
+export default function PaymentModal({ formId, phoneNumber, buttonClassName, company, bankAccounts }) {
     const [formData, setFormData] = useState({
         name: '',
         paket: 'antri',
@@ -26,49 +25,17 @@ export default function PaymentModal({ formId, phoneNumber }) {
         isMusic: false,
         isFont: false,
         revisi: false,
-        total: 0,
+        totalPayment: 0,
     });
     const [errors, setErrors] = useState({});
     const [isLoading, setIsLoading] = useState(false);
     const [paymentStatus, setPaymentStatus] = useState(false);
-    const [bankAccounts, setBankAccounts] = useState([]); // State for bank accounts
-    const [company, setCompany] = useState(null); // State for company profile
 
-    const fileInputRef = useRef(null); // Tambahkan useRef
+    const fileInputRef = useRef(null);
 
-    // Fetch bank accounts and company profile on mount
-    useEffect(() => {
-        const fetchBankAccounts = async () => {
-            try {
-                const data = await getBankAccounts();
-                setBankAccounts(data.data || []); // Set bank accounts from API response
-            } catch (error) {
-                toast({
-                    title: 'Error',
-                    description: 'Failed to load bank accounts. Using defaults.',
-                    variant: 'destructive',
-                });
-                setBankAccounts([]); // Fallback to empty array on error
-            }
-        };
+    console.log('PaymentModal props:', { formId, phoneNumber, company, bankAccounts });
 
-        const fetchCompanyProfile = async () => {
-            try {
-                const data = await getCompanyProfile();
-                setCompany(data.data); // Set company profile data
-            } catch (error) {
-                toast({
-                    title: 'Error',
-                    description: 'Failed to load company profile.',
-                    variant: 'destructive',
-                });
-                setCompany(null); // Fallback to null on error
-            }
-        };
-
-        fetchBankAccounts();
-        fetchCompanyProfile();
-    }, []);
+    const safeBankAccounts = Array.isArray(bankAccounts) ? bankAccounts : [];
 
     const handleChange = (e) => {
         const { name, value, type, checked, files } = e.target;
@@ -84,12 +51,9 @@ export default function PaymentModal({ formId, phoneNumber }) {
                     variant: 'destructive',
                 });
                 setFormData((prev) => ({ ...prev, file: null }));
-
-                // Reset input file dengan useRef
                 if (fileInputRef.current) {
                     fileInputRef.current.value = '';
                 }
-
                 return;
             }
 
@@ -116,7 +80,7 @@ export default function PaymentModal({ formId, phoneNumber }) {
         if (formData.tema) total += 0;
         if (formData.isMusic) total += 5000;
         if (formData.isFont) total += 20000;
-        formData.total = total;
+        setFormData((prev) => ({ ...prev, totalPayment: total }));
         return total;
     };
 
@@ -124,46 +88,58 @@ export default function PaymentModal({ formId, phoneNumber }) {
         e.preventDefault();
         setIsLoading(true);
 
+        if (!formId || !phoneNumber) {
+            toast({
+                title: 'Error',
+                description: 'Invalid form ID or phone number. Please ensure all required fields are provided.',
+                variant: 'destructive',
+            });
+            setIsLoading(false);
+            return;
+        }
+
         try {
-            // Validate the form data
-            paymentSchema.parse(formData);
+            const total = calculateTotal();
+            const updatedFormData = { ...formData, totalPayment: total };
+            console.log('Submitting formData:', updatedFormData);
+
+            paymentSchema.parse(updatedFormData);
             setErrors({});
+            console.log('Validation passed');
 
-            // Prepare form data for submission
             const formDataToSend = new FormData();
-
-            // Append JSON data
             const jsonData = {
-                name: formData.name,
-                paket: formData.paket,
-                isMusic: formData.isMusic,
-                isFont: formData.isFont,
-                totalPayment: formData.total
+                name: updatedFormData.name,
+                paket: updatedFormData.paket,
+                isMusic: updatedFormData.isMusic,
+                isFont: updatedFormData.isFont,
+                totalPayment: updatedFormData.totalPayment,
             };
             formDataToSend.append('data', JSON.stringify(jsonData));
 
-            // Append payment file if exists
-            if (formData.file) {
-                formDataToSend.append('payment', formData.file);
+            if (updatedFormData.file) {
+                console.log('File selected:', updatedFormData.file.name, updatedFormData.file.type);
+                formDataToSend.append('payment', updatedFormData.file);
+            } else {
+                console.log('No file selected');
             }
 
-            // Send to backend API
-            const response = await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/upload-payment/${formId}/${phoneNumber}`, formDataToSend, {
-                headers: {
-                    'Content-Type': 'multipart/form-data',
-                },
-            });
+            console.log('API request details:', { formId, phoneNumber });
+            const response = await axios.post(
+                `${process.env.NEXT_PUBLIC_API_URL}/upload-payment/${formId}/${phoneNumber}`,
+                formDataToSend,
+                { headers: { 'Content-Type': 'multipart/form-data' } }
+            );
+            console.log('API response:', response);
 
             if (response.status !== 200) {
                 throw new Error(response.data?.error || 'Payment submission failed');
             }
-            const result = response.data;
             toast({
                 title: 'Payment submitted successfully!',
                 description: 'Your payment has been received and is being processed.',
             });
 
-            // Reset form after successful submission
             setFormData({
                 name: '',
                 paket: 'antri',
@@ -172,25 +148,33 @@ export default function PaymentModal({ formId, phoneNumber }) {
                 isMusic: false,
                 isFont: false,
                 revisi: false,
+                totalPayment: 0,
             });
 
-            // Clear file input
             if (fileInputRef.current) {
                 fileInputRef.current.value = '';
             }
 
+            await checkPayment();
         } catch (error) {
             if (error instanceof z.ZodError) {
                 const fieldErrors = {};
                 error.errors.forEach(err => {
                     fieldErrors[err.path[0]] = err.message;
                 });
+                console.log('Zod validation errors:', fieldErrors);
                 setErrors(fieldErrors);
+                toast({
+                    title: 'Validation Error',
+                    description: 'Please check the form for errors.',
+                    variant: 'destructive',
+                });
                 const firstErrorField = document.querySelector(`[name="${error.errors[0].path[0]}"]`);
                 if (firstErrorField) {
                     firstErrorField.scrollIntoView({ behavior: 'smooth', block: 'center' });
                 }
             } else {
+                console.error('Submission error:', error);
                 toast({
                     title: 'Submission Error',
                     description: error.message || 'Failed to submit payment. Please try again.',
@@ -199,39 +183,61 @@ export default function PaymentModal({ formId, phoneNumber }) {
             }
         } finally {
             setIsLoading(false);
+            console.log('isLoading reset to false');
         }
     };
 
     const handleCopy = (text, event) => {
-        if (event) event.preventDefault();  // stops the submit
+        event.preventDefault();
         navigator.clipboard.writeText(text)
             .then(() => {
                 toast({ title: 'Berhasil menyalin rekening.' });
             })
             .catch(() => {
-                toast({ title: 'Gagal menyalin rekening.', type: 'error' });
+                toast({ title: 'Gagal menyalin rekening.', variant: 'destructive' });
             });
     };
 
     const checkPayment = async () => {
-        const response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/payment/${formId}/${phoneNumber}`);
-        if (response.data != null) {
-            setFormData({
-                ...response.data
+        if (!formId || !phoneNumber) {
+            toast({
+                title: 'Error',
+                description: 'Invalid form ID or phone number.',
+                variant: 'destructive',
             });
-            setPaymentStatus(true);
+            return;
         }
-    }
+
+        try {
+            const response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/payment/${formId}/${phoneNumber}`);
+            console.log('checkPayment response:', response.data);
+            if (response.data != null) {
+                setFormData({
+                    ...response.data,
+                    totalPayment: response.data.totalPayment || 0,
+                });
+                setPaymentStatus(true);
+            }
+        } catch (error) {
+            console.error('Error checking payment:', error);
+            toast({
+                title: 'Error',
+                description: 'Failed to check payment status.',
+                variant: 'destructive',
+            });
+        }
+    };
 
     useEffect(() => {
-        checkPayment();
-    }, [formData]);
+        if (formId && phoneNumber) {
+            checkPayment();
+        }
+    }, [formId, phoneNumber]);
 
     return (
         <Dialog>
             <DialogTrigger asChild>
-                {/* Add 'w-full' and 'justify-center' to the Button's className */}
-                <Button className="bg-green-700 hover:bg-green-900 text-white font-bold py-4 px-4 rounded-full flex items-center text-sm w-full justify-center">
+                <Button className={`bg-green-700 hover:bg-green-900 text-white font-bold py-4 px-4 rounded-full flex items-center text-sm w-full justify-center ${buttonClassName}`}>
                     <BiMoney className="h-8 w-8" />
                     Bayar Sekarang
                 </Button>
@@ -330,16 +336,16 @@ export default function PaymentModal({ formId, phoneNumber }) {
                                     </label>
                                     <label className="flex items-center space-x-2">
                                         <Checkbox name="revisi" disabled checked />
-                                        <span>Revisi 5 * = 0</span>
+                                        <span>Revisi 5x = 0</span>
                                     </label>
                                 </div>
                             </div>
-                            <div className="font-bold">Total: {calculateTotal()} IDR</div>
+                            <div className="font-bold">Total: {formData.totalPayment.toLocaleString('id-ID')} IDR</div>
                             <div>
                                 <Label>Metode Pembayaran</Label>
                                 <ul className="text-sm">
-                                    {bankAccounts.length > 0 ? (
-                                        bankAccounts.map((account) => (
+                                    {safeBankAccounts.length > 0 ? (
+                                        safeBankAccounts.map((account) => (
                                             <li key={account.id} className="flex items-center justify-between">
                                                 {account.name}: {account.number}
                                                 <Button type="button" variant="ghost" size="sm" onClick={(e) => handleCopy(account.number, e)}>
