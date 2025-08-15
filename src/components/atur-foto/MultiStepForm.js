@@ -106,7 +106,7 @@ const MultiStepForm = ({ onFormChange }) => {
       checkFotoLoveStory();
     }
     if (step === 10) {
-      handleFinalStep();
+      checkIsSyari();
     }
 
     console.log("STEP:", step);
