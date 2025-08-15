@@ -86,10 +86,14 @@ const MultiStepForm = ({ onFormChange }) => {
       if (data && data.isSyari == true && step === 12) {
         handleFinalStep();
       }
-      else if (data && data.isSyari == true) {
+      else if (data && data.isSyari == true && step < 10) {
         setStep(3);
         setIsSyari(true);
       }
+      else if (data && data.isSyari != true && step >= 10) {
+        setStep(10);
+      }
+
     } catch (error) {
       console.error("Error checking foto mempelai:", error);
     }
