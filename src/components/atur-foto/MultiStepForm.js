@@ -86,6 +86,9 @@ const MultiStepForm = ({ onFormChange }) => {
       if (data && data.isSyari == true && step === 12) {
         handleFinalStep();
       }
+      else if (data && data.isSyari == true && step >= 6) {
+        handleFinalStep();
+      }
       else if (data && data.isSyari == true && step < 10) {
         setStep(3);
         setIsSyari(true);
@@ -101,6 +104,9 @@ const MultiStepForm = ({ onFormChange }) => {
 
   useEffect(() => {
     if (step == 1) {
+      checkIsSyari();
+    }    
+    if (step == 6) {
       checkIsSyari();
     }
     if (step === 3) {
@@ -281,7 +287,7 @@ const MultiStepForm = ({ onFormChange }) => {
           title="Background"
           number={10} />
       );
-      default:
+    default:
       handleFinalStep();
       return null;
   }A
