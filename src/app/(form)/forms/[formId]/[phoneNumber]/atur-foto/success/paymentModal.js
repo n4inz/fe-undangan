@@ -15,6 +15,7 @@ import { Loader2 } from 'lucide-react';
 import axios from 'axios';
 import Image from 'next/image';
 import placeholder from '/public/images/placeholder.png';
+import { getBankAccounts, getCompanyProfile } from '@/lib/company';
 
 export default function PaymentModal({ formId, phoneNumber, buttonClassName, company, bankAccounts }) {
     const [formData, setFormData] = useState({
@@ -31,11 +32,41 @@ export default function PaymentModal({ formId, phoneNumber, buttonClassName, com
     const [isLoading, setIsLoading] = useState(false);
     const [paymentStatus, setPaymentStatus] = useState(false);
 
-    const fileInputRef = useRef(null);
+    const fileInputRef = useRef(null); // Tambahkan useRef
 
-    console.log('PaymentModal props:', { formId, phoneNumber, company, bankAccounts });
+    // Fetch bank accounts and company profile on mount
+    useEffect(() => {
+        const fetchBankAccounts = async () => {
+            try {
+                const data = await getBankAccounts();
+                setBankAccounts(data.data || []); // Set bank accounts from API response
+            } catch (error) {
+                toast({
+                    title: 'Error',
+                    description: 'Failed to load bank accounts. Using defaults.',
+                    variant: 'destructive',
+                });
+                setBankAccounts([]); // Fallback to empty array on error
+            }
+        };
 
-    const safeBankAccounts = Array.isArray(bankAccounts) ? bankAccounts : [];
+        const fetchCompanyProfile = async () => {
+            try {
+                const data = await getCompanyProfile();
+                setCompany(data.data); // Set company profile data
+            } catch (error) {
+                toast({
+                    title: 'Error',
+                    description: 'Failed to load company profile.',
+                    variant: 'destructive',
+                });
+                setCompany(null); // Fallback to null on error
+            }
+        };
+
+        fetchBankAccounts();
+        fetchCompanyProfile();
+    }, []);
 
     // Calculate total payment based on formData
     const calculateTotal = () => {
@@ -350,8 +381,8 @@ export default function PaymentModal({ formId, phoneNumber, buttonClassName, com
                             <div>
                                 <Label>Metode Pembayaran</Label>
                                 <ul className="text-sm">
-                                    {safeBankAccounts.length > 0 ? (
-                                        safeBankAccounts.map((account) => (
+                                    {bankAccounts.length > 0 ? (
+                                        bankAccounts.map((account) => (
                                             <li key={account.id} className="flex items-center justify-between">
                                                 {account.name}: {account.number}
                                                 <Button type="button" variant="ghost" size="sm" onClick={(e) => handleCopy(account.number, e)}>
