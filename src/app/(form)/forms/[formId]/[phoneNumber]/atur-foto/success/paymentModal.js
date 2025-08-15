@@ -21,10 +21,10 @@ export default function PaymentModal({ formId, phoneNumber, buttonClassName, com
         name: '',
         paket: 'antri',
         file: null,
-        tema: false,
+        tema: true, // Default to true as per the UI (disabled and checked)
         isMusic: false,
         isFont: false,
-        revisi: false,
+        revisi: true, // Default to true as per the UI (disabled and checked)
         totalPayment: 0,
     });
     const [errors, setErrors] = useState({});
@@ -36,6 +36,24 @@ export default function PaymentModal({ formId, phoneNumber, buttonClassName, com
     console.log('PaymentModal props:', { formId, phoneNumber, company, bankAccounts });
 
     const safeBankAccounts = Array.isArray(bankAccounts) ? bankAccounts : [];
+
+    // Calculate total payment based on formData
+    const calculateTotal = () => {
+        let total = 0;
+        if (formData.paket === 'express') total += 55000;
+        if (formData.paket === 'antri') total += 25000;
+        if (formData.tema) total += 0; // As per UI: Thema = 25rb
+        if (formData.isMusic) total += 5000; // Request Ganti Music = 5rb
+        if (formData.isFont) total += 20000; // Custom Font/Thema = 20rb
+        if (formData.revisi) total += 0; // Revisi 5 * = 0
+        return total;
+    };
+
+    // Update totalPayment whenever relevant formData fields change
+    useEffect(() => {
+        const newTotal = calculateTotal();
+        setFormData((prev) => ({ ...prev, totalPayment: newTotal }));
+    }, [formData.paket, formData.isMusic, formData.isFont, formData.tema, formData.revisi]);
 
     const handleChange = (e) => {
         const { name, value, type, checked, files } = e.target;
@@ -73,17 +91,6 @@ export default function PaymentModal({ formId, phoneNumber, buttonClassName, com
         }));
     };
 
-    const calculateTotal = () => {
-        let total = 0;
-        if (formData.paket === 'express') total += 55000;
-        if (formData.paket === 'antri') total += 25000;
-        if (formData.tema) total += 0;
-        if (formData.isMusic) total += 5000;
-        if (formData.isFont) total += 20000;
-        setFormData((prev) => ({ ...prev, totalPayment: total }));
-        return total;
-    };
-
     const handleSubmit = async (e) => {
         e.preventDefault();
         setIsLoading(true);
@@ -99,8 +106,7 @@ export default function PaymentModal({ formId, phoneNumber, buttonClassName, com
         }
 
         try {
-            const total = calculateTotal();
-            const updatedFormData = { ...formData, totalPayment: total };
+            const updatedFormData = { ...formData, totalPayment: calculateTotal() };
             console.log('Submitting formData:', updatedFormData);
 
             paymentSchema.parse(updatedFormData);
@@ -147,7 +153,7 @@ export default function PaymentModal({ formId, phoneNumber, buttonClassName, com
                 tema: true,
                 isMusic: false,
                 isFont: false,
-                revisi: false,
+                revisi: true,
                 totalPayment: 0,
             });
 
@@ -265,7 +271,7 @@ export default function PaymentModal({ formId, phoneNumber, buttonClassName, com
                                 <p className="font-bold">Ekstra:</p>
                                 <p className="flex items-center">{formData.isMusic ? (<BiCheck className="mr-2 text-green-600" />) : (<BiX className="mr-2 text-red-600" />)} Custom Musik</p>
                                 <p className='flex items-center'>{formData.isFont ? (<BiCheck className="mr-2 text-green-600" />) : (<BiX className="mr-2 text-red-600" />)} Custom Font</p>
-                                <p className='flex items-center'><BiCheck className="mr-2 text-green-600" /> Thema</p>
+                                <p className='flex items-center'><BiCheck className="mr-2 text-green-600" />Thema</p>
                                 <p className='flex items-center'><BiCheck className="mr-2 text-green-600" /> Revisi 5x</p>
                             </div>
                             <div className="mt-4">
@@ -323,7 +329,7 @@ export default function PaymentModal({ formId, phoneNumber, buttonClassName, com
                                 <Label>Req dan Pembayaran:</Label>
                                 <div className="space-y-2">
                                     <label className="flex items-center space-x-2">
-                                        <Checkbox name="tema" disabled checked />
+                                        <Checkbox name="tema" disabled checked={formData.tema} />
                                         <span>Thema = 25rb</span>
                                     </label>
                                     <label className="flex items-center space-x-2">
@@ -335,12 +341,12 @@ export default function PaymentModal({ formId, phoneNumber, buttonClassName, com
                                         <span>Custom Font/Thema = 20rb</span>
                                     </label>
                                     <label className="flex items-center space-x-2">
-                                        <Checkbox name="revisi" disabled checked />
-                                        <span>Revisi 5x = 0</span>
+                                        <Checkbox name="revisi" disabled checked={formData.revisi} />
+                                        <span>Revisi 5 * = 0</span>
                                     </label>
                                 </div>
                             </div>
-                            <div className="font-bold">Total: {formData.totalPayment.toLocaleString('id-ID')} IDR</div>
+                            <div className="font-bold">Total: Rp. {formData.totalPayment.toLocaleString('id-ID')} IDR</div>
                             <div>
                                 <Label>Metode Pembayaran</Label>
                                 <ul className="text-sm">
