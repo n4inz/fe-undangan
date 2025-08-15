@@ -17,7 +17,7 @@ import Image from 'next/image';
 import placeholder from '/public/images/placeholder.png';
 import { getBankAccounts, getCompanyProfile } from '@/lib/company';
 
-export default function PaymentModal({ formId, phoneNumber, buttonClassName, company, bankAccounts }) {
+export default function PaymentModal({ formId, phoneNumber, buttonClassName }) {
     const [formData, setFormData] = useState({
         name: '',
         paket: 'antri',
@@ -31,6 +31,8 @@ export default function PaymentModal({ formId, phoneNumber, buttonClassName, com
     const [errors, setErrors] = useState({});
     const [isLoading, setIsLoading] = useState(false);
     const [paymentStatus, setPaymentStatus] = useState(false);
+    const [bankAccounts, setBankAccounts] = useState([]); // State for bank accounts
+    const [company, setCompany] = useState(null); // State for company profile
 
     const fileInputRef = useRef(null); // Tambahkan useRef
 
