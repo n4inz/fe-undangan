@@ -363,7 +363,7 @@ const Edit = ({ params }) => {
                     <div className="mb-4">
                         <label className="block text-gray-700">
                             Tempat Lahir Mempelai Pria
-                            </label>
+                        </label>
                         <Input
                             type="text"
                             name="tempatLahirPria"
@@ -394,6 +394,18 @@ const Edit = ({ params }) => {
                             type="text"
                             name="anakKeberapaPria"
                             value={formData.anakKeberapaPria}
+                            onChange={handleChange}
+                            className="mt-1 p-2 w-full border border-gray-300 rounded-lg"
+                        />
+                    </div>
+                    <div className="mb-4">
+                        <label className="block text-gray-700">
+                            Alamat (Mempelai Pria)
+                        </label>
+                        <Input
+                            type="text"
+                            name="alamatPria"
+                            value={formData.alamatPria}
                             onChange={handleChange}
                             className="mt-1 p-2 w-full border border-gray-300 rounded-lg"
                         />
@@ -438,7 +450,7 @@ const Edit = ({ params }) => {
                     </div>
                     <div className="mb-4">
                         <label className="block text-gray-700">Tempat Lahir Mempelai Wanita
-                            </label>
+                        </label>
                         <Input
                             type="text"
                             name="tempatLahirWanita"
@@ -469,6 +481,18 @@ const Edit = ({ params }) => {
                             type="text"
                             name="anakKeberapaWanita"
                             value={formData.anakKeberapaWanita}
+                            onChange={handleChange}
+                            className="mt-1 p-2 w-full border border-gray-300 rounded-lg"
+                        />
+                    </div>
+                    <div className="mb-4">
+                        <label className="block text-gray-700">
+                            Alamat (Mempelai Wanita)
+                        </label>
+                        <Input
+                            type="text"
+                            name="alamatWanita"
+                            value={formData.alamatWanita}
                             onChange={handleChange}
                             className="mt-1 p-2 w-full border border-gray-300 rounded-lg"
                         />
