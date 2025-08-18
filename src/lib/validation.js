@@ -24,14 +24,14 @@ export const mainSchema = z.object({
   namaLengkapWanita: requeiredInput,
   namaPanggilanWanita: requeiredInput,
   namaOrtuWanita: requeiredInput,
-  alamatAkad: requeiredInput,
-  alamatResepsi: requeiredInput,
+  // alamatAkad: requeiredInput,
+  // alamatResepsi: requeiredInput,
   nomorWa: z
     .string()
     .regex(/^[\d+\s-]+$/, { message: "Nomor telepon mengharuskan angka" })
     .refine((val) => val !== "", { message: "Nomor telepon harus diisi" }),
-  datetimeAkad: requeiredDate,
-  datetimeResepsi: requeiredDate,
+  // datetimeAkad: requeiredDate,
+  // datetimeResepsi: requeiredDate,
   // timeAkad: requeiredInput,
   // timeResepsi: requeiredInput,
   pilihanTema: z.string().min(1, { message: "Pilihan tema harus dipilih" }),
