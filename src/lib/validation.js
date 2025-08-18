@@ -32,8 +32,8 @@ export const mainSchema = z.object({
     .refine((val) => val !== "", { message: "Nomor telepon harus diisi" }),
   datetimeAkad: requeiredDate,
   datetimeResepsi: requeiredDate,
-  timeAkad: requeiredInput,
-  timeResepsi: requeiredInput,
+  // timeAkad: requeiredInput,
+  // timeResepsi: requeiredInput,
   pilihanTema: z.string().min(1, { message: "Pilihan tema harus dipilih" }),
   idTema: z.coerce.number({
     required_error: "ID tema harus diisi",
