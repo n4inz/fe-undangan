@@ -20,6 +20,10 @@ import { FaMoneyBillWave } from 'react-icons/fa';
 import { toast } from '@/components/ui/use-toast';
 import { getCompanyProfile, getBankAccounts } from '@/lib/company'; // Import getBankAccounts
 import PaymentModal from './[formId]/[phoneNumber]/atur-foto/success/paymentModal';
+import { BiCopyAlt, BiDotsVertical } from 'react-icons/bi';
+import { Badge } from '@/components/ui/badge';
+import { Toaster } from '@/components/ui/toaster';
+import LoadingOverlay from 'react-loading-overlay-ts'
 
 export default function Dashboard() {
     const router = useRouter();
@@ -29,6 +33,8 @@ export default function Dashboard() {
     const [error, setError] = useState(null);
     const [company, setCompany] = useState(null); // State for company profile
     const [bankAccounts, setBankAccounts] = useState([]); // State for bank accounts
+    const [isDuplicating, setIsDuplicating] = useState(false);
+
 
     const fetchForms = useCallback(async () => {
         try {
@@ -44,11 +50,11 @@ export default function Dashboard() {
             const formData = response.data.form || [];
             const formattedForms = Array.isArray(formData)
                 ? formData.map(form => ({
-                      ...form,
-                      slug: form.linkUndangan
-                          ? form.linkUndangan
-                          : `${process.env.NEXT_PUBLIC_LINK_UNDANGAN}/${form.slug || ''}`,
-                  }))
+                    ...form,
+                    slug: form.linkUndangan
+                        ? form.linkUndangan
+                        : `${process.env.NEXT_PUBLIC_LINK_UNDANGAN}/${form.slug || ''}`,
+                }))
                 : [];
             setForms(formattedForms);
             setError(null);
@@ -64,6 +70,43 @@ export default function Dashboard() {
             setLoading(false);
         }
     }, [session]);
+
+    const handleDuplicate = async (formId, phoneNumber) => {
+        try {
+            setIsDuplicating(true); // tampilkan overlay
+
+            if (!session?.user?.sessionToken) {
+                throw new Error("No session token available");
+            }
+
+            const response = await axios.post(
+                `${process.env.NEXT_PUBLIC_API_URL}/forms/${formId}/${phoneNumber}/duplicate`,
+                {},
+                {
+                    headers: {
+                        Authorization: `Bearer ${session.user.sessionToken}`,
+                    },
+                }
+            );
+
+            toast({
+                title: "Berhasil",
+                description: "Undangan berhasil diduplikat.",
+            });
+
+            // Refresh daftar form
+            await fetchForms();
+        } catch (error) {
+            console.error("Error duplicating form:", error.response?.data || error.message);
+            toast({
+                title: "Gagal",
+                description: error.response?.data?.message || "Gagal menduplikat undangan.",
+                variant: "destructive",
+            });
+        } finally {
+            setIsDuplicating(false); // sembunyikan overlay
+        }
+    };
 
     useEffect(() => {
         const loadData = async () => {
@@ -159,136 +202,160 @@ export default function Dashboard() {
     const linkButtonClasses = "flex items-center gap-1 px-2 py-1 text-xs h-7";
 
     return (
-        <div className="relative min-h-screen">
-            <div className="fixed inset-0 bg-gray-100" />
-            <div className="relative z-10 flex flex-col items-center justify-start min-h-screen py-8">
-                <div className="w-full max-w-md bg-white rounded-lg shadow-sm">
-                    <header className="border-b bg-background p-4">
-                        <div className="flex justify-between items-center">
-                            <h1 className="text-xl font-bold">Undangan Saya</h1>
-                            <DropdownMenu>
-                                <DropdownMenuTrigger asChild>
-                                    <Button variant="ghost" className="relative h-8 w-8 rounded-full">
-                                        <Avatar className="h-8 w-8">
-                                            <AvatarImage src={session?.user?.image || undefined} />
-                                            <AvatarFallback>
-                                                {session?.user?.name?.charAt(0).toUpperCase() || 'U'}
-                                            </AvatarFallback>
-                                        </Avatar>
-                                    </Button>
-                                </DropdownMenuTrigger>
-                                <DropdownMenuContent className="w-56" align="end" forceMount>
-                                    <DropdownMenuLabel className="font-normal">
-                                        <div className="flex flex-col space-y-1">
-                                            <p className="text-sm font-medium leading-none">
-                                                {session?.user?.name || 'User'}
-                                            </p>
-                                            <p className="text-xs leading-none text-muted-foreground">
-                                                {session?.user?.email || ''}
-                                            </p>
-                                        </div>
-                                    </DropdownMenuLabel>
-                                    <DropdownMenuItem onClick={() => signOut()}>
-                                        Log out
-                                    </DropdownMenuItem>
-                                </DropdownMenuContent>
-                            </DropdownMenu>
-                        </div>
-                    </header>
-                    <main className="p-4">
-                        {error && (
-                            <div className="mb-4 p-3 bg-red-100 text-red-700 rounded">
-                                {error}
+        <LoadingOverlay
+            active={isDuplicating}
+            spinner
+            text="Sedang menduplikat undangan...">
+            <div className="relative min-h-screen">
+                <Toaster className="z-50" />
+                <div className="fixed inset-0 bg-gray-100" />
+                <div className="relative z-10 flex flex-col items-center justify-start min-h-screen py-8">
+                    <div className="w-full max-w-md bg-white rounded-lg shadow-sm">
+                        <header className="border-b bg-background p-4">
+                            <div className="flex justify-between items-center">
+                                <h1 className="text-xl font-bold">Undangan Saya</h1>
+                                <DropdownMenu>
+                                    <DropdownMenuTrigger asChild>
+                                        <Button variant="ghost" className="relative h-8 w-8 rounded-full">
+                                            <Avatar className="h-8 w-8">
+                                                <AvatarImage src={session?.user?.image || undefined} />
+                                                <AvatarFallback>
+                                                    {session?.user?.name?.charAt(0).toUpperCase() || 'U'}
+                                                </AvatarFallback>
+                                            </Avatar>
+                                        </Button>
+                                    </DropdownMenuTrigger>
+                                    <DropdownMenuContent className="w-56" align="end" forceMount>
+                                        <DropdownMenuLabel className="font-normal">
+                                            <div className="flex flex-col space-y-1">
+                                                <p className="text-sm font-medium leading-none">
+                                                    {session?.user?.name || 'User'}
+                                                </p>
+                                                <p className="text-xs leading-none text-muted-foreground">
+                                                    {session?.user?.email || ''}
+                                                </p>
+                                            </div>
+                                        </DropdownMenuLabel>
+                                        <DropdownMenuItem onClick={() => signOut()}>
+                                            Log out
+                                        </DropdownMenuItem>
+                                    </DropdownMenuContent>
+                                </DropdownMenu>
                             </div>
-                        )}
-                        <Button className="w-full mb-6" asChild>
-                            <Link href="/forms/new">
-                                <Plus className="mr-2 h-4 w-4" />
-                                Buat Undangan Baru
-                            </Link>
-                        </Button>
-                        <div className="space-y-4">
-                            {forms.length > 0 ? (
-                                forms.map((form) => (
-                                    <Card key={form.id} className="relative hover:shadow-md transition-shadow">
-                                        {form.isPaid === 1 && (
-                                            <FaMoneyBillWave className="absolute top-2 right-2 text-green-500 text-xl z-10" />
-                                        )}
-                                        {form.isPaid !== 1 && (
-                                            <div className={buttonContainerClasses}>
-                                                <PaymentModal
-                                                    formId={form.id}
-                                                    phoneNumber={form.nomorWa || ''} // Fallback for phoneNumber
-                                                    buttonClassName={linkButtonClasses}
-                                                    company={company} // Pass company data
-                                                    bankAccounts={bankAccounts} // Pass bank accounts
-                                                />
-                                            </div>
-                                        )}
-                                        <CardHeader className="pb-2">
-                                            <CardTitle className="text-base font-semibold">
-                                                <Link
-                                                    href={`${form.slug}`}
-                                                    target="_blank"
-                                                    rel="noopener noreferrer"
-                                                    className="text-black hover:text-blue-600 transition-colors underline"
-                                                >
-                                                    {form.namaPanggilanPria && form.namaPanggilanWanita
-                                                        ? `${form.namaPanggilanPria} & ${form.namaPanggilanWanita}`
-                                                        : 'Undangan Pernikahan'}
-                                                </Link>
-                                            </CardTitle>
-                                            <p className="text-xs text-muted-foreground mt-1">
-                                                {form.pilihanTema && `Tema: ${form.pilihanTema}`}
-                                            </p>
-                                            <p className="text-xs text-muted-foreground">
-                                                Dibuat: {new Date(form.createdAt).toLocaleDateString('id-ID', {
-                                                    day: 'numeric',
-                                                    month: 'long',
-                                                    year: 'numeric'
-                                                })}
-                                            </p>
-                                        </CardHeader>
-                                        <CardContent className="pt-0">
-                                            <div className="flex items-center text-muted-foreground text-sm">
-                                                <MessageCircle className="h-4 w-4 mr-2" />
-                                                <span>{form.commentCount || 0} komentar</span>
-                                            </div>
-                                        </CardContent>
-                                        <CardFooter className="flex justify-between bg-muted/50 p-4 gap-2 flex-wrap sm:flex-nowrap">
-                                            <Button variant="outline" size="sm" asChild className="w-full sm:w-auto">
-                                                <Link href={`/forms/${form.id}/${form.nomorWa || ''}/comments`}>
-                                                    Lihat Komentar
-                                                </Link>
-                                            </Button>
-                                            <div className="flex gap-2 w-full sm:w-auto justify-end">
-                                                <Button variant="secondary" size="sm" asChild>
-                                                    <Link href={`/forms/${form.id}/${form.nomorWa || ''}/atur-foto`}>
-                                                        <RefreshCw className="mr-1 h-4 w-4" />
-                                                        Atur Foto
-                                                    </Link>
-                                                </Button>
-                                                <Button variant="default" size="sm" asChild>
-                                                    <Link href={`/forms/${form.id}/${form.nomorWa || ''}/atur-foto/success/result`}>
-                                                        Edit
-                                                    </Link>
-                                                </Button>
-                                            </div>
-                                        </CardFooter>
-                                    </Card>
-                                ))
-                            ) : (
-                                <div className="text-center py-8">
-                                    <p className="text-muted-foreground">Belum ada undangan yang dibuat</p>
-                                    <Button variant="link" asChild>
-                                        <Link href="/forms/new">Buat undangan pertama Anda</Link>
-                                    </Button>
+                        </header>
+                        <main className="p-4">
+                            {error && (
+                                <div className="mb-4 p-3 bg-red-100 text-red-700 rounded">
+                                    {error}
                                 </div>
                             )}
-                        </div>
-                    </main>
+                            <Button className="w-full mb-6" asChild>
+                                <Link href="/forms/new">
+                                    <Plus className="mr-2 h-4 w-4" />
+                                    Buat Undangan Baru
+                                </Link>
+                            </Button>
+                            <div className="space-y-4">
+                                {forms.length > 0 ? (
+                                    forms.map((form) => (
+                                        <Card key={form.id} className="relative hover:shadow-md transition-shadow">
+                                            {/* Replace money icon with dropdown if paid */}
+                                            {form.isPaid === 1 ? (
+                                                <div className="absolute top-2 right-2 z-10">
+                                                    <DropdownMenu>
+                                                        <DropdownMenuTrigger asChild>
+                                                            <Button variant="ghost" size="icon" className="h-8 w-8">
+                                                                <BiDotsVertical className="h-5 w-5" />
+                                                            </Button>
+                                                        </DropdownMenuTrigger>
+                                                        <DropdownMenuContent align="end">
+                                                            <DropdownMenuItem onClick={() => handleDuplicate(form.id, form.nomorWa)}>
+                                                                <BiCopyAlt className='mr-2' /> Duplikat Undangan
+                                                            </DropdownMenuItem>
+                                                        </DropdownMenuContent>
+                                                    </DropdownMenu>
+                                                </div>
+                                            ) : (
+                                                <div className="absolute top-2 right-2 z-10">
+                                                    <PaymentModal
+                                                        formId={form.id}
+                                                        phoneNumber={form.nomorWa || ""}
+                                                        buttonClassName="text-xs"
+                                                        company={company}
+                                                        bankAccounts={bankAccounts}
+                                                    />
+                                                </div>
+                                            )}
+
+                                            <CardHeader className="pb-2">
+                                                <CardTitle className="text-base font-semibold flex items-center gap-2 flex-wrap">
+                                                    <Link
+                                                        href={`${form.slug}`}
+                                                        target="_blank"
+                                                        rel="noopener noreferrer"
+                                                        className="text-black hover:text-blue-600 transition-colors underline"
+                                                    >
+                                                        {form.namaPanggilanPria && form.namaPanggilanWanita
+                                                            ? `${form.namaPanggilanPria} & ${form.namaPanggilanWanita}`
+                                                            : "Undangan Pernikahan"}
+                                                    </Link>
+                                                    {form.isPaid === 1 && <Badge className="bg-green-500">Lunas</Badge>}
+                                                </CardTitle>
+                                                <p className="text-xs text-muted-foreground mt-1">
+                                                    {form.pilihanTema && `Tema: ${form.pilihanTema}`}
+                                                </p>
+                                                <p className="text-xs text-muted-foreground">
+                                                    Dibuat:{" "}
+                                                    {new Date(form.createdAt).toLocaleDateString("id-ID", {
+                                                        day: "numeric",
+                                                        month: "long",
+                                                        year: "numeric",
+                                                    })}
+                                                </p>
+                                            </CardHeader>
+
+                                            <CardContent className="pt-0">
+                                                <div className="flex items-center text-muted-foreground text-sm">
+                                                    <MessageCircle className="h-4 w-4 mr-2" />
+                                                    <span>{form.commentCount || 0} komentar</span>
+                                                </div>
+                                            </CardContent>
+
+                                            <CardFooter className="flex justify-between bg-muted/50 p-4 gap-2 flex-wrap sm:flex-nowrap">
+                                                <Button variant="outline" size="sm" asChild className="w-full sm:w-auto">
+                                                    <Link href={`/forms/${form.id}/${form.nomorWa || ""}/comments`}>
+                                                        Lihat Komentar
+                                                    </Link>
+                                                </Button>
+                                                <div className="flex gap-2 w-full sm:w-auto justify-end">
+                                                    <Button variant="secondary" size="sm" asChild>
+                                                        <Link href={`/forms/${form.id}/${form.nomorWa || ""}/atur-foto`}>
+                                                            <RefreshCw className="mr-1 h-4 w-4" />
+                                                            Atur Foto
+                                                        </Link>
+                                                    </Button>
+                                                    <Button variant="default" size="sm" asChild>
+                                                        <Link href={`/forms/${form.id}/${form.nomorWa || ""}/atur-foto/success/result`}>
+                                                            Edit
+                                                        </Link>
+                                                    </Button>
+                                                </div>
+                                            </CardFooter>
+                                        </Card>
+                                    ))
+                                ) : (
+                                    <div className="text-center py-8">
+                                        <p className="text-muted-foreground">Belum ada undangan yang dibuat</p>
+                                        <Button variant="link" asChild>
+                                            <Link href="/forms/new">Buat undangan pertama Anda</Link>
+                                        </Button>
+                                    </div>
+                                )}
+                            </div>
+                        </main>
+                    </div>
                 </div>
             </div>
-        </div>
+        </LoadingOverlay>
     );
 }

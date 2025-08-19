@@ -9,6 +9,8 @@ import { Button } from '@/components/ui/button';
 import { checkForm } from '@/utils/checkForm';
 import ImageEditor from '@/components/atur-foto/ImageEditor'; // Import the ImageEditor component
 import { FaTimes, FaWhatsapp } from 'react-icons/fa';
+import LoadingOverlay from 'react-loading-overlay-ts'
+// import placeholderImage from '../../public/images/'; // Import your placeholder image
 
 const DataPhotoTable = ({ params }) => {
     const router = useRouter();
@@ -38,7 +40,7 @@ const DataPhotoTable = ({ params }) => {
                     ? `${process.env.NEXT_PUBLIC_API_URL}/images/${row.images.fileImage}`
                     : row.asset?.file
                         ? `${process.env.NEXT_PUBLIC_API_URL}/asset/${row.asset.file}`
-                        : '/placeholder-image.png';
+                        : '/images/placeholder-image.png'; // Use a placeholder image if no image is available
 
                 return (
                     <Image
@@ -105,35 +107,35 @@ const DataPhotoTable = ({ params }) => {
         },
     ];
 
-const handleSaveEditedImage = async (base64Data) => {
-    try {
-        const file = dataURLtoFile(base64Data, 'edited-image.jpg');
-        const formData = new FormData();
-        formData.append('file', file);
-        formData.append('partName', editingRow.partName);
-        formData.append('idImage', editingRow.idImage); // Add idImage
-        formData.append('phoneNumber', params.phoneNumber);
+    const handleSaveEditedImage = async (base64Data) => {
+        try {
+            const file = dataURLtoFile(base64Data, 'edited-image.jpg');
+            const formData = new FormData();
+            formData.append('file', file);
+            formData.append('partName', editingRow.partName);
+            formData.append('idImage', editingRow.idImage); // Add idImage
+            formData.append('phoneNumber', params.phoneNumber);
 
-        const response = await axios.put( // Change to PUT to match updatePhoto endpoint
-            `${process.env.NEXT_PUBLIC_API_URL}/update-photo/${params.formId}/${editingRow.partName}`,
-            formData,
-            {
-                headers: {
-                    'Content-Type': 'multipart/form-data',
-                },
+            const response = await axios.put( // Change to PUT to match updatePhoto endpoint
+                `${process.env.NEXT_PUBLIC_API_URL}/update-photo/${params.formId}/${editingRow.partName}`,
+                formData,
+                {
+                    headers: {
+                        'Content-Type': 'multipart/form-data',
+                    },
+                }
+            );
+
+            if (response.status === 200) {
+                fetchData();
             }
-        );
-
-        if (response.status === 200) {
-            fetchData();
+        } catch (error) {
+            console.error('Error saving edited image:', error);
+        } finally {
+            setEditingImage(null);
+            setEditingRow(null);
         }
-    } catch (error) {
-        console.error('Error saving edited image:', error);
-    } finally {
-        setEditingImage(null);
-        setEditingRow(null);
-    }
-};
+    };
 
     // Helper function to convert base64 to File
     const dataURLtoFile = (dataurl, filename) => {
@@ -186,40 +188,40 @@ const handleSaveEditedImage = async (base64Data) => {
         setImageLoading(false);
     };
 
-const handleChangeImage = (row) => {
-    const input = document.getElementById(`file-upload-${row.id}`);
-    if (input) {
-        input.click();
-    }
-};
+    const handleChangeImage = (row) => {
+        const input = document.getElementById(`file-upload-${row.id}`);
+        if (input) {
+            input.click();
+        }
+    };
 
-// Frontend: handleFileUpload function
-// ... (other imports and code remain the same)
+    // Frontend: handleFileUpload function
+    // ... (other imports and code remain the same)
 
-const handleFileUploadNew = async (e, row) => {
-  const file = e.target.files[0];
-  if (!file) return;
+    const handleFileUploadNew = async (e, row) => {
+        setUploading(true);
+        const file = e.target.files[0];
+        if (!file) return;
 
-  const formData = new FormData();
-  formData.append('file', file);
-  formData.append('idImage', row.idImage); // Add idImage to formData
+        const formData = new FormData();
+        formData.append('file', file);
+        formData.append('idImage', row.idImage); // Add idImage to formData
 
-  try {
-    setUploading(true);
-    await axios.put(
-      `${process.env.NEXT_PUBLIC_API_URL}/update-photo/${params.formId}/${row.partName}`,
-      formData,
-      { headers: { 'Content-Type': 'multipart/form-data' } }
-    );
-    fetchData();
-  } catch (error) {
-    console.error('Upload error:', error);
-    alert('Gagal mengupload gambar: ' + error.message);
-  } finally {
-    setUploading(false);
-    e.target.value = ''; // Reset input
-  }
-};
+        try {
+            await axios.put(
+                `${process.env.NEXT_PUBLIC_API_URL}/update-photo/${params.formId}/${row.partName}`,
+                formData,
+                { headers: { 'Content-Type': 'multipart/form-data' } }
+            );
+            fetchData();
+        } catch (error) {
+            console.error('Upload error:', error);
+            alert('Gagal mengupload gambar: ' + error.message);
+        } finally {
+            setUploading(false);
+            e.target.value = ''; // Reset input
+        }
+    };
 
     useEffect(() => {
         fetchData();
@@ -243,8 +245,24 @@ const handleFileUploadNew = async (e, row) => {
     }
 
     return (
-        <>
-              
+        <LoadingOverlay
+            active={uploading}                // muncul saat uploading true
+            spinner
+            text="Mengupload foto..."
+            styles={{
+                overlay: (base) => ({
+                    ...base,
+                    background: "rgba(0, 0, 0, 0.6)",  // gelap transparan
+                    zIndex: 1000,
+                }),
+                content: (base) => ({
+                    ...base,
+                    color: "#fff",
+                    fontSize: "1.2rem",
+                }),
+            }}
+        >
+            <div className="relative">
                 <DataTable
                     columns={columns}
                     data={data}
@@ -255,51 +273,43 @@ const handleFileUploadNew = async (e, row) => {
                     className="mb-8"
                 />
 
-                {/* <div className="fixed right-4 bottom-4 md:mr-40 md:bottom-4">
-                    <Button
-                        className="bg-green-500 hover:bg-green-600 text-white py-2 px-4 rounded-full flex items-center shadow-lg"
-                    >
-                        <FaWhatsapp className="mr-2 text-xl" />
-                        Hubungi Admin
-                    </Button>
-                </div> */}
+                {isFullScreen && (
+                    <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-90 z-50">
+                        {imageLoading && (
+                            <div className="absolute flex items-center justify-center">
+                                <div className="w-12 h-12 border-4 border-t-4 border-gray-200 border-t-blue-600 rounded-full animate-spin"></div>
+                            </div>
+                        )}
+                        <Image
+                            src={fullScreenImage}
+                            alt="Full Screen Image"
+                            width={800}
+                            height={800}
+                            className="max-w-full max-h-full object-contain"
+                            onLoadingComplete={handleImageLoadComplete}
+                        />
+                        <Button
+                            onClick={handleCloseFullScreen}
+                            className="absolute top-4 right-4 bg-red-500 text-white rounded-full w-12 h-12 flex items-center justify-center"
+                        >
+                            <FaTimes className="text-2xl" />
+                        </Button>
+                    </div>
+                )}
 
-            {isFullScreen && (
-                <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-90 z-50">
-                    {imageLoading && (
-                        <div className="absolute flex items-center justify-center">
-                            <div className="w-12 h-12 border-4 border-t-4 border-gray-200 border-t-blue-600 rounded-full animate-spin"></div>
-                        </div>
-                    )}
-                    <Image
-                        src={fullScreenImage}
-                        alt="Full Screen Image"
-                        width={800}
-                        height={800}
-                        className="max-w-full max-h-full object-contain"
-                        onLoadingComplete={handleImageLoadComplete}
+                {editingImage && (
+                    <ImageEditor
+                        image={editingImage}
+                        idImage={editingRow?.id}
+                        onSave={handleSaveEditedImage}
+                        onCancel={() => {
+                            setEditingImage(null);
+                            setEditingRow(null);
+                        }}
                     />
-                    <Button
-                        onClick={handleCloseFullScreen}
-                        className="absolute top-4 right-4 bg-red-500 text-white rounded-full w-12 h-12 flex items-center justify-center"
-                    >
-                        <FaTimes className="text-2xl" /> {/* Increase the size of the X icon */}
-                    </Button>
-                </div>
-            )}
-
-            {editingImage && (
-                <ImageEditor
-                    image={editingImage}
-                    idImage={editingRow?.id}
-                    onSave={handleSaveEditedImage}
-                    onCancel={() => {
-                        setEditingImage(null);
-                        setEditingRow(null);
-                    }}
-                />
-            )}
-            </>
+                )}
+            </div>
+        </LoadingOverlay>
     );
 };
 
