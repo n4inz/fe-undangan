@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { BiCopyAlt, BiLogoWhatsapp, BiMobile, BiPencil, BiPaste } from "react-icons/bi";
 import EditTemplateModal from "./EditTemplateModal";
 import { useSearchParams } from "next/navigation";
+import Image from "next/image";
 
 const isLocalStorageSupported = () => {
     try {
@@ -17,7 +18,7 @@ const isLocalStorageSupported = () => {
     }
 };
 
-const allowedDomains = ['sewaundangan.com', 'bukaundangan.com', 'buka.undanganku.store', 'undanganku.store'];
+const allowedDomains = ['sewaundangan.com', 'bukaundangan.com', 'buka.undanganku.store', 'undanganku.store', 'localhost'];
 
 const isValidDomain = (url) => {
     try {
@@ -170,8 +171,11 @@ Terima Kasih`;
 
     return (
         <>
-            <div className="flex flex-col space-y-5 justify-center items-center mx-4">
+            <div className="flex flex-col space-y-5 justify-center items-center mx-4 mb-8">
                 <div className="w-full sm:max-w-[20rem] space-y-2 my-4 flex flex-col items-center">
+                    <h1 className="text-2xl font-bold text-center">
+                        Bagikan Undangan
+                    </h1>
                     <div className="relative w-full flex">
                         <Input
                             type="url"
@@ -213,19 +217,19 @@ Terima Kasih`;
                     />
                     <div className="flex space-x-2 w-full">
                         <Button onClick={handleCopyText} className="w-full">
-                            <BiCopyAlt className="inline-block mr-2 text-lg" />Copy Text
+                            <BiCopyAlt className="inline-block mr-2 text-lg" />Salin Teks
                         </Button>
                         <Button className="w-full bg-green-500">
                             <a href={`https://api.whatsapp.com/send?phone=&text=${encodeURIComponent(renderedTemplate)}`} target="_blank" rel="noopener noreferrer">
-                                <BiLogoWhatsapp className="inline-block mr-2 text-lg" />Share To WA
+                                <BiLogoWhatsapp className="inline-block mr-2 text-lg" />Bagikan Ke WA
                             </a>
                         </Button>
                     </div>
                     <Button onClick={handleShare} className="w-full bg-blue-700 border">
-                        <BiMobile className="inline-block mr-2 text-lg" /> Share To Other App
+                        <BiMobile className="inline-block mr-2 text-lg" /> Bagikan Ke Aplikasi Lain
                     </Button>
                 </div>
-            </div>
+            </div >
 
             <EditTemplateModal
                 isOpen={isDialogOpen}

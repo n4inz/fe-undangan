@@ -9,7 +9,7 @@ import axios from "axios";
 import { Button } from "@/components/ui/button";
 import { Loader2 } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { BiDotsVertical, BiImage, BiPencil } from "react-icons/bi";
+import { BiDotsVertical, BiImage, BiPencil, BiUserCircle } from "react-icons/bi";
 import { DropdownMenuItem } from "@radix-ui/react-dropdown-menu";
 import { useRouter, useSearchParams } from "next/navigation";
 import { toast } from "@/components/ui/use-toast";
@@ -142,6 +142,17 @@ const Detail = ({ params }) => {
                     <span className="flex items-center">
                       <BiImage className="mr-2 h-4 w-4" />
                       <span>Edit Foto</span>
+                    </span>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => {
+                    // Open in a new window/tab
+                    window.open(`/forms/${params.formId}/${formData.nomorWa}/atur-foto/success`, '_blank');
+                  }}
+                    className="text-center cursor-pointer"
+                    style={{ padding: "6px 12px" }}>
+                    <span className="flex items-center">
+                      <BiUserCircle className="mr-2 h-4 w-4" />
+                      <span>Panel User</span>
                     </span>
                   </DropdownMenuItem>
                 </DropdownMenuContent>

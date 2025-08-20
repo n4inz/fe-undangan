@@ -20,7 +20,7 @@ import { FaMoneyBillWave } from 'react-icons/fa';
 import { toast } from '@/components/ui/use-toast';
 import { getCompanyProfile, getBankAccounts } from '@/lib/company'; // Import getBankAccounts
 import PaymentModal from './[formId]/[phoneNumber]/atur-foto/success/paymentModal';
-import { BiCopyAlt, BiDotsVertical } from 'react-icons/bi';
+import { BiCopyAlt, BiDotsVertical, BiShareAlt } from 'react-icons/bi';
 import { Badge } from '@/components/ui/badge';
 import { Toaster } from '@/components/ui/toaster';
 import LoadingOverlay from 'react-loading-overlay-ts'
@@ -106,6 +106,16 @@ export default function Dashboard() {
         } finally {
             setIsDuplicating(false); // sembunyikan overlay
         }
+    };
+
+    const handleShare = (slug) => {
+        // Encode slug untuk menghindari karakter khusus
+
+        // Buat URL dengan parameter yang diencode
+        const shareUrl = `/share?uri=${slug}`;
+
+        // Navigasi ke halaman share
+        router.push(shareUrl);
     };
 
     useEffect(() => {
@@ -272,6 +282,9 @@ export default function Dashboard() {
                                                             <DropdownMenuItem onClick={() => handleDuplicate(form.id, form.nomorWa)}>
                                                                 <BiCopyAlt className='mr-2' /> Duplikat Undangan
                                                             </DropdownMenuItem>
+                                                            <DropdownMenuItem onClick={() => handleShare(form.slug)}>
+                                                                <BiShareAlt className='mr-2' /> Bagikan Undangan
+                                                            </DropdownMenuItem>
                                                         </DropdownMenuContent>
                                                     </DropdownMenu>
                                                 </div>
@@ -328,6 +341,17 @@ export default function Dashboard() {
                                                     </Link>
                                                 </Button>
                                                 <div className="flex gap-2 w-full sm:w-auto justify-end">
+                                                    {form.isPaid === 1 && (
+                                                        <Button
+                                                            variant="secondary"
+                                                            size="sm"
+                                                            onClick={() => handleShare(form.slug)}
+                                                            className="flex items-center"
+                                                        >
+                                                            <BiShareAlt className="mr-1 h-4 w-4" />
+                                                            Bagikan
+                                                        </Button>
+                                                    )}
                                                     <Button variant="secondary" size="sm" asChild>
                                                         <Link href={`/forms/${form.id}/${form.nomorWa || ""}/atur-foto`}>
                                                             <RefreshCw className="mr-1 h-4 w-4" />
