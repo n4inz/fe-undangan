@@ -69,7 +69,41 @@ export default function DialogModalProofPayment({ formId, phoneNumber }) {
                                 <p className="font-bold">Nama Rekening:</p>
                                 <p>{formData.name}</p>
                             </div>
-                            {/* Rest of your content here */}
+                            <div className="mt-4">
+                                <p className="font-bold">Paket:</p>
+                                <p>{formData.paket}</p>
+                            </div>
+                            <div className="mt-4">
+                                <p className="font-bold">Ekstra:</p>
+                                <p className="flex items-center">
+                                    {formData.isMusic ? (
+                                        <BiCheck className="mr-2 text-green-600" />
+                                    ) : (
+                                        <BiX className="mr-2 text-red-600" />
+                                    )}{' '}
+                                    Custom Musik
+                                </p>
+                                <p className="flex items-center">
+                                    {formData.isFont ? (
+                                        <BiCheck className="mr-2 text-green-600" />
+                                    ) : (
+                                        <BiX className="mr-2 text-red-600" />
+                                    )}{' '}
+                                    Custom Font
+                                </p>
+                                <p className="flex items-center">
+                                    <BiCheck className="mr-2 text-green-600" />
+                                    Thema
+                                </p>
+                                <p className="flex items-center">
+                                    <BiCheck className="mr-2 text-green-600" />
+                                    Revisi 5x
+                                </p>
+                            </div>
+                            <div className="mt-4">
+                                <p className="font-bold">Total:</p>
+                                <p>Rp. {formData.totalPayment.toLocaleString('id-ID')}</p>
+                            </div>
                             <div className="mt-4">
                                 <p className="font-bold">Screenshot:</p>
                                 {formData.file ? (
