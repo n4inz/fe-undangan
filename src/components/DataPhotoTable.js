@@ -12,7 +12,7 @@ import { FaTimes, FaWhatsapp } from 'react-icons/fa';
 import LoadingOverlay from 'react-loading-overlay-ts'
 // import placeholderImage from '../../public/images/'; // Import your placeholder image
 
-const DataPhotoTable = ({ params }) => {
+const DataPhotoTable = ({ params, setUploading }) => {
     const router = useRouter();
 
     const [data, setData] = useState([]);
@@ -25,7 +25,6 @@ const DataPhotoTable = ({ params }) => {
     const [form, setForm] = useState({});
     const [editingImage, setEditingImage] = useState(null);
     const [editingRow, setEditingRow] = useState(null);
-    const [uploading, setUploading] = useState(false);
 
     const columns = [
         {
@@ -199,13 +198,13 @@ const DataPhotoTable = ({ params }) => {
     // ... (other imports and code remain the same)
 
     const handleFileUploadNew = async (e, row) => {
-        setUploading(true);
+        setUploading(true); // Use the setUploading from props
         const file = e.target.files[0];
         if (!file) return;
 
         const formData = new FormData();
         formData.append('file', file);
-        formData.append('idImage', row.idImage); // Add idImage to formData
+        formData.append('idImage', row.idImage);
 
         try {
             await axios.put(
@@ -218,8 +217,8 @@ const DataPhotoTable = ({ params }) => {
             console.error('Upload error:', error);
             alert('Gagal mengupload gambar: ' + error.message);
         } finally {
-            setUploading(false);
-            e.target.value = ''; // Reset input
+            setUploading(false); // Use the setUploading from props
+            e.target.value = '';
         }
     };
 
@@ -245,71 +244,53 @@ const DataPhotoTable = ({ params }) => {
     }
 
     return (
-        <LoadingOverlay
-            active={uploading}                // muncul saat uploading true
-            spinner
-            text="Mengupload foto..."
-            styles={{
-                overlay: (base) => ({
-                    ...base,
-                    background: "rgba(0, 0, 0, 0.6)",  // gelap transparan
-                    zIndex: 1000,
-                }),
-                content: (base) => ({
-                    ...base,
-                    color: "#fff",
-                    fontSize: "1.2rem",
-                }),
-            }}
-        >
-            <div className="relative">
-                <DataTable
-                    columns={columns}
-                    data={data}
-                    pagination
-                    paginationTotalRows={data.length}
-                    onChangePage={setCurrentPage}
-                    onChangeRowsPerPage={setRowsPerPage}
-                    className="mb-8"
-                />
+        <>
+            <DataTable
+                columns={columns}
+                data={data}
+                pagination
+                paginationTotalRows={data.length}
+                onChangePage={setCurrentPage}
+                onChangeRowsPerPage={setRowsPerPage}
+                className="mb-8"
+            />
 
-                {isFullScreen && (
-                    <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-90 z-50">
-                        {imageLoading && (
-                            <div className="absolute flex items-center justify-center">
-                                <div className="w-12 h-12 border-4 border-t-4 border-gray-200 border-t-blue-600 rounded-full animate-spin"></div>
-                            </div>
-                        )}
-                        <Image
-                            src={fullScreenImage}
-                            alt="Full Screen Image"
-                            width={800}
-                            height={800}
-                            className="max-w-full max-h-full object-contain"
-                            onLoadingComplete={handleImageLoadComplete}
-                        />
-                        <Button
-                            onClick={handleCloseFullScreen}
-                            className="absolute top-4 right-4 bg-red-500 text-white rounded-full w-12 h-12 flex items-center justify-center"
-                        >
-                            <FaTimes className="text-2xl" />
-                        </Button>
-                    </div>
-                )}
-
-                {editingImage && (
-                    <ImageEditor
-                        image={editingImage}
-                        idImage={editingRow?.id}
-                        onSave={handleSaveEditedImage}
-                        onCancel={() => {
-                            setEditingImage(null);
-                            setEditingRow(null);
-                        }}
+            {isFullScreen && (
+                <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-90 z-50">
+                    {imageLoading && (
+                        <div className="absolute flex items-center justify-center">
+                            <div className="w-12 h-12 border-4 border-t-4 border-gray-200 border-t-blue-600 rounded-full animate-spin"></div>
+                        </div>
+                    )}
+                    <Image
+                        src={fullScreenImage}
+                        alt="Full Screen Image"
+                        width={800}
+                        height={800}
+                        className="max-w-full max-h-full object-contain"
+                        onLoadingComplete={handleImageLoadComplete}
                     />
-                )}
-            </div>
-        </LoadingOverlay>
+                    <Button
+                        onClick={handleCloseFullScreen}
+                        className="absolute top-4 right-4 bg-red-500 text-white rounded-full w-12 h-12 flex items-center justify-center"
+                    >
+                        <FaTimes className="text-2xl" />
+                    </Button>
+                </div>
+            )}
+
+            {editingImage && (
+                <ImageEditor
+                    image={editingImage}
+                    idImage={editingRow?.id}
+                    onSave={handleSaveEditedImage}
+                    onCancel={() => {
+                        setEditingImage(null);
+                        setEditingRow(null);
+                    }}
+                />
+            )}
+        </>
     );
 };
 
