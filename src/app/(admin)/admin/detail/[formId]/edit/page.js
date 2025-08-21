@@ -177,15 +177,17 @@ const EditDetail = ({ params }) => {
         }
     };
 
-    const fetchMusicList = async (e) => {
+    const fetchMusicList = async () => {
         try {
-            const response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/music`);
+            const response = await axios.get(
+                `${process.env.NEXT_PUBLIC_API_URL}/music?limit=1000`
+            );
             setMusicList(response.data.data);
             console.log("musicList", response.data.data);
         } catch (error) {
             console.error('Error fetching music list:', error);
         }
-    }
+    };
 
     useEffect(() => {
         const fetchBankList = async () => {
@@ -599,18 +601,18 @@ const EditDetail = ({ params }) => {
                         </div>
                         {/* Acara */}
                         <div className="mb-4">
-                        <label className="block text-gray-700">
-                            Judul Acara 1
-                            <br></br>
-                            Ex: Akad Nikah / Pemberkatan
-                        </label>
-                        <input
-                            type="text"
-                            name="judulAcara1"
-                            value={formData.judulAcara1}
-                            onChange={handleChange}
-                            className="mt-1 p-2 w-full border border-gray-300 rounded-lg"
-                        />
+                            <label className="block text-gray-700">
+                                Judul Acara 1
+                                <br></br>
+                                Ex: Akad Nikah / Pemberkatan
+                            </label>
+                            <input
+                                type="text"
+                                name="judulAcara1"
+                                value={formData.judulAcara1}
+                                onChange={handleChange}
+                                className="mt-1 p-2 w-full border border-gray-300 rounded-lg"
+                            />
                         </div>
                         <div className="mb-4">
                             <label className="block text-gray-700">
