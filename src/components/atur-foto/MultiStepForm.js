@@ -106,13 +106,11 @@ const MultiStepForm = ({ onFormChange }) => {
     if (step == 1) {
       checkIsSyari();
     }    
-    if (step == 6) {
-      checkIsSyari();
-    }
     if (step === 3) {
       checkFotoMempelai();
     }
     if (step === 7) {
+      checkIsSyari();
       checkFotoLoveStory();
     }
     if (step === 10) {

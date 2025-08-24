@@ -1023,6 +1023,23 @@ const Home = () => {
           )}
           {currentStep === 7 && (
             <>
+              <div className="mb-4">
+                <label className="block text-gray-700">
+                  Pilih Model Rekening
+                </label>
+                <Select
+                  value={formData.rekeningStyle}
+                  onValueChange={(value) => setFormData((prevFormData) => ({ ...prevFormData, rekeningStyle: value }))}
+                  className="w-full h-6 border border-gray-300 rounded-lg">
+                  <SelectTrigger>
+                    <SelectValue placeholder="Pilih Model Rekening" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="kartu">Kartu</SelectItem>
+                    <SelectItem value="dropdown">Dropdown</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
               {/* Dynamic Fields */}
               <div className="mb-4">
                 {rekeningList.map((rekening, index) => (
@@ -1416,48 +1433,48 @@ const Home = () => {
                   </div>
 
                   {/* {formData.pilihanTema === "Lainnya" && ( */}
-                    <div className="relative w-full max-w-md">
-                      <Command className="border rounded-lg">
-                        <CommandInput
-                          placeholder="Pilih Tema..."
-                          value={commandInput}
-                          onValueChange={setCommandInput}
-                          onFocus={() => setCommandOpen(true)}
-                          onBlur={() => setTimeout(() => setCommandOpen(false), 200)}
-                          className="h-9 text-sm"
-                        />
+                  <div className="relative w-full max-w-md">
+                    <Command className="border rounded-lg">
+                      <CommandInput
+                        placeholder="Pilih Tema..."
+                        value={commandInput}
+                        onValueChange={setCommandInput}
+                        onFocus={() => setCommandOpen(true)}
+                        onBlur={() => setTimeout(() => setCommandOpen(false), 200)}
+                        className="h-9 text-sm"
+                      />
 
-                        {commandOpen && (
-                          <CommandList className="absolute top-full w-full mt-1 z-50">
-                            <CommandGroup className="bg-popover shadow-lg rounded-md border">
-                              {isLoadingOptions ? (
-                                <CommandItem value="loading" className="text-sm h-8" disabled>
-                                  <span className="text-muted-foreground">Loading...</span>
+                      {commandOpen && (
+                        <CommandList className="absolute top-full w-full mt-1 z-50">
+                          <CommandGroup className="bg-popover shadow-lg rounded-md border">
+                            {isLoadingOptions ? (
+                              <CommandItem value="loading" className="text-sm h-8" disabled>
+                                <span className="text-muted-foreground">Loading...</span>
+                              </CommandItem>
+                            ) : options.length > 0 ? (
+                              options.map((option) => (
+                                <CommandItem
+                                  key={option.id}
+                                  value={option.id}
+                                  onSelect={() => {
+                                    handleSelectChange(option.id, option.name);
+                                    setCommandInput(option.name);
+                                    setCommandOpen(false);
+                                  }}
+                                  className="text-sm h-8">
+                                  {option.name}
                                 </CommandItem>
-                              ) : options.length > 0 ? (
-                                options.map((option) => (
-                                  <CommandItem
-                                    key={option.id}
-                                    value={option.id}
-                                    onSelect={() => {
-                                      handleSelectChange(option.id, option.name);
-                                      setCommandInput(option.name);
-                                      setCommandOpen(false);
-                                    }}
-                                    className="text-sm h-8">
-                                    {option.name}
-                                  </CommandItem>
-                                ))
-                              ) : (
-                                <CommandItem value="no-options" className="text-sm h-8" disabled>
-                                  <span className="text-muted-foreground">Tidak ada pilihan tersedia</span>
-                                </CommandItem>
-                              )}
-                            </CommandGroup>
-                          </CommandList>
-                        )}
-                      </Command>
-                    </div>
+                              ))
+                            ) : (
+                              <CommandItem value="no-options" className="text-sm h-8" disabled>
+                                <span className="text-muted-foreground">Tidak ada pilihan tersedia</span>
+                              </CommandItem>
+                            )}
+                          </CommandGroup>
+                        </CommandList>
+                      )}
+                    </Command>
+                  </div>
                   {/* )} */}
                 </RadioGroup>
                 {errors.pilihanTema && <p className="text-red-500 text-sm mt-1">{errors.pilihanTema}</p>}

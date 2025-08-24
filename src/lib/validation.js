@@ -25,15 +25,15 @@ export const mainSchema = z.object({
   namaPanggilanWanita: requeiredInput,
   namaOrtuWanita: requeiredInput,
   // alamatAkad: requeiredInput,
-  // alamatResepsi: requeiredInput,
+  alamatResepsi: requeiredInput,
   nomorWa: z
     .string()
     .regex(/^[\d+\s-]+$/, { message: "Nomor telepon mengharuskan angka" })
     .refine((val) => val !== "", { message: "Nomor telepon harus diisi" }),
   // datetimeAkad: requeiredDate,
-  // datetimeResepsi: requeiredDate,
+  datetimeResepsi: requeiredDate,
   // timeAkad: requeiredInput,
-  // timeResepsi: requeiredInput,
+  timeResepsi: requeiredInput,
   pilihanTema: z.string().min(1, { message: "Pilihan tema harus dipilih" }),
   idTema: z.coerce.number({
     required_error: "ID tema harus diisi",
