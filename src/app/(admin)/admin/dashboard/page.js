@@ -105,6 +105,17 @@ export default function Dashboard() {
     return `${formatMonthYear(data[0]?.month)} - ${formatMonthYear(data[data.length - 1]?.month)}`
   }
 
+  // Helper format singkat
+  const formatShortNumber = (num) => {
+    if (num >= 1_000_000) {
+      return (num / 1_000_000).toFixed(1).replace('.0', '') + ' jt'
+    } else if (num >= 1_000) {
+      return (num / 1_000).toFixed(0) + ' rb'
+    }
+    return num
+  }
+
+
   useEffect(() => {
     fetchFormData()
     fetchIncomeData()
@@ -121,48 +132,47 @@ export default function Dashboard() {
         <div className="p-4 space-y-8">
           {/* New Top Card - Full Width */}
           <div className="w-full mb-8">
-  <Card className="w-full">
-    <CardContent className="flex flex-col md:flex-row items-start md:items-center justify-between w-full px-6 py-4 gap-4">
-      
-      {/* Bagian Kiri */}
-      <div className="flex flex-col">
-        {totalIncome ? (
-          <>
-            <CardTitle>Total Pendapatan</CardTitle>
-            <CardDescription>
-              {totalIncome.start} - {totalIncome.end}
-            </CardDescription>
-          </>
-        ) : (
-          <>
-            <Skeleton className="h-6 w-32" />
-            <Skeleton className="h-4 w-48 mt-2" />
-          </>
-        )}
-      </div>
+            <Card className="w-full">
+              <CardContent className="flex flex-col md:flex-row items-start md:items-center justify-between w-full px-6 py-4 gap-4">
 
-      {/* Bagian Kanan */}
-      <div className="self-end md:self-auto">
-        {totalIncome ? (
-          <div
-            className={`text-xl md:text-2xl font-bold flex items-center gap-2 ${
-              totalIncome.totalIncome < 0 ? "text-red-600" : "text-green-600"
-            }`}
-          >
-            {totalIncome.totalIncome < 0 ? (
-              <ArrowDownCircle className="w-5 h-5 md:w-6 md:h-6" />
-            ) : (
-              <ArrowUpCircle className="w-5 h-5 md:w-6 md:h-6" />
-            )}
-            {formatRupiah(totalIncome.totalIncome)}
+                {/* Bagian Kiri */}
+                <div className="flex flex-col">
+                  {totalIncome ? (
+                    <>
+                      <CardTitle>Total Pendapatan</CardTitle>
+                      <CardDescription>
+                        {totalIncome.start} - {totalIncome.end}
+                      </CardDescription>
+                    </>
+                  ) : (
+                    <>
+                      <Skeleton className="h-6 w-32" />
+                      <Skeleton className="h-4 w-48 mt-2" />
+                    </>
+                  )}
+                </div>
+
+                {/* Bagian Kanan */}
+                <div className="self-start md:self-auto">
+                  {totalIncome ? (
+                    <div
+                      className={`text-xl md:text-2xl font-bold flex items-center gap-2 ${totalIncome.totalIncome < 0 ? "text-red-600" : "text-green-600"
+                        }`}
+                    >
+                      {totalIncome.totalIncome < 0 ? (
+                        <ArrowDownCircle className="w-5 h-5 md:w-6 md:h-6" />
+                      ) : (
+                        <ArrowUpCircle className="w-5 h-5 md:w-6 md:h-6" />
+                      )}
+                      {formatRupiah(totalIncome.totalIncome)}
+                    </div>
+                  ) : (
+                    <Skeleton className="h-8 w-40" />
+                  )}
+                </div>
+              </CardContent>
+            </Card>
           </div>
-        ) : (
-          <Skeleton className="h-8 w-40" />
-        )}
-      </div>
-    </CardContent>
-  </Card>
-</div>
 
           {/* Dual Cards - Side by Side on Desktop */}
           <div className="flex flex-col lg:flex-row gap-8">
@@ -220,8 +230,7 @@ export default function Dashboard() {
                         tickLine={false}
                         axisLine={false}
                       />
-                      <YAxis
-                        tickFormatter={(value) => formatRupiah(value).replace('Rp', '').trim()} />
+                      <YAxis tickFormatter={(value) => formatShortNumber(value)} />
                       <Bar
                         dataKey="income"
                         name="Pendapatan"
