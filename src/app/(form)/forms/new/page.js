@@ -40,6 +40,7 @@ import Link from 'next/link';
 import { getCompanyProfile } from '@/lib/company';
 import { getQuotes } from '@/lib/quote';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"; // shadcnui dialog
+import QuoteEditor from '@/components/QuoteEditor.client';
 
 const FORM_DATA_KEY = "formData";
 
@@ -101,6 +102,7 @@ const Home = () => {
 
   const [isQuoteModalOpen, setIsQuoteModalOpen] = useState(false);
   const [quotes, setQuotes] = useState([]); // State to hold quotes
+  const [quoteHtml, setQuoteHtml] = useState(""); // State to hold the selected quote in HTML format
 
   const { data: session, status } = useSession();
 
@@ -186,6 +188,26 @@ const Home = () => {
     }
   }, [formData, mounted, isLocalStorageAccessibleState]);
 
+  useEffect(() => {
+    setMounted(true);
+
+    if (isLocalStorageAccessible()) {
+      try {
+        const savedFormData = window.localStorage.getItem(FORM_DATA_KEY);
+        if (savedFormData) {
+          const parsedFormData = JSON.parse(savedFormData);
+          setFormData(parsedFormData);
+          setQuoteHtml(parsedFormData.quote || "");
+        }
+      } catch (error) {
+        console.warn("Error reading from localStorage:", error);
+        setQuoteHtml("");
+      }
+    } else {
+      setQuoteHtml("");
+    }
+  }, []);
+
   const handleChange = (e, index = null) => {
     const { name, value } = e.target;
 
@@ -252,6 +274,16 @@ const Home = () => {
     const { name, email, image: avatar } = session?.user || {};
 
     try {
+      // Convert HTML quote back to text format before submitting
+      // const formattedFormData = {
+      //   ...formData,
+      //   quote: formData.quote
+      //     .replace(/<br>/g, '\n')
+      //     .replace(/<strong>(.*?)<\/strong>/g, '*$1*')
+      //     .replace(/<em>(.*?)<\/em>/g, '_$1_')
+      //     .replace(/<u>(.*?)<\/u>/g, '__$1__')
+      //     .replace(/<[^>]*>/g, '') // Remove any other HTML tags
+      // };
       // Validate `formData` using Zod schema
       schema.parse(formData);
       setErrors({});
@@ -1323,7 +1355,7 @@ const Home = () => {
               <div className="mb-4 grid grid-cols-5 gap-2 items-start">
                 {/* Kolom‑1: Label (3/5) */}
                 <label className="col-span-3 block text-gray-700">
-                  Sumber Quote
+                  Sumber Quote
                   <br />
                   <span className="text-sm text-gray-500">
                     Contoh: QS. Ar‑Rum : 21, Matius 22: 37‑40, dll
@@ -1344,13 +1376,26 @@ const Home = () => {
                   </Button>
                 </div>
               </div>
+              <div className="mb-4">
+                <Input
+                  type="text"
+                  name="source"
+                  value={formData.source}
+                  onChange={handleChange}
+                  placeholder="Sumber Quote..."
+                />
+              </div>
 
-              <Input
-                type="text"
-                name="source"
-                value={formData.source}
-                onChange={handleChange}
-                placeholder="Sumber Quote..."
+
+              <QuoteEditor
+                value={quoteHtml}
+                onChange={(html) => {
+                  setQuoteHtml(html);
+                  setFormData((prev) => ({
+                    ...prev,
+                    quote: html,
+                  }));
+                }}
               />
 
               {errors.source && (
@@ -1358,17 +1403,6 @@ const Home = () => {
                   {errors.source}
                 </p>
               )}
-
-              <div className="mb-4">
-                <label className="block text-gray-700 mb-1">Quote</label>
-                <Textarea
-                  name="quote"
-                  value={formData.quote}
-                  onChange={handleChange}
-                  className="w-full border border-gray-300 rounded-lg"
-                  placeholder="Masukkan Quote..."
-                />
-              </div>
 
               {/* Modal untuk memilih template quote */}
               <Dialog open={isQuoteModalOpen} onOpenChange={setIsQuoteModalOpen}>
@@ -1381,14 +1415,27 @@ const Home = () => {
                       <div
                         key={idx}
                         className="border rounded p-2 sm:p-3 hover:bg-blue-50 cursor-pointer"
-                        onClick={() => handleSelectQuoteTemplate(template)}
+                        onClick={() => {
+                          // Convert template quote to HTML format
+                          const htmlQuote = template.quote
+                            .replace(/\n/g, '<br>')
+                            .replace(/\*(.*?)\*/g, '<strong>$1</strong>')
+                            .replace(/_(.*?)_/g, '<em>$1</em>')
+                            .replace(/__(.*?)__/g, '<u>$1</u>');
+
+                          setFormData({
+                            ...formData,
+                            source: template.source,
+                            quote: htmlQuote
+                          });
+                          setQuoteHtml(htmlQuote);
+                          setIsQuoteModalOpen(false);
+                        }}
                       >
                         <div className="font-semibold text-blue-700 text-sm sm:text-base">
                           {template.source}
                         </div>
-                        <div className="text-gray-700 text-xs sm:text-sm">
-                          {template.quote}
-                        </div>
+                        <div className="text-gray-700 text-xs sm:text-sm" dangerouslySetInnerHTML={{ __html: template.quote }} />
                       </div>
                     ))}
                   </div>

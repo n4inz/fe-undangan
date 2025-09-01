@@ -21,6 +21,7 @@ import { SelectValue } from '@radix-ui/react-select';
 import { getBankList } from '@/lib/bank';
 import BankCombobox from '@/components/admin/BankComboBox';
 import MusicCombobox from '@/components/admin/MusicComboBox';
+import QuoteEditor from '@/components/QuoteEditor.client';
 
 const formatDateTime = (datetime) => {
     if (!datetime) return '';
@@ -53,6 +54,7 @@ const EditDetail = ({ params }) => {
     const [uploadComplete, setUploadComplete] = useState(false); // Track if upload is complete
     const [selectedTema, setSelectedTema] = useState(null);
     const [bankList, setBankList] = useState([]);
+    const [quoteHtml, setQuoteHtml] = useState("");
 
     const handleFileChange = async (event) => {
         const file = event.target.files[0]; // Get only the first file
@@ -322,6 +324,7 @@ const EditDetail = ({ params }) => {
             }
             setFormData(updatedFormData);
             setRekeningList(updatedFormData.rekening || []);
+            setQuoteHtml(updatedFormData.quote || "");
         } catch (error) {
             console.error('Error fetching data:', error);
         } finally {
@@ -1098,16 +1101,18 @@ const EditDetail = ({ params }) => {
                                 className="mb-4"
                                 placeholder="Sumber Quote..."
                             />
-
-                            <label className="block text-gray-700 mb-1">Quote</label>
-                            <Textarea
-                                name="quote"
-                                value={formData.quote}
-                                onChange={handleChange}
-                                className="w-full border border-gray-300 rounded-lg"
-                                placeholder="Masukkan Quote..."
-                            />
                         </div>
+
+                        <QuoteEditor
+                            value={quoteHtml}
+                            onChange={(html) => {
+                                setQuoteHtml(html);
+                                setFormData((prev) => ({
+                                    ...prev,
+                                    quote: html,
+                                }));
+                            }}
+                        />
 
                         <div className="mb-4">
                             <label className="block text-gray-700">

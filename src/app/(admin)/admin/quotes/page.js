@@ -92,9 +92,15 @@ const Expending = () => {
       grow: 1,
       wrap: true,
       cell: row => (
-        <div style={{ whiteSpace: 'normal', wordBreak: 'break-word', fontSize: '0.95em', maxWidth: 220 }}>
-          {row.quote}
-        </div>
+        <div
+          style={{
+            whiteSpace: 'normal',
+            wordBreak: 'break-word',
+            fontSize: '0.95em',
+            maxWidth: 220
+          }}
+          dangerouslySetInnerHTML={{ __html: row.quote }}
+        />
       ),
     },
     {
@@ -137,7 +143,7 @@ const Expending = () => {
     }
   };
 
-    const handleAction = (row) => {
+  const handleAction = (row) => {
     setSelectedRow(row);
     setOpen(true);
   };
@@ -154,20 +160,20 @@ const Expending = () => {
 
         {/* Main Content */}
         <div className="flex flex-col flex-grow w-full md:pl-24">
-        <AlertDialog open={open} onOpenChange={setOpen}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
-            <AlertDialogDescription>
-              This action cannot be undone. This will permanently delete this item.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel onClick={() => setOpen(false)}>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDelete}>Delete</AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+          <AlertDialog open={open} onOpenChange={setOpen}>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                <AlertDialogDescription>
+                  This action cannot be undone. This will permanently delete this item.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel onClick={() => setOpen(false)}>Cancel</AlertDialogCancel>
+                <AlertDialogAction onClick={handleDelete}>Delete</AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
           <div className="p-4">
             <div className="py-4">
               Quote

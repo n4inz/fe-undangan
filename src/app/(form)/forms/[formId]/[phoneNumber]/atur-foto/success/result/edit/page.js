@@ -21,6 +21,11 @@ import { SelectValue } from '@radix-ui/react-select';
 import { getBankList } from '@/lib/bank';
 import BankCombobox from '@/components/admin/BankComboBox';
 import MusicCombobox from '@/components/admin/MusicComboBox';
+// Import TipTap components
+import { useEditor, EditorContent } from '@tiptap/react';
+import StarterKit from '@tiptap/starter-kit';
+import Underline from '@tiptap/extension-underline';
+import QuoteEditor from '@/components/QuoteEditor.client';
 
 const Edit = ({ params }) => {
 
@@ -32,12 +37,13 @@ const Edit = ({ params }) => {
     const [musicList, setMusicList] = useState([]);
 
     const [errors, setErrors] = useState({});
+    const [quoteHtml, setQuoteHtml] = useState("");
 
     const [isLoading, setIsLoading] = useState(true); // Add loading state
     const [isLoadingOptions, setIsLoadingOptions] = useState(true);
 
     const [options, setOptions] = useState([]); // Store options for the Select component
-    const [mounted, setMounted] = useState(false); // Track if component is mounted
+    // const [mounted, setMounted] = useState(false); // Track if component is mounted
 
     const [selectedFile, setSelectedFile] = useState(null);
     const [progress, setProgress] = useState(0);
@@ -47,6 +53,8 @@ const Edit = ({ params }) => {
     const [bankList, setBankList] = useState([]);
 
     const [selectedTema, setSelectedTema] = useState(null);
+
+    const [mounted, setMounted] = useState(false);
 
 
     const handleFileChange = async (event) => {
@@ -241,6 +249,7 @@ const Edit = ({ params }) => {
             }
             setFormData(updatedFormData);
             setRekeningList(updatedFormData.rekening || []);
+            setQuoteHtml(updatedFormData.quote || ""); // <-- Tambahkan ini
         } catch (error) {
             console.error('Error fetching data:', error);
         } finally {
@@ -1002,15 +1011,27 @@ const Edit = ({ params }) => {
                             </p>
                         )}
 
-                        <label className="block text-gray-700 mb-1">Quote</label>
+                        {/* <label className="block text-gray-700 mb-1">Quote</label>
                         <Textarea
                             name="quote"
                             value={formData.quote}
                             onChange={handleChange}
                             className="w-full border border-gray-300 rounded-lg"
                             placeholder="Masukkan Quote..."
-                        />
+                        /> */}
                     </div>
+                    <QuoteEditor
+                        value={quoteHtml}
+                        onChange={(html) => {
+                            setQuoteHtml(html);
+                            setFormData((prev) => ({
+                                ...prev,
+                                quote: html,
+                            }));
+                        }}
+                        params={params}
+                    />
+
 
                     <div className="mb-4">
                         <label className="block text-gray-700">
@@ -1105,5 +1126,4 @@ const Edit = ({ params }) => {
         </div>
     );
 };
-
 export default Edit;

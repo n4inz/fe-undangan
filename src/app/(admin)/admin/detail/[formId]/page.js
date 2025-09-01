@@ -799,12 +799,10 @@ const Detail = ({ params }) => {
             />
 
             <label className="block text-gray-700 mb-1">Quote</label>
-            <Textarea
-              name="quote"
-              value={formData.quote}
-              // onChange={handleChange}
-              className="w-full border border-gray-300 rounded-lg"
-              placeholder="Masukkan Quote..."
+            <div
+              className="w-full border border-gray-300 rounded-lg p-2 min-h-[72px]"
+              style={{ background: "#fafafa" }}
+              dangerouslySetInnerHTML={{ __html: formData.quote || "<i>(Belum ada quote)</i>" }}
             />
           </div>
           <div className="mb-4">

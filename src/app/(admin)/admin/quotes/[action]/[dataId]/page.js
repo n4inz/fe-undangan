@@ -9,6 +9,7 @@ import { quoteSchema } from '@/lib/validation'
 import { useRouter } from "next/navigation";
 import { toast } from "@/components/ui/use-toast";
 import { Textarea } from "@/components/ui/textarea";
+import QuoteEditor from "@/components/QuoteEditor.client";
 
 const FormQuote = ({ params }) => {
   const router = useRouter();
@@ -19,6 +20,7 @@ const FormQuote = ({ params }) => {
   });
   const [isLoading, setIsLoading] = useState(false);
   const [errors, setErrors] = useState({});
+  const [quoteHtml, setQuoteHtml] = useState("");
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -86,6 +88,7 @@ const FormQuote = ({ params }) => {
         withCredentials: true,
       });
       setFormData(response.data.data);
+      setQuoteHtml(response.data.data.quote || "");
     } catch (error) {
       console.error('Error fetching quote:', error);
     }
@@ -127,17 +130,17 @@ const FormQuote = ({ params }) => {
               />
               {errors.source && <p className="text-red-500 text-sm mt-1">{errors.source}</p>}
             </div>
-            <div className="mb-4">
-              <label className="block text-gray-700">Quote <span className='text-red-500'>*</span></label>
-              <Textarea
-                name="quote"
-                value={formData.quote}
-                onChange={handleChange}
-                className="mt-1 p-2 w-full border border-gray-300 rounded-lg"
-                rows={5}
-              />
+              <QuoteEditor
+                value={quoteHtml}
+                onChange={(html) => {
+                  setQuoteHtml(html);
+                  setFormData((prev) => ({
+                    ...prev,
+                    quote: html,
+                  }));
+                }}
+                />
               {errors.quote && <p className="text-red-500 text-sm mt-1">{errors.quote}</p>}
-            </div>
             <div className="flex justify-start">
               <Button
                 type="submit"
