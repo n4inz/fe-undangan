@@ -85,6 +85,11 @@ const Tema = () => {
       sortable: true,
     },
     {
+      name: 'Harga',
+      selector: row => `Rp${Number(row.price).toLocaleString('id-ID')}`,
+      sortable: true,
+    },
+    {
       name: 'Action',
       cell: row => <>
         <Link href={`/admin/tema/edit/${row.id}`}><Button className="w-10 h-6 text-xs bg-opacity-80 bg-black">Edit</Button></Link>

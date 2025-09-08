@@ -53,13 +53,13 @@ export const authOptions = {
           }
         );
 
-        console.log('SignIn Callback - Backend Response:', {
-          status: response.status,
-          data: response.data,
-        });
+        // console.log('SignIn Callback - Backend Response:', {
+        //   status: response.status,
+        //   data: response.data,
+        // });
 
         if (response.status !== 200 || !response.data.sessionToken || !response.data.user) {
-          console.error('SignIn Callback - Invalid response:', response.data);
+          // console.error('SignIn Callback - Invalid response:', response.data);
           return false;
         }
 

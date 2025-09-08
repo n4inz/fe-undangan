@@ -33,6 +33,7 @@ export default function PaymentModal({ formId, phoneNumber, buttonClassName }) {
     const [paymentStatus, setPaymentStatus] = useState(false);
     const [bankAccounts, setBankAccounts] = useState([]); // State for bank accounts
     const [company, setCompany] = useState(null); // State for company profile
+    const [price, setPrice] = useState(0);
 
     const fileInputRef = useRef(null); // Tambahkan useRef
 
@@ -66,21 +67,51 @@ export default function PaymentModal({ formId, phoneNumber, buttonClassName }) {
             }
         };
 
+        const fetchPriceTheme = async () => {
+            try {
+                const response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/tema-price/${formId}`);
+                if (response.data && response.data.price) {
+                    setPrice(response.data.price);
+                    // Hapus setFormData di sini, biarkan useEffect lain yang menangani
+                } else {
+                    setPrice(0);
+                }
+            } catch (error) {
+                console.error('Error fetching theme price:', error);
+                setPrice(0);
+            }
+        };
+
+        fetchPriceTheme();
+
         fetchBankAccounts();
         fetchCompanyProfile();
     }, []);
 
-    // Calculate total payment based on formData
-    const calculateTotal = () => {
-        let total = 0;
-        if (formData.paket === 'express') total += 55000;
-        if (formData.paket === 'antri') total += 25000;
-        if (formData.tema) total += 0; // As per UI: Thema = 25rb
-        if (formData.isMusic) total += 5000; // Request Ganti Music = 5rb
-        if (formData.isFont) total += 20000; // Custom Font/Thema = 20rb
-        if (formData.revisi) total += 0; // Revisi 5 * = 0
-        return total;
-    };
+    // Tambahkan price ke dependency array
+    useEffect(() => {
+        const newTotal = calculateTotal();
+        setFormData((prev) => ({ ...prev, totalPayment: newTotal }));
+    }, [formData.paket, formData.isMusic, formData.isFont, formData.tema, formData.revisi, price]); // Tambahkan price di sini
+
+    // Pastikan calculateTotal menggunakan price state terbaru
+const calculateTotal = () => {
+    let total = 0;
+
+    // selalu tambah harga tema
+    if (formData.tema) total += price;
+
+    // tambahan kalau express
+    if (formData.paket === 'express') {
+        total += 30000;
+    }
+
+    if (formData.isMusic) total += 5000;
+    if (formData.isFont) total += 20000;
+    if (formData.revisi) total += 0;
+
+    return total;
+};
 
     // Update totalPayment whenever relevant formData fields change
     useEffect(() => {
@@ -337,11 +368,11 @@ export default function PaymentModal({ formId, phoneNumber, buttonClassName }) {
                                     <RadioGroup value={formData.paket} onValueChange={handleRadioChange} className="space-y-2">
                                         <label className="flex items-center space-x-2">
                                             <RadioGroupItem value="antri" />
-                                            <span>Paket Antri (1-3 Hari) - 25rb</span>
+                                            <span>Paket Antri (1-3 Hari) - Rp {price.toLocaleString('id-ID')}</span>
                                         </label>
                                         <label className="flex items-center space-x-2">
                                             <RadioGroupItem value="express" />
-                                            <span>Paket Express (3 Jam) - 55rb</span>
+                                            <span>Paket Express (3 Jam) - Rp {(price + 30000).toLocaleString('id-ID')}</span>
                                         </label>
                                     </RadioGroup>
                                 </div>
@@ -363,7 +394,7 @@ export default function PaymentModal({ formId, phoneNumber, buttonClassName }) {
                                 <div className="space-y-2">
                                     <label className="flex items-center space-x-2">
                                         <Checkbox name="tema" disabled checked={formData.tema} />
-                                        <span>Thema = 25rb</span>
+                                        <span>Thema = Rp {price.toLocaleString('id-ID')}</span>
                                     </label>
                                     <label className="flex items-center space-x-2">
                                         <Checkbox name="isMusic" checked={formData.isMusic} onCheckedChange={(checked) => setFormData({ ...formData, isMusic: checked })} />

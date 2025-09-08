@@ -21,6 +21,7 @@ const FormTema = ({ params }) => {
     link: '',
     loveStory: false,
     isSyari: false,
+    price: '',
   });
   const [isLoading, setIsLoading] = useState(false);
   const [errors, setErrors] = useState({});
@@ -111,6 +112,7 @@ const FormTema = ({ params }) => {
       data.append("loveStory", finalFormData.loveStory);
       data.append("isSyari", finalFormData.isSyari);
       data.append("totalWeddingPhoto", finalFormData.totalWeddingPhoto);
+      data.append("price", String(finalFormData.price)); // jangan Number()
 
       if (coverImage) data.append("cover", document.querySelector("input[name='cover']").files[0]);
       if (subcoverImage) data.append("subcover", document.querySelector("input[name='subcover']").files[0]);
@@ -236,6 +238,19 @@ const FormTema = ({ params }) => {
                 className="mt-1 p-2 w-full border border-gray-300 rounded-lg"
               />
               {errors.link && <p className="text-red-500 text-sm mt-1">{errors.link}</p>}
+            </div>
+
+            <div className="mb-4">
+              <label className="block text-gray-700">Harga Tema</label>
+              <Input
+                type="number"
+                name="price"
+                value={formData.price}
+                onChange={handleChange}
+                className="mt-1 p-2 w-full border border-gray-300 rounded-lg"
+                min="0"
+              />
+              {/* {errors.price && <p className="text-red-500 text-sm mt-1">{errors.price}</p>} */}
             </div>
 
             <div className="mb-4">
