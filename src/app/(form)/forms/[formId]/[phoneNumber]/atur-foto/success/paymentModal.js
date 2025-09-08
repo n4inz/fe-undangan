@@ -230,7 +230,6 @@ export default function PaymentModal({ formId, phoneNumber, buttonClassName }) {
       if (response.data != null) {
         setFormData({ ...response.data });
         setPaymentStatus(true);
-        setPaymentPrice(response.data.totalPayment || 0);
       }
     } catch (error) {
       console.error('Error checking payment:', error);
