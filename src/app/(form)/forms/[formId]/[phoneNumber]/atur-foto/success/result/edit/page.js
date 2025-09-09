@@ -1092,11 +1092,11 @@ const Edit = ({ params }) => {
                                             options.map((option) => (
                                                 <SelectItem key={option.id} value={option.id} className="flex justify-between">
                                                     <span>{option.name}</span>
-                                                    {option.price && (
+                                                    {/* {option.price && (
                                                         <span className="text-red-500 ml-2">
                                                             (Rp. {option.price.toLocaleString("id-ID")})
                                                         </span>
-                                                    )}
+                                                    )} */}
                                                 </SelectItem>
                                             ))
                                         ) : (
