@@ -1508,8 +1508,14 @@ const Home = () => {
                                     setCommandInput(option.name);
                                     setCommandOpen(false);
                                   }}
-                                  className="text-sm h-8">
-                                  {option.name}
+                                  className="text-sm h-8 flex justify-between"
+                                >
+                                  <span>{option.name}</span>
+                                  {option.price && (
+                                    <span className="text-red-500 ml-2">
+                                      (Rp. {option.price.toLocaleString("id-ID")})
+                                    </span>
+                                  )}
                                 </CommandItem>
                               ))
                             ) : (

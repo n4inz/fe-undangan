@@ -1,8 +1,11 @@
 import axios from "axios";
 
-export const getTema = async () => {
+export const getTema = async (formId = null) => {
     try {
-        const { data } = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/get-tema`);
+        const endpoint = formId
+            ? `${process.env.NEXT_PUBLIC_API_URL}/get-tema/${formId}`
+            : `${process.env.NEXT_PUBLIC_API_URL}/get-tema`;
+        const { data } = await axios.get(endpoint);
         return data;
     } catch (error) {
         console.log(error);

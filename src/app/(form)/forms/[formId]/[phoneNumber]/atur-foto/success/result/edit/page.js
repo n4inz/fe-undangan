@@ -260,7 +260,7 @@ const Edit = ({ params }) => {
     useEffect(() => {
         const fetchOptions = async () => {
             try {
-                const data = await getTema();
+                const data = await getTema(params.formId);
                 setOptions(data || []);
 
                 // Set selectedTema after options are loaded
@@ -279,7 +279,7 @@ const Edit = ({ params }) => {
         };
 
         fetchOptions();
-    }, [formData.idTema]);
+    }, [formData.idTema, params.formId]);
 
 
     useEffect(() => {
@@ -1090,8 +1090,13 @@ const Edit = ({ params }) => {
                                             </SelectItem>
                                         ) : options.length > 0 ? (
                                             options.map((option) => (
-                                                <SelectItem key={option.id} value={option.id}>
-                                                    {option.name}
+                                                <SelectItem key={option.id} value={option.id} className="flex justify-between">
+                                                    <span>{option.name}</span>
+                                                    {option.price && (
+                                                        <span className="text-red-500 ml-2">
+                                                            (Rp. {option.price.toLocaleString("id-ID")})
+                                                        </span>
+                                                    )}
                                                 </SelectItem>
                                             ))
                                         ) : (
@@ -1101,6 +1106,7 @@ const Edit = ({ params }) => {
                                         )}
                                     </SelectContent>
                                 </Select>
+
                             </div>
                         </RadioGroup>
 
