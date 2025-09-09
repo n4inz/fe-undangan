@@ -330,14 +330,14 @@ export default function Dashboard() {
                                             <CardContent className="pt-0">
                                                 <div className="flex items-center text-muted-foreground text-sm">
                                                     <MessageCircle className="h-4 w-4 mr-2" />
-                                                    <span>{form.commentCount || 0} komentar</span>
+                                                    <span>{form.commentCount || 0} ucapan</span>
                                                 </div>
                                             </CardContent>
 
                                             <CardFooter className="flex justify-between bg-muted/50 p-4 gap-2 flex-wrap sm:flex-nowrap">
                                                 <Button variant="outline" size="sm" asChild className="w-full sm:w-auto">
                                                     <Link href={`/forms/${form.id}/${form.nomorWa || ""}/comments`}>
-                                                        Lihat Komentar
+                                                        <MessageCircle className="h-4 w-4" /> Lihat Ucapan
                                                     </Link>
                                                 </Button>
                                                 <div className="flex gap-2 w-full sm:w-auto justify-end">

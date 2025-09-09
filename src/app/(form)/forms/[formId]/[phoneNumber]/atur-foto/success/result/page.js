@@ -1,16 +1,16 @@
 "use client";
 import { useEffect, useState } from 'react';
-import Image from 'next/image';
+// import Image from 'next/image';
 import Link from 'next/link';
-import { BiEnvelope, BiPhone, BiArrowBack, BiEdit, BiCrop } from "react-icons/bi";
+import { BiEnvelope, BiPhone, BiArrowBack, BiEdit, BiMessageAltDetail } from "react-icons/bi";
 import { useRouter } from 'next/navigation';
 import axios from 'axios';
-import DataTable from 'react-data-table-component';
+// import DataTable from 'react-data-table-component';
 import { Button } from '@/components/ui/button';
-import { DialogModalForm } from '@/components/DialogModalForm';
-import { checkForm } from '@/utils/checkForm';
-import ImageEditor from '@/components/atur-foto/ImageEditor';
-import { FaTimes, FaWhatsapp } from 'react-icons/fa';
+// import { DialogModalForm } from '@/components/DialogModalForm';
+// import { checkForm } from '@/utils/checkForm';
+// import ImageEditor from '@/components/atur-foto/ImageEditor';
+// import { FaTimes, FaWhatsapp } from 'react-icons/fa';
 import DataPhotoTable from '@/components/DataPhotoTable';
 import LoadingOverlay from 'react-loading-overlay-ts'; // Import LoadingOverlay
 
@@ -101,6 +101,14 @@ const Result = ({ params }) => {
                     >
                         <BiEdit className="h-5 w-5 mr-2 inline" />
                         Edit Undangan
+                    </Link>
+
+                    <Link
+                        href={`/forms/${params.formId}/${params.phoneNumber || ""}/comments`}
+                        className="rounded-full shadow-lg bg-white text-black hover:bg-gray-200 border border-gray-800 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 p-3 my-2 text-sm"
+                    >
+                        <BiMessageAltDetail className="h-5 w-5 mr-2 inline" />
+                        Lihat Ucapan
                     </Link>
 
                     {/* Pass setUploading to DataPhotoTable */}

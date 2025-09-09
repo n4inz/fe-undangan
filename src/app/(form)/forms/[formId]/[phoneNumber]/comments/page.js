@@ -121,16 +121,16 @@ export default function CommentSection({ params }) {
                                 <Link href="/forms" className="mr-4">
                                     <BiArrowBack className="h-8 w-8" />
                                 </Link>
-                                <h2 className="text-xl font-semibold">Komentar Tamu</h2>
+                                <h2 className="text-xl font-semibold">Ucapan Tamu</h2>
                             </div>
 
-                            <p className="text-sm text-gray-500">{comments.length} komentar</p>
+                            <p className="text-sm text-gray-500">{comments.length} ucapan</p>
                         </CardHeader>
 
                         <CardContent className="p-0">
                             {comments.length === 0 ? (
                                 <div className="p-6 text-center text-gray-500">
-                                    Belum ada komentar
+                                    Belum ada ucapan
                                 </div>
                             ) : (
                                 <ul className="divide-y">
@@ -163,16 +163,16 @@ export default function CommentSection({ params }) {
                                                             variant="ghost"
                                                             size="icon"
                                                             className="h-8 w-8 text-gray-500 hover:text-red-500"
-                                                            aria-label="Hapus komentar"
+                                                            aria-label="Hapus ucapan"
                                                         >
                                                             <Trash2 className="h-4 w-4" />
                                                         </Button>
                                                     </AlertDialogTrigger>
                                                     <AlertDialogContent>
                                                         <AlertDialogHeader>
-                                                            <AlertDialogTitle>Hapus Komentar?</AlertDialogTitle>
+                                                            <AlertDialogTitle>Hapus Ucapan?</AlertDialogTitle>
                                                             <AlertDialogDescription>
-                                                                Apakah Anda yakin ingin menghapus komentar ini? Aksi ini tidak dapat dibatalkan.
+                                                                Apakah Anda yakin ingin menghapus ucapan ini? Aksi ini tidak dapat dibatalkan.
                                                             </AlertDialogDescription>
                                                         </AlertDialogHeader>
                                                         <AlertDialogFooter>
