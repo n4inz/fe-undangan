@@ -7,12 +7,16 @@ import Underline from "@tiptap/extension-underline";
 
 export default function QuoteEditor({ value = "", onChange }) {
     const editor = useEditor({
-        extensions: [StarterKit, Underline],
+        extensions: [
+            StarterKit.configure({
+                underline: true, // aktifkan underline bawaan
+            }),
+        ],
         content: value,
         onUpdate: ({ editor }) => {
             onChange?.(editor.getHTML());
         },
-        immediatelyRender: false, // Fix SSR hydration error
+        immediatelyRender: false,
     });
 
     // Sync editor content when parent value changes

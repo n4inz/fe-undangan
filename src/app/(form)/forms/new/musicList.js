@@ -99,15 +99,23 @@ const MusicList = ({ currentlyPlaying, setCurrentlyPlaying, audioRef, onSongSele
   };
 
   const columns = [
+    // {
+    //   name: 'Select',
+    //   cell: row => (
+    //     // Radio button untuk memilih lagu (hanya memilih, tidak memainkan)
+    //     <RadioGroupItem value={row.id.toString()} />
+    //   ),
+    //   ignoreRowClick: true,
+    //   allowOverflow: true,
+    //   button: true,
+    //   width: '56px',
+    // },
     {
       name: 'Select',
       cell: row => (
-        // Radio button untuk memilih lagu (hanya memilih, tidak memainkan)
         <RadioGroupItem value={row.id.toString()} />
       ),
       ignoreRowClick: true,
-      allowOverflow: true,
-      button: true,
       width: '56px',
     },
     {

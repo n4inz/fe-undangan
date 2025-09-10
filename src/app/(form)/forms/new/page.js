@@ -1406,7 +1406,7 @@ const Home = () => {
 
               {/* Modal untuk memilih template quote */}
               <Dialog open={isQuoteModalOpen} onOpenChange={setIsQuoteModalOpen}>
-                <DialogContent className="w-full max-w-full sm:max-w-md">
+                <DialogContent className="w-full max-w-full sm:max-w-md" aria-describedby={undefined}>
                   <DialogHeader>
                     <DialogTitle className="text-lg sm:text-xl">Pilih Template Quote</DialogTitle>
                   </DialogHeader>
