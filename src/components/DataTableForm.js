@@ -77,10 +77,16 @@ const DataTableForm = ({ initialStatus, onDataUpdate }) => {
     setCurrentPage(page);
   };
 
+  // const handlePerRowsChange = async (newPerPage, page) => {
+  //   setPerPage(newPerPage);
+  //   fetchData(page, newPerPage);
+  // };
+
   const handlePerRowsChange = async (newPerPage, page) => {
-    setPerPage(newPerPage);
-    fetchData(page, newPerPage);
-  };
+  setPerPage(newPerPage);
+  fetchData(page, newPerPage, search, filterStatusForm);
+};
+
 
   const handleFilterStatusChange = (value) => {
     // If "All Status" is selected, set the filter to an empty string
@@ -378,6 +384,7 @@ const DataTableForm = ({ initialStatus, onDataUpdate }) => {
               <SelectLabel>Status</SelectLabel>
               <SelectItem value={null}>All Status</SelectItem>
               <SelectItem value="0">Todo</SelectItem>
+              <SelectItem value="paid">Paid</SelectItem>
               <SelectItem value="1">In progress</SelectItem>
               <SelectItem value="2">Review</SelectItem>
               <SelectItem value="3">Done</SelectItem>

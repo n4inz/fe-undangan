@@ -1,6 +1,6 @@
 import { createPortal } from 'react-dom';
 import { useState, useEffect, useRef } from 'react';
-import { FaCheckCircle, FaSpinner, FaClipboardList, FaClipboardCheck, FaWindowClose } from 'react-icons/fa';
+import { FaCheckCircle, FaSpinner, FaClipboardList, FaClipboardCheck, FaWindowClose, FaMoneyBillAlt } from 'react-icons/fa';
 import axios from 'axios';
 
 const statusOptions = [
