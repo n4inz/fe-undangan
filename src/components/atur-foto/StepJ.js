@@ -9,6 +9,7 @@ import { BiX } from "react-icons/bi";
 import LoadingOverlay from "./LoadingOverlay";
 import ModalAsset from "./ModalAsset";
 import { FaImages } from "react-icons/fa";
+import { toast } from "../ui/use-toast";
 
 // dnd-kit imports
 import {
@@ -26,7 +27,6 @@ import {
   horizontalListSortingStrategy,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { toast } from "../ui/use-toast";
 
 // Sortable item component
 const SortableItem = ({ item, onRemove, uploading, remove }) => {
@@ -73,10 +73,10 @@ const SortableItem = ({ item, onRemove, uploading, remove }) => {
   );
 };
 
-// const StepJ = ({ number, nextStep, setFormData, onFormChange, partName, props }) => {
 const StepJ = (props) => {
   const params = useParams();
   const [uploading, setUploading] = useState(false);
+  const [compressing, setCompressing] = useState(false); // Added compression state
   const [uploadProgress, setUploadProgress] = useState(0);
   const [images, setImages] = useState([]);
   const [newFiles, setNewFiles] = useState([]);
@@ -84,6 +84,256 @@ const StepJ = (props) => {
   const [remove, setRemove] = useState(false);
   const fileInputRef = useRef(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+
+  // ================================
+  //     IMAGE COMPRESSION FUNCTIONS
+  // ================================
+  
+  /**
+   * Calculate proper dimensions while preserving aspect ratio
+   */
+  const calculateDimensions = (originalWidth, originalHeight, maxWidth, maxHeight) => {
+    const aspectRatio = originalWidth / originalHeight;
+    
+    let newWidth = originalWidth;
+    let newHeight = originalHeight;
+    
+    // Only resize if image is larger than max dimensions
+    if (originalWidth > maxWidth || originalHeight > maxHeight) {
+      const scaleX = maxWidth / originalWidth;
+      const scaleY = maxHeight / originalHeight;
+      const scale = Math.min(scaleX, scaleY);
+      
+      newWidth = Math.floor(originalWidth * scale);
+      newHeight = Math.floor(originalHeight * scale);
+    }
+    
+    return { newWidth, newHeight, scale: newWidth / originalWidth };
+  };
+
+  /**
+   * Compress image with preserved aspect ratio
+   */
+  const compressImageWithAspectRatio = (file) => {
+    return new Promise((resolve, reject) => {
+      const img = new window.Image();
+      
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+        
+        const originalSizeMB = file.size / (1024 * 1024);
+        const targetMinKB = 500;
+        const targetMaxKB = 1000;
+        
+        // Define max dimensions based on file size
+        let maxDimension, initialQuality;
+        
+        if (originalSizeMB > 20) {
+          maxDimension = 1600;
+          initialQuality = 0.6;
+        } else if (originalSizeMB > 10) {
+          maxDimension = 1800;
+          initialQuality = 0.7;
+        } else if (originalSizeMB > 5) {
+          maxDimension = 2000;
+          initialQuality = 0.75;
+        } else {
+          maxDimension = 2200;
+          initialQuality = 0.8;
+        }
+        
+        // Calculate new dimensions preserving aspect ratio
+        const { newWidth, newHeight } = calculateDimensions(
+          img.width, 
+          img.height, 
+          maxDimension, 
+          maxDimension
+        );
+        
+        canvas.width = newWidth;
+        canvas.height = newHeight;
+        
+        // White background
+        ctx.fillStyle = '#FFFFFF';
+        ctx.fillRect(0, 0, newWidth, newHeight);
+        
+        // Enable high quality rendering
+        ctx.imageSmoothingEnabled = true;
+        ctx.imageSmoothingQuality = 'high';
+        
+        // Draw image with preserved aspect ratio
+        ctx.drawImage(img, 0, 0, newWidth, newHeight);
+        
+        // Compression with quality adjustment
+        let attempt = 0;
+        const maxAttempts = 8;
+        
+        const tryCompress = (quality) => {
+          canvas.toBlob(
+            (blob) => {
+              if (!blob) {
+                reject(new Error('Failed to create blob'));
+                return;
+              }
+              
+              const fileSizeKB = blob.size / 1024;
+              attempt++;
+              
+              console.log(`🔄 Attempt ${attempt}: Quality ${quality.toFixed(2)}, Size: ${fileSizeKB.toFixed(0)}KB`);
+              
+              if ((fileSizeKB >= targetMinKB && fileSizeKB <= targetMaxKB) || attempt >= maxAttempts) {
+                const originalName = file.name.split('.')[0];
+                const compressedFile = new File([blob], `${originalName}.jpg`, {
+                  type: 'image/jpeg',
+                  lastModified: Date.now(),
+                });
+                
+                console.log(`✅ Background compression: ${img.width}x${img.height} → ${newWidth}x${newHeight}, ${fileSizeKB.toFixed(0)}KB`);
+                
+                resolve(compressedFile);
+                return;
+              }
+              
+              // Adjust quality
+              let newQuality;
+              if (fileSizeKB > targetMaxKB) {
+                const overshoot = (fileSizeKB - targetMaxKB) / targetMaxKB;
+                newQuality = quality - (0.1 + overshoot * 0.1);
+              } else if (fileSizeKB < targetMinKB) {
+                const undershoot = (targetMinKB - fileSizeKB) / targetMinKB;
+                newQuality = Math.min(0.95, quality + undershoot * 0.1);
+              }
+              
+              newQuality = Math.max(0.2, Math.min(0.95, newQuality));
+              setTimeout(() => tryCompress(newQuality), 100);
+            },
+            'image/jpeg',
+            quality
+          );
+        };
+        
+        tryCompress(initialQuality);
+      };
+
+      img.onerror = () => reject(new Error('Failed to load image'));
+      
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        img.src = e.target.result;
+      };
+      reader.onerror = () => reject(new Error('Failed to read file'));
+      reader.readAsDataURL(file);
+    });
+  };
+
+  /**
+   * Simple fallback compression
+   */
+  const simpleFallback = (file) => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      
+      reader.onload = (event) => {
+        const img = new window.Image();
+        
+        img.onload = () => {
+          const canvas = document.createElement('canvas');
+          const ctx = canvas.getContext('2d');
+          
+          const { newWidth, newHeight } = calculateDimensions(img.width, img.height, 1800, 1800);
+          
+          canvas.width = newWidth;
+          canvas.height = newHeight;
+          
+          ctx.fillStyle = '#FFFFFF';
+          ctx.fillRect(0, 0, newWidth, newHeight);
+          ctx.imageSmoothingEnabled = true;
+          ctx.imageSmoothingQuality = 'high';
+          ctx.drawImage(img, 0, 0, newWidth, newHeight);
+          
+          canvas.toBlob(
+            (blob) => {
+              if (blob) {
+                const originalName = file.name.split('.')[0];
+                const result = new File([blob], `${originalName}.jpg`, {
+                  type: 'image/jpeg',
+                  lastModified: Date.now(),
+                });
+                resolve(result);
+              } else {
+                reject(new Error('Fallback failed'));
+              }
+            },
+            'image/jpeg',
+            0.75
+          );
+        };
+        
+        img.onerror = () => reject(new Error('Image load failed'));
+        img.src = event.target.result;
+      };
+      
+      reader.onerror = () => reject(new Error('FileReader failed'));
+      reader.readAsDataURL(file);
+    });
+  };
+
+  /**
+   * Process files with compression
+   */
+  const processFiles = async (files) => {
+    const results = [];
+    
+    console.log(`🎯 Starting background compression...`);
+    
+    for (let i = 0; i < files.length; i++) {
+      const file = files[i];
+      const originalSizeMB = (file.size / (1024 * 1024)).toFixed(2);
+      
+      console.log(`📁 Processing background ${i + 1}/${files.length}: ${file.name} (${originalSizeMB}MB)`);
+      
+      try {
+        let compressedFile;
+        
+        try {
+          compressedFile = await compressImageWithAspectRatio(file);
+        } catch (error) {
+          console.log('🔄 Main method failed, using fallback...');
+          compressedFile = await simpleFallback(file);
+        }
+        
+        results.push(compressedFile);
+        
+      } catch (error) {
+        console.error(`❌ Failed to compress ${file.name}:`, error);
+        
+        // Create placeholder
+        const canvas = document.createElement('canvas');
+        canvas.width = 800;
+        canvas.height = 450;
+        const ctx = canvas.getContext('2d');
+        ctx.fillStyle = '#f8f9fa';
+        ctx.fillRect(0, 0, 800, 450);
+        ctx.fillStyle = '#6c757d';
+        ctx.font = '24px Arial';
+        ctx.textAlign = 'center';
+        ctx.fillText('Background Error', 400, 225);
+        
+        canvas.toBlob((blob) => {
+          if (blob) {
+            const fallback = new File([blob], `${file.name.split('.')[0]}.jpg`, {
+              type: 'image/jpeg',
+              lastModified: Date.now(),
+            });
+            results.push(fallback);
+          }
+        }, 'image/jpeg', 0.8);
+      }
+    }
+    
+    return results;
+  };
 
   // Configure sensors for both mouse and touch
   const sensors = useSensors(
@@ -110,21 +360,17 @@ const StepJ = (props) => {
       const newIndex = items.findIndex((item) => (item.id || item.url) === over.id);
       let newItems = arrayMove(items, oldIndex, newIndex);
 
-      // Add order field starting from 1
       newItems = newItems.map((item, index) => ({
         ...item,
         order: index + 1
       }));
 
-      // Update form data with new order
       props.setFormData((prev) => ({
         ...prev,
         imageUrls: newItems.map((img) => img.url),
       }));
 
-      // Log the ordered array
       console.log("Ordered images:", newItems);
-
       return newItems;
     });
 
@@ -138,9 +384,7 @@ const StepJ = (props) => {
         order: index + 1
       }));
 
-      // Log the ordered newFiles array
       console.log("Ordered newFiles:", newFiles);
-
       return newFiles;
     });
   };
@@ -149,60 +393,89 @@ const StepJ = (props) => {
     return Math.random().toString(36).substring(2, 2 + length).toUpperCase();
   };
 
-  // 1) Handle file selection
-  const handleFileChange = (e) => {
+  // 1) Handle file selection with compression
+  const handleFileChange = async (e) => {
     const selectedFiles = Array.from(e.target.files);
 
     // Validate file types
     const nonImageFiles = selectedFiles.filter((file) => !file.type.startsWith("image/"));
     if (nonImageFiles.length > 0) {
-      toast({ title: 'File bukan gambar !', variant: 'destructive', });
+      toast({ title: 'File bukan gambar!', variant: 'destructive' });
       return;
     }
 
-        // Validate allowed extensions
-        const allowedExtensions = ['.jpg', '.jpeg', '.png', '.webp', '.gif', '.avif'];
-        const invalidExtFiles = selectedFiles.filter((file) => {
-          const ext = file.name.toLowerCase().slice(file.name.lastIndexOf('.'));
-          return !allowedExtensions.includes(ext);
-        });
-        if (invalidExtFiles.length > 0) {
-          toast({ title: 'Format gambar harus .jpg, .jpeg, .png, .webp, .gif, .avif', variant: 'destructive', });
-          return;
-        }
+    // Validate allowed extensions
+    const allowedExtensions = ['.jpg', '.jpeg', '.png', '.webp', '.gif', '.avif'];
+    const invalidExtFiles = selectedFiles.filter((file) => {
+      const ext = file.name.toLowerCase().slice(file.name.lastIndexOf('.'));
+      return !allowedExtensions.includes(ext);
+    });
+    if (invalidExtFiles.length > 0) {
+      toast({ title: 'Format gambar harus .jpg, .jpeg, .png, .webp, .gif, .avif', variant: 'destructive' });
+      return;
+    }
 
     // Validate max 5 images
     if (images.length + selectedFiles.length > 5) {
-      // setErrors({ ...errors, images: "Maximum upload is 5 images" });
-      toast({ title: 'Maksimum upload foto adalah 5 !', variant: 'destructive', });
+      toast({ title: 'Maksimum upload foto adalah 5!', variant: 'destructive' });
       return;
     }
 
-    // Generate a *stable* previewUrl for each file, and store it
-    const newFileData = selectedFiles.map((file, index) => {
-      return {
-        file,
-        previewUrl: URL.createObjectURL(file), // generate ONCE
-        code: generateRandomCode(), // generate a random code for each file
-        order: images.length + index + 1,
-      };
-    });
+    // Start compression
+    setCompressing(true);
+    
+    try {
+      console.log(`🚀 Starting compression for ${selectedFiles.length} background files...`);
+      
+      // Compress all files
+      const compressedFiles = await processFiles(selectedFiles);
+      
+      // Generate stable preview URLs for compressed files
+      const newFileData = compressedFiles.map((file, index) => {
+        return {
+          file,
+          previewUrl: URL.createObjectURL(file),
+          code: generateRandomCode(),
+          order: images.length + index + 1,
+        };
+      });
 
-    // Add to images for UI (each item will contain { url, id, file })
-    const newImageEntries = newFileData.map((item, index) => ({
-      url: item.previewUrl, // local preview URL
-      id: null,             // no ID yet since not uploaded
-      file: item.file,      // keep the raw File
-      type: 'file',
-      code: item.code, // generate a random code for each file
-      order: item.order, // order for sorting
-    }));
-    // Append to existing arrays
-    setImages((prev) => [...prev, ...newImageEntries]);
-    setNewFiles((prev) => [...prev, ...newFileData]);
+      // Add to images for UI
+      const newImageEntries = newFileData.map((item, index) => ({
+        url: item.previewUrl,
+        id: null,
+        file: item.file,
+        type: 'file',
+        code: item.code,
+        order: item.order,
+      }));
 
-    // Clear old error if any
-    setErrors({ ...errors, images: undefined });
+      // Append to existing arrays
+      setImages((prev) => [...prev, ...newImageEntries]);
+      setNewFiles((prev) => [...prev, ...newFileData]);
+
+      // Clear old error if any
+      setErrors({ ...errors, images: undefined });
+      
+      // Show success message
+      const totalSize = compressedFiles.reduce((sum, file) => sum + file.size, 0);
+      const avgSizeKB = (totalSize / compressedFiles.length / 1024).toFixed(0);
+      
+      toast({ 
+        title: `${compressedFiles.length} background berhasil dikompress`,
+        // description: `Rata-rata ${avgSizeKB}KB per file`,
+        variant: 'default'
+      });
+      
+    } catch (error) {
+      console.error('Compression error:', error);
+      toast({ 
+        title: 'Gagal mengkompress background', 
+        variant: 'destructive' 
+      });
+    } finally {
+      setCompressing(false);
+    }
   };
 
   // 2) Handle removing image
@@ -212,18 +485,15 @@ const StepJ = (props) => {
     console.log("Removing image with CODE:", code);
 
     if (id && !code || code == null || code == undefined) {
-      // ========== REMOVING A SERVER-STORED IMAGE ========== //
       try {
         const response = await axios.delete(
           `${process.env.NEXT_PUBLIC_API_URL}/remove-image/${id}/${params.formId}/${params.phoneNumber}`
         );
 
         if (response.status === 200) {
-          // Filter out the removed image by ID
           const updatedImages = images.filter((image) => image.id !== id);
           setImages(updatedImages);
 
-          // Update formData if you’re using it
           props.setFormData((prev) => ({
             ...prev,
             imageUrls: updatedImages.map((img) => img.url),
@@ -235,11 +505,7 @@ const StepJ = (props) => {
         console.error("Error removing image:", error);
       }
     } else {
-      // ========== REMOVING A LOCALLY ADDED (NOT YET UPLOADED) IMAGE ========== //
-      // 1. Remove from images
       const updatedImages = images.filter((image) => image.url !== previewUrl);
-
-      // 2. Remove from newFiles by matching the stable previewUrl
       const updatedNewFiles = newFiles.filter(
         (item) => item.previewUrl !== previewUrl
       );
@@ -258,13 +524,11 @@ const StepJ = (props) => {
 
   // 3) Handle uploading images
   const handleUploadClick = async () => {
-    // If no files and no images left, prompt user
     if (newFiles.length === 0 && images.length === 0) {
       alert("Please select at least one image to upload.");
       return;
     }
 
-    // If no new files but existing images are present, skip upload
     if (newFiles.length === 0 && images.length > 0) {
       manageOrder(images);
       props.nextStep();
@@ -273,22 +537,17 @@ const StepJ = (props) => {
 
     setUploading(true);
 
-    // Build FormData
     const fd = new FormData();
     newFiles.forEach((item) => {
-      fd.append("id", item.id); // ID of the image (if any)
-      fd.append("order", item.order); // Order of the image
-      fd.append("file", item.file); // only the remaining files
-      fd.append("source[]", JSON.stringify({ id: item.id, order: item.order })); // source of the image (file or asset)
+      fd.append("id", item.id);
+      fd.append("order", item.order);
+      fd.append("file", item.file);
+      fd.append("source[]", JSON.stringify({ id: item.id, order: item.order }));
       
-      
-      
-      // If it's a background, append the order separately
       if (props.partName === 'background') {
         fd.append("backgroundOrder", item.order);
       }
     });
-    // Add partName for each file (or keep it outside if it's the same for all)
     fd.append("partName", props.partName);
 
     try {
@@ -309,7 +568,6 @@ const StepJ = (props) => {
       console.log("Files uploaded successfully:", response);
       manageOrder(images);
 
-      // Possibly refresh or do something else
       props.onFormChange();
       props.nextStep();
     } catch (error) {
@@ -323,11 +581,8 @@ const StepJ = (props) => {
 
   const manageOrder = async (images) => {
     try {
-      const response = await axios.put(`${process.env.NEXT_PUBLIC_API_URL}/manage-bg-order/${params.formId}/${params.phoneNumber}`, images // Wrap images in an object as the request body
-      );
-
+      const response = await axios.put(`${process.env.NEXT_PUBLIC_API_URL}/manage-bg-order/${params.formId}/${params.phoneNumber}`, images);
       console.log("Order managed successfully:", response.data);
-
     } catch (error) {
       console.error("Error managing order:", error);
       return null;
@@ -337,14 +592,12 @@ const StepJ = (props) => {
   const handleSelectImage = (selectedAssets) => {
     if (!selectedAssets) return;
 
-    const prevImages = images;    // ditto
+    const prevImages = images;
 
-    // normalize to an array
     const selectedArray = Array.isArray(selectedAssets)
       ? selectedAssets
       : [selectedAssets];
 
-    // 2) build items WITH a stable `order` property:
     const newItems = selectedArray.map((asset, index) => {
       const code = generateRandomCode();
       return {
@@ -354,12 +607,10 @@ const StepJ = (props) => {
         type: 'newAsset',
         code,
         previewUrl: asset.imageUrl,
-        // uses the lengths we captured, plus the index in this batch
         order: prevImages.length + index + 1,
       };
     });
 
-    // 3) split into images vs. files‐to‐add payloads:
     const newImages = newItems.map(item => ({
       url: item.url,
       id: item.id,
@@ -369,7 +620,6 @@ const StepJ = (props) => {
       order: item.order,
     }));
 
-    // note the different name here—no shadowing of `newFiles`!
     const newFilesToAdd = newItems.map(item => ({
       previewUrl: item.previewUrl,
       file: item.file,
@@ -378,7 +628,6 @@ const StepJ = (props) => {
       order: item.order,
     }));
 
-    // now you can safely set your states:
     setImages(prev => {
       if (prev.length >= 5) {
         alert("Maksimal 5 gambar dapat dipilih.");
@@ -400,10 +649,7 @@ const StepJ = (props) => {
     }));
   };
 
-
-
-
-  // 4) Fetch existing images from the server (already uploaded)
+  // 4) Fetch existing images from the server
   const fetchData = async () => {
     try {
       const response = await axios.get(
@@ -420,7 +666,7 @@ const StepJ = (props) => {
           ? `${process.env.NEXT_PUBLIC_API_URL}/images/${item.images.fileImage}`
           : `${process.env.NEXT_PUBLIC_API_URL}/images/${item.asset.file}`,
         id: item.id,
-        file: null, // no local file for server-stored images
+        file: null,
         type: item.images.fileImage ? "images" : "asset",
         order: item.order,
       }));
@@ -443,6 +689,20 @@ const StepJ = (props) => {
   return (
     <div className="relative min-h-screen p-4 text-center flex-grow">
       {uploading && <LoadingOverlay progress={uploadProgress} />}
+      
+      {/* Compression Loading Overlay */}
+      {compressing && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white p-6 rounded-lg shadow-lg max-w-sm">
+            <div className="flex items-center space-x-3 mb-3">
+              <div className="w-6 h-6 border-4 border-t-transparent border-purple-500 rounded-full animate-spin"></div>
+              <span className="font-semibold">Kompresi Background...</span>
+            </div>
+            {/* <p className="text-sm text-gray-600">Mempertahankan aspect ratio</p>
+            <p className="text-xs text-gray-500 mt-1">Target: 500KB-1MB per background</p> */}
+          </div>
+        </div>
+      )}
 
       <ModalAsset
         isOpen={isModalOpen}
@@ -461,9 +721,16 @@ const StepJ = (props) => {
           <FaImages className="text-lg" />
         </Button>
       </div>
+      
+      {/* <div className="bg-purple-50 border border-purple-200 rounded-lg p-3 mb-2 text-sm">
+        <p className="text-purple-800 font-medium">🎯 Kompresi Background Pintar</p>
+        <p className="text-purple-700">Background akan dikompress dengan aspect ratio terjaga</p>
+      </div> */}
+      
       <p className="text-red-500 text-sm mb-2">
         Note: Drag gambar untuk atur urutan foto
       </p>
+      
       <DndContext
         sensors={sensors}
         collisionDetection={closestCenter}
@@ -473,14 +740,12 @@ const StepJ = (props) => {
           items={images.map((item) => item.id || item.url)}
           strategy={horizontalListSortingStrategy}
         >
-          {/* Responsive grid container */}
           <div className="grid grid-cols-2 md:grid-cols-3 gap-2 mb-4">
             {images.length > 0 ? (
               images.map((image) => (
                 <SortableItem
                   key={image.id ?? image.url ?? image.code}
                   item={image}
-                  // pass all three args here:
                   onRemove={() => handleRemoveImage(image.id, image.url, image.code)}
                   uploading={uploading}
                   remove={remove}
@@ -512,12 +777,15 @@ const StepJ = (props) => {
           accept="image/*"
           multiple
         />
-        <Button onClick={() => fileInputRef.current.click()} disabled={uploading}>
-          {images.length > 0 ? "Ganti Foto" : "Upload Photos"}
+        <Button 
+          onClick={() => fileInputRef.current.click()} 
+          disabled={uploading || compressing}
+        >
+          {compressing ? "Processing..." : images.length > 0 ? "Ganti Foto" : "Upload Photos"}
         </Button>
         <Button
           onClick={handleUploadClick}
-          disabled={uploading || (images.length === 0 && newFiles.length === 0)}
+          disabled={uploading || compressing || (images.length === 0 && newFiles.length === 0)}
         >
           {uploading ? "Uploading..." : "Selanjutnya"}
         </Button>

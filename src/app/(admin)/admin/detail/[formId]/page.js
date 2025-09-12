@@ -162,16 +162,28 @@ const Detail = ({ params }) => {
           </div>
 
           {isAdmin === 1 && ( // Show only if isAdmin is 1
-            <div className="mb-4">
-              <label className="block text-gray-700">Nomor Whatsapp Customer<span className='text-red-500'>*</span></label>
-              <Input
-                type="text"
-                name="nomorWa"
-                value={formData.nomorWa}
-                className="mt-1 p-2 w-full border border-gray-300 rounded-lg"
-                inputMode="numeric"
-              />
-            </div>
+            <>
+              <div className="mb-4">
+                <label className="block text-gray-700">Email Customer<span className='text-red-500'>*</span></label>
+                <Input
+                  type="text"
+                  name="email"
+                  value={formData.customer?.email}
+                  className="mt-1 p-2 w-full border border-gray-300 rounded-lg"
+                  inputMode="numeric"
+                />
+              </div>
+              <div className="mb-4">
+                <label className="block text-gray-700">Nomor Whatsapp Customer<span className='text-red-500'>*</span></label>
+                <Input
+                  type="text"
+                  name="nomorWa"
+                  value={formData.nomorWa}
+                  className="mt-1 p-2 w-full border border-gray-300 rounded-lg"
+                  inputMode="numeric"
+                />
+              </div>
+            </>
           )}
           <div className="mb-4">
             <label className="block text-gray-700">Nama Customer <span className='text-red-500'>*</span></label>

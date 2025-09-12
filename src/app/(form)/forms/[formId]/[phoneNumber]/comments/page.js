@@ -4,7 +4,7 @@ import axios from 'axios';
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardContent, CardFooter } from "@/components/ui/card";
-import { Trash2 } from "lucide-react";
+import { Trash2, Users, UserCheck, UserX } from "lucide-react";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { useParams } from 'next/navigation';
 import { Skeleton } from "@/components/ui/skeleton";
@@ -12,7 +12,6 @@ import Link from 'next/link';
 import { BiArrowBack } from 'react-icons/bi';
 
 export default function CommentSection({ params }) {
-
     const { id, phoneNumber } = useParams();
     const [comments, setComments] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -33,6 +32,40 @@ export default function CommentSection({ params }) {
 
         fetchComments();
     }, [id, phoneNumber]);
+
+    // Function to count confirmation statuses
+    const getConfirmationCounts = () => {
+        const counts = {};
+        comments.forEach(comment => {
+            const confirmation = comment.confirmation || 'Masih ragu';
+            counts[confirmation] = (counts[confirmation] || 0) + 1;
+        });
+        return counts;
+    };
+
+    // Function to get confirmation badge color and icon
+    const getConfirmationStyle = (confirmation) => {
+        switch (confirmation?.toLowerCase()) {
+            case 'hadir':
+                return {
+                    bgColor: 'bg-green-100',
+                    textColor: 'text-green-800',
+                    icon: <UserCheck className="h-3 w-3" />
+                };
+            case 'tidak hadir':
+                return {
+                    bgColor: 'bg-red-100',
+                    textColor: 'text-red-800',
+                    icon: <UserX className="h-3 w-3" />
+                };
+            default:
+                return {
+                    bgColor: 'bg-gray-100',
+                    textColor: 'text-gray-800',
+                    icon: <Users className="h-3 w-3" />
+                };
+        }
+    };
 
     const handleDeleteComment = async (commentId) => {
         try {
@@ -96,19 +129,21 @@ export default function CommentSection({ params }) {
     if (error) {
         return (
             <div className="relative min-h-screen">
-            <div className="fixed inset-0 bg-gray-100" />
-            <div className="relative z-10 flex flex-col items-center justify-center min-h-screen py-8">
-                <div className="w-full max-w-md p-6 bg-white rounded-lg shadow shadow-gray-200 flex flex-col items-center">
-                <div className="text-red-600 text-center font-medium mb-4">{error}</div>
-                <Link href="/forms" className="flex items-center gap-2 text-blue-600 hover:underline">
-                    <BiArrowBack className="h-5 w-5" />
-                    <span>Kembali</span>
-                </Link>
+                <div className="fixed inset-0 bg-gray-100" />
+                <div className="relative z-10 flex flex-col items-center justify-center min-h-screen py-8">
+                    <div className="w-full max-w-md p-6 bg-white rounded-lg shadow shadow-gray-200 flex flex-col items-center">
+                        <div className="text-red-600 text-center font-medium mb-4">{error}</div>
+                        <Link href="/forms" className="flex items-center gap-2 text-blue-600 hover:underline">
+                            <BiArrowBack className="h-5 w-5" />
+                            <span>Kembali</span>
+                        </Link>
+                    </div>
                 </div>
-            </div>
             </div>
         );
     }
+
+    const confirmationCounts = getConfirmationCounts();
 
     return (
         <div className="relative min-h-screen">
@@ -124,7 +159,25 @@ export default function CommentSection({ params }) {
                                 <h2 className="text-xl font-semibold">Ucapan Tamu</h2>
                             </div>
 
-                            <p className="text-sm text-gray-500">{comments.length} ucapan</p>
+                            <p className="text-sm text-gray-500 mb-3">{comments.length} ucapan</p>
+
+                            {/* Summary of confirmation statuses */}
+                            {comments.length > 0 && (
+                                <div className="flex flex-wrap gap-2">
+                                    {Object.entries(confirmationCounts).map(([status, count]) => {
+                                        const style = getConfirmationStyle(status);
+                                        return (
+                                            <div
+                                                key={status}
+                                                className={`flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium ${style.bgColor} ${style.textColor}`}
+                                            >
+                                                {style.icon}
+                                                <span>{status}: {count}</span>
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                            )}
                         </CardHeader>
 
                         <CardContent className="p-0">
@@ -134,61 +187,73 @@ export default function CommentSection({ params }) {
                                 </div>
                             ) : (
                                 <ul className="divide-y">
-                                    {comments.map((comment) => (
-                                        <li key={comment.id} className="p-4 hover:bg-gray-50">
-                                            <div className="flex gap-3">
-                                                <Avatar className="h-10 w-10">
-                                                    <AvatarFallback>
-                                                        {comment.name.charAt(0) || 'U'}
-                                                    </AvatarFallback>
-                                                </Avatar>
+                                    {comments.map((comment) => {
+                                        const confirmationStyle = getConfirmationStyle(comment.confirmation);
+                                        return (
+                                            <li key={comment.id} className="p-4 hover:bg-gray-50">
+                                                <div className="flex gap-3">
+                                                    <Avatar className="h-10 w-10">
+                                                        <AvatarFallback>
+                                                            {comment.name.charAt(0) || 'U'}
+                                                        </AvatarFallback>
+                                                    </Avatar>
 
-                                                <div className="flex-1">
-                                                    <div className="flex items-center justify-between">
-                                                        <h4 className="font-medium">
-                                                            {comment.name || 'Anonymous'}
-                                                        </h4>
-                                                        <span className="text-xs text-gray-500">
-                                                            {formatDate(comment.createdAt)}
-                                                        </span>
+                                                    <div className="flex-1">
+                                                        <div className="flex items-center justify-between mb-1">
+                                                            <div className="flex items-center gap-2">
+                                                                <h4 className="font-medium">
+                                                                    {comment.name || 'Anonymous'}
+                                                                </h4>
+                                                                {/* Confirmation status badge */}
+                                                                <span
+                                                                    className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium ${confirmationStyle.bgColor} ${confirmationStyle.textColor}`}
+                                                                >
+                                                                    {confirmationStyle.icon}
+                                                                    {comment.confirmation || 'Masih Ragu'}
+                                                                </span>
+                                                            </div>
+                                                            <span className="text-xs text-gray-500">
+                                                                {formatDate(comment.createdAt)}
+                                                            </span>
+                                                        </div>
+                                                        <p className="mt-1 text-sm text-gray-700">
+                                                            {comment.comment}
+                                                        </p>
                                                     </div>
-                                                    <p className="mt-1 text-sm text-gray-700">
-                                                        {comment.comment}
-                                                    </p>
-                                                </div>
 
-                                                <AlertDialog>
-                                                    <AlertDialogTrigger asChild>
-                                                        <Button
-                                                            variant="ghost"
-                                                            size="icon"
-                                                            className="h-8 w-8 text-gray-500 hover:text-red-500"
-                                                            aria-label="Hapus ucapan"
-                                                        >
-                                                            <Trash2 className="h-4 w-4" />
-                                                        </Button>
-                                                    </AlertDialogTrigger>
-                                                    <AlertDialogContent>
-                                                        <AlertDialogHeader>
-                                                            <AlertDialogTitle>Hapus Ucapan?</AlertDialogTitle>
-                                                            <AlertDialogDescription>
-                                                                Apakah Anda yakin ingin menghapus ucapan ini? Aksi ini tidak dapat dibatalkan.
-                                                            </AlertDialogDescription>
-                                                        </AlertDialogHeader>
-                                                        <AlertDialogFooter>
-                                                            <AlertDialogCancel>Batal</AlertDialogCancel>
-                                                            <AlertDialogAction
-                                                                onClick={() => handleDeleteComment(comment.id)}
-                                                                className="bg-red-600 hover:bg-red-700"
+                                                    <AlertDialog>
+                                                        <AlertDialogTrigger asChild>
+                                                            <Button
+                                                                variant="ghost"
+                                                                size="icon"
+                                                                className="h-8 w-8 text-gray-500 hover:text-red-500"
+                                                                aria-label="Hapus ucapan"
                                                             >
-                                                                Hapus
-                                                            </AlertDialogAction>
-                                                        </AlertDialogFooter>
-                                                    </AlertDialogContent>
-                                                </AlertDialog>
-                                            </div>
-                                        </li>
-                                    ))}
+                                                                <Trash2 className="h-4 w-4" />
+                                                            </Button>
+                                                        </AlertDialogTrigger>
+                                                        <AlertDialogContent>
+                                                            <AlertDialogHeader>
+                                                                <AlertDialogTitle>Hapus Ucapan?</AlertDialogTitle>
+                                                                <AlertDialogDescription>
+                                                                    Apakah Anda yakin ingin menghapus ucapan ini? Aksi ini tidak dapat dibatalkan.
+                                                                </AlertDialogDescription>
+                                                            </AlertDialogHeader>
+                                                            <AlertDialogFooter>
+                                                                <AlertDialogCancel>Batal</AlertDialogCancel>
+                                                                <AlertDialogAction
+                                                                    onClick={() => handleDeleteComment(comment.id)}
+                                                                    className="bg-red-600 hover:bg-red-700"
+                                                                >
+                                                                    Hapus
+                                                                </AlertDialogAction>
+                                                            </AlertDialogFooter>
+                                                        </AlertDialogContent>
+                                                    </AlertDialog>
+                                                </div>
+                                            </li>
+                                        );
+                                    })}
                                 </ul>
                             )}
                         </CardContent>
