@@ -56,7 +56,7 @@ const DataPhotoTable = ({ params, setUploading }) => {
         },
         {
             name: 'Bagian',
-            selector: row => row.partName,
+            selector: row => row.order ? `${row.partName} ${row.order}` : row.partName,
             sortable: true,
         },
         {
