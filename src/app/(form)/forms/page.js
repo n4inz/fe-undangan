@@ -15,7 +15,7 @@ import {
 import { Card, CardHeader, CardTitle, CardContent, CardFooter } from '@/components/ui/card';
 import { DollarSign, MessageCircle, Plus, RefreshCw } from 'lucide-react';
 import axios from 'axios';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { FaMoneyBillWave } from 'react-icons/fa';
 import { toast } from '@/components/ui/use-toast';
 import { getCompanyProfile, getBankAccounts } from '@/lib/company'; // Import getBankAccounts
@@ -27,6 +27,11 @@ import LoadingOverlay from 'react-loading-overlay-ts'
 
 export default function Dashboard() {
     const router = useRouter();
+
+    const searchParams = useSearchParams();
+    const qs = searchParams?.toString() ?? '';
+    const qsWithPrefix = qs ? `?${qs}` : '';
+
     const { data: session, status } = useSession();
     const [forms, setForms] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -260,7 +265,7 @@ export default function Dashboard() {
                                 </div>
                             )}
                             <Button className="w-full mb-6" asChild>
-                                <Link href="/forms/new">
+                                <Link href={`/forms/new${qsWithPrefix}`}>
                                     <Plus className="mr-2 h-4 w-4" />
                                     Buat Undangan Baru
                                 </Link>
@@ -371,7 +376,7 @@ export default function Dashboard() {
                                     <div className="text-center py-8">
                                         <p className="text-muted-foreground">Belum ada undangan yang dibuat</p>
                                         <Button variant="link" asChild>
-                                            <Link href="/forms/new">Buat undangan pertama Anda</Link>
+                                            <Link href={`/forms/new${qsWithPrefix}`}>Buat undangan pertama Anda</Link>
                                         </Button>
                                     </div>
                                 )}

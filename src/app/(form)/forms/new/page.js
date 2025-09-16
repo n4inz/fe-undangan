@@ -10,7 +10,7 @@ import { Label } from '@/components/ui/label';
 import axios from 'axios';
 import { Button } from '@/components/ui/button';
 import { ClipLoader } from 'react-spinners'; // Import the spinner
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 // import { XMarkIcon } from '@heroicons/react/24/solid';
 import { BiArrowBack, BiX } from "react-icons/bi";
 import { schema } from '@/lib/validation'
@@ -59,6 +59,10 @@ const isLocalStorageAccessible = () => {
 const Home = () => {
   const router = useRouter();
 
+  const searchParams = useSearchParams();
+  const qs = searchParams?.toString().replace(/=/g, '') ?? '';
+  // const qsWithPrefix = qs ? `?${qs}` : '';
+  
   //   // when session is loaded, redirect if needed
   //   useEffect(() => {
   // if (status === 'authenticated') {
@@ -103,8 +107,10 @@ const Home = () => {
   const [isQuoteModalOpen, setIsQuoteModalOpen] = useState(false);
   const [quotes, setQuotes] = useState([]); // State to hold quotes
   const [quoteHtml, setQuoteHtml] = useState(""); // State to hold the selected quote in HTML format
+  const [lockThema, setLockThema] = useState(false);
 
   const { data: session, status } = useSession();
+
 
   useEffect(() => {
     setMounted(true);
@@ -207,6 +213,37 @@ const Home = () => {
       setQuoteHtml("");
     }
   }, []);
+
+  useEffect(() => {
+    const lockThema = async () => {
+      try {
+        const res = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/lock-thema/${qs}`);
+
+        if (res.status === 200) {
+          console.log("✅ Lock thema success:", res.data.data);
+
+          setLockThema(true);
+          setMaxStep(15);
+
+          setFormData((prev) => ({
+            ...prev,
+            idTema: res.data.data?.id ?? "",
+            pilihanTema: res.data.data?.name ?? "",
+          }));
+        }
+      } catch (error) {
+        if (error.response?.status === 400) {
+          console.log("⚠️ Lock thema ignored (400)");
+        } else {
+          console.error("❌ Error locking thema:", error);
+        }
+      }
+    };
+
+    if (qs) {
+      lockThema();
+    }
+  }, [qs, setLockThema, setMaxStep, setFormData]);
 
   const handleChange = (e, index = null) => {
     const { name, value } = e.target;
@@ -1452,7 +1489,7 @@ const Home = () => {
             </>
           )}
 
-          {currentStep === maxStep && (
+          {currentStep === 16 && (
             <>
               <div className="mb-4">
                 <label className="block text-gray-700">

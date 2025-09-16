@@ -1,31 +1,47 @@
 'use client';
 
 import { signIn, useSession } from 'next-auth/react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { getCompanyProfile } from '@/lib/company';
 import { ClipLoader } from 'react-spinners';
+import { BiLogoGoogle } from 'react-icons/bi';
 
 export default function LoginPage() {
     const { data: session } = useSession();
     const router = useRouter();
+    const searchParams = useSearchParams();
+
     const [isLoading, setIsLoading] = useState(false);
     const [company, setCompany] = useState(null);
     const [error, setError] = useState(null);
     const [profileLoading, setProfileLoading] = useState(true);
 
+    // bentuk query string (tanpa leading '?') — bisa jadi "=contoh"
+    const qs = searchParams?.toString() ?? '';
+    const qsWithPrefix = qs ? `?${qs}` : '';
+
+    // jika sudah login, redirect ke /forms + query jika ada
     useEffect(() => {
-        if (session) router.push('/forms');
-    }, [session, router]);
+        if (session) {
+            router.push(`/forms${qsWithPrefix}`);
+        }
+    }, [session, router, qsWithPrefix]);
 
     const handleSignIn = async () => {
         setIsLoading(true);
         try {
-            await signIn('google');
+            // Gunakan absolute URL supaya NextAuth redirect callback lebih mudah menerima dan mengembalikan URL lengkap
+            const origin = typeof window !== 'undefined' ? window.location.origin : '';
+            const callbackUrl = `${origin}/forms${qsWithPrefix}`;
+
+            await signIn('google', { callbackUrl });
+            // biasanya signIn akan redirect; jika tidak, efek session akan menangani redirect
         } catch (error) {
+            console.error('SignIn error', error);
             setIsLoading(false);
         }
     };

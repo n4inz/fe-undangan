@@ -17,11 +17,11 @@ export const authOptions = {
 
   session: {
     strategy: "jwt",
-    maxAge: 30 * 24 * 60 * 60, // 30 days in seconds
+    maxAge: 30 * 24 * 60 * 60, // 30 days
   },
 
   jwt: {
-    maxAge: 30 * 24 * 60 * 60, // 30 days in seconds
+    maxAge: 30 * 24 * 60 * 60,
   },
 
   cookies: {
@@ -32,7 +32,7 @@ export const authOptions = {
         sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
         path: '/',
         secure: process.env.NODE_ENV === 'production',
-        maxAge: 30 * 24 * 60 * 60, // 30 days in seconds
+        maxAge: 30 * 24 * 60 * 60,
       },
     },
   },
@@ -53,13 +53,7 @@ export const authOptions = {
           }
         );
 
-        // console.log('SignIn Callback - Backend Response:', {
-        //   status: response.status,
-        //   data: response.data,
-        // });
-
         if (response.status !== 200 || !response.data.sessionToken || !response.data.user) {
-          // console.error('SignIn Callback - Invalid response:', response.data);
           return false;
         }
 
@@ -85,10 +79,6 @@ export const authOptions = {
         token.email = user.email;
         token.picture = user.image;
       }
-      // console.log('JWT Callback - Token:', {
-      //   sessionToken: token.sessionToken,
-      //   email: token.email,
-      // });
       return token;
     },
 
@@ -97,15 +87,28 @@ export const authOptions = {
       session.user.name = token.name;
       session.user.email = token.email;
       session.user.image = token.picture;
-      // console.log('Session Callback - Session:', {
-      //   sessionToken: session.user.sessionToken,
-      //   email: session.user.email,
-      // });
       return session;
     },
 
-    async redirect({ baseUrl }) {
-      return `${baseUrl}/forms`;
+    async redirect({ url, baseUrl }) {
+      // jika tidak ada url, fallback ke /forms
+      if (!url) return `${baseUrl}/forms`;
+
+      try {
+        // resolve url relatif terhadap baseUrl (menjaga query/value termasuk "?=contoh")
+        const resolved = new URL(url, baseUrl);
+        // pastikan origin sama (untuk keamanan)
+        const baseOrigin = new URL(baseUrl).origin;
+        if (resolved.origin === baseOrigin) {
+          return resolved.toString(); // kembalikan full URL termasuk query
+        } else {
+          // jangan izinkan cross-origin redirect
+          return `${baseUrl}/forms`;
+        }
+      } catch (err) {
+        // jika url tidak valid, fallback
+        return `${baseUrl}/forms`;
+      }
     },
   },
 
