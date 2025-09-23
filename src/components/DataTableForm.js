@@ -11,7 +11,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { BiArrowToRight, BiDotsVertical, BiLink, BiMoneyWithdraw, BiPlusCircle, BiRightArrow } from 'react-icons/bi';
+import { BiArrowToRight, BiDotsVertical, BiLink, BiMoneyWithdraw, BiPlusCircle, BiRightArrow, BiTime } from 'react-icons/bi';
 import StatusSelect from './StatusSelect';
 // import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from './ui/tooltip';
 import { Popover, PopoverContent, PopoverTrigger } from './ui/popover';
@@ -28,6 +28,7 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import DialogModalProofPayment from './admin/DialogModalProofPayment';
+import { DialogModalWaktuDemo } from './admin/DialogModalWaktuDemo';
 // import DialogModalProofPayment from './admin/DialogModalProofPayment';
 
 const DataTableForm = ({ initialStatus, onDataUpdate }) => {
@@ -47,6 +48,7 @@ const DataTableForm = ({ initialStatus, onDataUpdate }) => {
   const [selectedRow, setSelectedRow] = useState({ id: null, paymentAmount: null });
   const [open, setOpen] = useState(false);
   const [openLink, setOpenLink] = useState(false);
+  const [openDemo, setOpenDemo] = useState(false);
 
   const [isAdmin, setIsAdmin] = useState(0);
 
@@ -83,9 +85,9 @@ const DataTableForm = ({ initialStatus, onDataUpdate }) => {
   // };
 
   const handlePerRowsChange = async (newPerPage, page) => {
-  setPerPage(newPerPage);
-  fetchData(page, newPerPage, search, filterStatusForm);
-};
+    setPerPage(newPerPage);
+    fetchData(page, newPerPage, search, filterStatusForm);
+  };
 
 
   const handleFilterStatusChange = (value) => {
@@ -226,7 +228,14 @@ const DataTableForm = ({ initialStatus, onDataUpdate }) => {
                       <span>Batalkan Status Lunas</span>
                     </DropdownMenuItem>
                   )}
+                  {row.isPaid === 0 && (
+                    <DropdownMenuItem onClick={() => handleTambahDemo(row)}>
+                      <BiTime className="mr-2 h-4 w-4" />
+                      <span>Tambah Waktu Demo</span>
+                    </DropdownMenuItem>
+                  )}
                 </>
+
               )}
             </DropdownMenuContent>
           </DropdownMenu>
@@ -352,6 +361,13 @@ const DataTableForm = ({ initialStatus, onDataUpdate }) => {
     // handleDataUpdate(response.data.message);
   }
 
+  const handleTambahDemo = async (row) => {
+    setSelectedRow({
+      id: row.id,
+    });
+    setOpenDemo(true)
+  }
+
   const handleDataUpdate = (msg) => {
     fetchData(currentPage, perPage, search, filterStatusForm); // Re-fetch the data after it has been updated
     onDataUpdate(msg);
@@ -363,6 +379,7 @@ const DataTableForm = ({ initialStatus, onDataUpdate }) => {
     <>
       <DialogModalPayment open={open} onOpenChange={setOpen} row={selectedRow} onDataUpdate={handleDataUpdate} />
       <DialogModalLinkUndangan open={openLink} onOpenChange={setOpenLink} row={selectedRow} onDataUpdate={handleDataUpdate} />
+      <DialogModalWaktuDemo open={openDemo} onOpenChange={setOpenDemo} row={selectedRow} onDataUpdate={handleDataUpdate} />
       <div className="flex gap-4"> {/* Add a flex container to arrange elements side by side */}
         <DebounceInput
           minLength={2}
