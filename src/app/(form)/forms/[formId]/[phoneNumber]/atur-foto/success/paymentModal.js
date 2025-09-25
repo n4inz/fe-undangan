@@ -33,6 +33,7 @@ export default function PaymentModal({ formId, phoneNumber, buttonClassName }) {
   const [bankAccounts, setBankAccounts] = useState([]);
   const [company, setCompany] = useState(null);
   const [price, setPrice] = useState(0);
+  const [isMusicDisabled, setIsMusicDisabled] = useState(false);
 
   const fileInputRef = useRef(null);
 
@@ -70,6 +71,10 @@ export default function PaymentModal({ formId, phoneNumber, buttonClassName }) {
       try {
         const response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/tema-price/${formId}`);
         setPrice(response.data?.price || 0);
+        if (response.data?.music === false) {
+          setFormData((prev) => ({ ...prev, isMusic: true }));
+          setIsMusicDisabled(true);
+        }
       } catch (error) {
         console.error('Error fetching theme price:', error);
         setPrice(0);
@@ -348,7 +353,12 @@ export default function PaymentModal({ formId, phoneNumber, buttonClassName }) {
                     <Checkbox
                       name="isMusic"
                       checked={formData.isMusic}
-                      onCheckedChange={(checked) => setFormData({ ...formData, isMusic: checked })}
+                      onCheckedChange={(checked) => {
+                        if (!isMusicDisabled) {
+                          setFormData({ ...formData, isMusic: checked });
+                        }
+                      }}
+                      disabled={isMusicDisabled}
                     />
                     <span>Request Ganti Music = 5rb</span>
                   </label>

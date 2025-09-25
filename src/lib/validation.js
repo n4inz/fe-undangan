@@ -26,10 +26,12 @@ export const mainSchema = z.object({
   namaOrtuWanita: requeiredInput,
   // alamatAkad: requeiredInput,
   alamatResepsi: requeiredInput,
-  nomorWa: z
-    .string()
-    .regex(/^[\d+\s-]+$/, { message: "Nomor telepon mengharuskan angka" })
-    .refine((val) => val !== "", { message: "Nomor telepon harus diisi" }),
+nomorWa: z
+  .string()
+  .min(7, { message: "Nomor telepon minimal 7 karakter" })
+  .regex(/^[A-Za-z0-9+\-\s@.]+$/, { message: "Nomor telepon salah" })
+  .refine((val) => val.trim() !== "", { message: "Nomor telepon harus diisi" }),
+
   // datetimeAkad: requeiredDate,
   datetimeResepsi: requeiredDate,
   // timeAkad: requeiredInput,

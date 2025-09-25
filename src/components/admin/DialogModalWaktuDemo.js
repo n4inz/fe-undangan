@@ -70,7 +70,8 @@ export function DialogModalWaktuDemo({ open, onOpenChange, index, row, formId, o
                 name="waktuDemo"
                 value={formData.waktuDemo}
                 onChange={handleChange}
-                min="0"
+                min="1"
+                required   // ✅ field wajib diisi
                 className="mt-1 p-2 w-full border border-gray-300 rounded-lg"
               />
             </div>

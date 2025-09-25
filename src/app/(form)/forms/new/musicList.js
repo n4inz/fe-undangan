@@ -4,6 +4,7 @@ import { DebounceInput } from 'react-debounce-input';
 import { Button } from '@/components/ui/button';
 import axios from 'axios';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { Badge } from '@/components/ui/badge';
 
 const formatTime = (seconds) => {
   if (isNaN(seconds)) return '00:00';
@@ -33,7 +34,7 @@ const MusicList = ({ currentlyPlaying, setCurrentlyPlaying, audioRef, onSongSele
 
   const fetchData = useCallback(async (page, limit, searchQuery) => {
     try {
-      const endpoint = role === "admin" ? "music" : "music-list";
+      const endpoint = (role === "admin" || searchQuery) ? "music" : "music-list";
       const response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/${endpoint}`, {
         params: { page, limit, search: searchQuery },
         withCredentials: true,
@@ -43,7 +44,7 @@ const MusicList = ({ currentlyPlaying, setCurrentlyPlaying, audioRef, onSongSele
     } catch (error) {
       console.error('Error fetching data:', error);
     }
-  }, []);
+  }, [role]);
 
   const handlePlay = (id, file) => {
     if (currentlyPlaying === id) {
@@ -99,19 +100,8 @@ const MusicList = ({ currentlyPlaying, setCurrentlyPlaying, audioRef, onSongSele
   };
 
   const columns = [
-    // {
-    //   name: 'Select',
-    //   cell: row => (
-    //     // Radio button untuk memilih lagu (hanya memilih, tidak memainkan)
-    //     <RadioGroupItem value={row.id.toString()} />
-    //   ),
-    //   ignoreRowClick: true,
-    //   allowOverflow: true,
-    //   button: true,
-    //   width: '56px',
-    // },
     {
-      name: 'Select',
+      name: <span className="text-xl">✅</span>,
       cell: row => (
         <RadioGroupItem value={row.id.toString()} />
       ),
@@ -156,7 +146,18 @@ const MusicList = ({ currentlyPlaying, setCurrentlyPlaying, audioRef, onSongSele
     },
     {
       name: 'Name',
-      selector: row => row.name,
+      cell: row => (
+        <div className="flex items-center gap-2">
+          <span>
+            {row.name}
+            {row.isVisible ? (
+            <Badge variant="secondary">Gratis</Badge>
+          ) : (
+            <Badge variant="outline">+Rp 5rb</Badge>
+          )}
+            </span>
+        </div>
+      ),
       sortable: true,
       wrap: true,
     },
@@ -170,9 +171,9 @@ const MusicList = ({ currentlyPlaying, setCurrentlyPlaying, audioRef, onSongSele
     >
       <div className="w-full">
         <DebounceInput
-          minLength={2}
+          minLength={1}
           debounceTimeout={300}
-          placeholder="Search"
+          placeholder="Cari Lagu"
           value={search}
           onChange={handleSearch}
           className="border border-gray-300 rounded-md p-2 w-1/2"
