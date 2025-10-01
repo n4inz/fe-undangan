@@ -839,6 +839,18 @@ const Detail = ({ params }) => {
 
           <div className="mb-4">
             <label className="block text-gray-700">
+              Salam Penutup
+            </label>
+            <Textarea
+              type="text"
+              name="salamPenutup"
+              value={formData.salamPenutup}
+              className="mt-1 p-2 w-full border border-gray-300 rounded-lg"
+            />
+          </div>
+
+          <div className="mb-4">
+            <label className="block text-gray-700">
               Upload ZIP File (Max 1)
             </label>
 
