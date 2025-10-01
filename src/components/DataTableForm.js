@@ -131,10 +131,12 @@ const DataTableForm = ({ initialStatus, onDataUpdate }) => {
           day: '2-digit',
           month: 'short',
           year: 'numeric',
-          hour: 'numeric',
-          minute: 'numeric',
-          hour12: true,
-        })}</p>
+          hour: '2-digit',
+          minute: '2-digit',
+          hour12: true,    // ⬅️ pakai AM/PM
+          timeZone: 'UTC', // ⬅️ penting
+        })
+        }</p>
       ),
       sortable: true,
       wrap: true,
