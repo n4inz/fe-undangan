@@ -1,11 +1,11 @@
 // GALLERY
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useCallback } from "react";
 import NextImage from "next/image";
 import { Button } from "../ui/button";
 import axios from "axios";
 import { useParams } from "next/navigation";
 import placeholder from "/public/images/placeholder.png";
-import { BiX } from "react-icons/bi";
+import { BiChevronDown, BiChevronUp, BiX } from "react-icons/bi";
 import LoadingOverlay from "./LoadingOverlay";
 import { toast } from "../ui/use-toast";
 
@@ -672,13 +672,13 @@ const StepF = (props) => {
     fetchData();
   }, []);
 
-  useEffect(() => {
-    console.log("🔄 State updated - newFiles:", newFiles.length, "images:", images.length);
-  }, [images, newFiles]);
+  // useEffect(() => {
+  //   console.log("🔄 State updated - newFiles:", newFiles.length, "images:", images.length);
+  // }, [images, newFiles]);
 
   // RENDER
   return (
-    <div className="relative min-h-screen p-4 text-center flex-grow">
+    <div className="relative min-h-screen p-4 text-center">
       {/* Upload Loading Overlay */}
       {uploading && <LoadingOverlay progress={uploadProgress} />}
 
@@ -690,8 +690,8 @@ const StepF = (props) => {
               <div className="w-6 h-6 border-4 border-t-transparent border-purple-500 rounded-full animate-spin"></div>
               <span className="font-semibold">Memproses Foto...</span>
             </div>
-            <p className="text-sm text-gray-600">Mempertahankan aspect ratio</p>
-            <p className="text-xs text-gray-500 mt-1">Target: 500KB-1MB per foto</p>
+            {/* <p className="text-sm text-gray-600">Mempertahankan aspect ratio</p>
+            <p className="text-xs text-gray-500 mt-1">Target: 500KB-1MB per foto</p> */}
           </div>
         </div>
       )}
@@ -702,11 +702,6 @@ const StepF = (props) => {
         </h2>
       </div>
 
-      {/* <div className="bg-purple-50 border border-purple-200 rounded-lg p-3 mb-2 text-sm">
-        <p className="text-purple-800 font-medium">🎯 Kompresi Foto Pintar</p>
-        <p className="text-purple-700">Foto akan dikompress dengan aspect ratio terjaga</p>
-      </div> */}
-
       <p className="text-blue-600 text-sm mb-2">
         <strong>💡 Tips:</strong> Drag foto untuk atur urutan
       </p>
@@ -716,12 +711,13 @@ const StepF = (props) => {
         sensors={sensors}
         collisionDetection={closestCenter}
         onDragEnd={handleDragEnd}
+        className="mb-10"
       >
         <SortableContext
           items={images.map((item) => item.id || item.url)}
           strategy={horizontalListSortingStrategy}
         >
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-2 mb-4">
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-2 pb-48">
             {images.length > 0 ? (
               images.map((image) => (
                 <SortableItem
@@ -749,51 +745,54 @@ const StepF = (props) => {
 
       {errors.images && <p className="text-red-500">{errors.images}</p>}
 
-      <div className="flex justify-center gap-x-4 pb-4">
-        <input
-          type="file"
-          ref={fileInputRef}
-          onChange={handleFileChange}
-          style={{ display: "none" }}
-          accept="image/*"
-          multiple
-        />
+      {/* Floating container */}
+      <div className="fixed bottom-0 left-0 right-0 bg-white border-t p-4 z-50">
 
+        {/* baris utama tombol */}
+        <div className="flex justify-center gap-x-4 pb-4">
+          <input
+            type="file"
+            ref={fileInputRef}
+            onChange={handleFileChange}
+            style={{ display: "none" }}
+            accept="image/*"
+            multiple
+          />
+
+          <Button
+            onClick={() => {
+              console.log("🔘 Upload button clicked");
+              fileInputRef.current?.click();
+            }}
+            disabled={uploading || compressing}
+          >
+            {compressing
+              ? "Processing..."
+              : images.length > 0
+                ? "Tambah Foto"
+                : "Pilih Foto"}
+          </Button>
+
+          <Button
+            onClick={handleUploadClick}
+            disabled={uploading || compressing || (images.length === 0 && newFiles.length === 0)}
+          >
+            {uploading ? `Uploading... ${uploadProgress}%` : "Selanjutnya"}
+          </Button>
+        </div>
+
+        {/* tombol Skip tetap di bawah */}
         <Button
-          onClick={() => {
-            console.log("🔘 Upload button clicked");
-            fileInputRef.current?.click();
-          }}
+          variant="ghost"
+          className="text-gray-700 hover:text-gray-900 text-sm w-full"
+          onClick={() => { props.onFormChange(); props.nextStep(); }}
           disabled={uploading || compressing}
         >
-          {compressing ? "Processing..." : images.length > 0 ? "Tambah Foto" : "Pilih Foto"}
-        </Button>
-
-        <Button
-          onClick={handleUploadClick}
-          disabled={uploading || compressing || (images.length === 0 && newFiles.length === 0)}
-        >
-          {uploading ? `Uploading... ${uploadProgress}%` : "Selanjutnya"}
+          Skip
         </Button>
       </div>
 
-      <Button
-        variant="ghost"
-        className="text-gray-700 hover:text-gray-900 text-sm mb-8"
-        onClick={() => { props.onFormChange(); props.nextStep(); }}
-        disabled={uploading || compressing}
-      >
-        Skip
-      </Button>
 
-      {/* Debug Info */}
-      {/* {process.env.NODE_ENV === 'development' && (
-        <div className="mt-4 p-2 bg-gray-100 rounded text-xs text-left">
-          <p><strong>Debug Info:</strong></p>
-          <p>Images: {images.length} | NewFiles: {newFiles.length}</p>
-          <p>Uploading: {uploading.toString()} | Compressing: {compressing.toString()}</p>
-        </div>
-      )} */}
     </div>
   );
 };
