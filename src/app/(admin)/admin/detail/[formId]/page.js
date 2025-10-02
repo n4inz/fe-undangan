@@ -836,7 +836,17 @@ const Detail = ({ params }) => {
 
             {/* {errors.alamatResepsi && <p className="text-red-500 text-sm mt-1">{errors.alamatResepsi}</p>} */}
           </div>
-
+          <div className="mb-4">
+            <label className="block text-gray-700">
+              Salam Pembuka
+            </label>
+            <Textarea
+              type="text"
+              name="salamPembuka"
+              value={formData.salamPembuka}
+              className="mt-1 p-2 w-full border border-gray-300 rounded-lg"
+            />
+          </div>
           <div className="mb-4">
             <label className="block text-gray-700">
               Salam Penutup
