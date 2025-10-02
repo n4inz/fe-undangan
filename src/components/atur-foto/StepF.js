@@ -28,8 +28,8 @@ import { CSS } from "@dnd-kit/utilities";
 
 // Sortable item component untuk drag foto
 const SortableItem = ({ item, onRemove, uploading, remove }) => {
-  const { attributes, listeners, setNodeRef, transform, transition } = useSortable({ 
-    id: item.id || item.url 
+  const { attributes, listeners, setNodeRef, transform, transition } = useSortable({
+    id: item.id || item.url
   });
 
   const style = {
@@ -54,7 +54,7 @@ const SortableItem = ({ item, onRemove, uploading, remove }) => {
       </div>
 
       {/* Handle untuk drag - tidak termasuk button remove */}
-      <div 
+      <div
         {...attributes}
         {...listeners}
         className="absolute inset-0 cursor-grab active:cursor-grabbing"
@@ -558,9 +558,9 @@ const StepF = (props) => {
 
   // 3. Handle uploading images
   const handleUploadClick = async () => {
-    console.log("📤 Upload click triggered");
-    console.log("📁 NewFiles to upload:", newFiles.length);
-    console.log("🖼️ Total images:", images.length);
+    // console.log("📤 Upload click triggered");
+    // console.log("📁 NewFiles to upload:", newFiles.length);
+    // console.log("🖼️ Total images:", images.length);
 
     if (newFiles.length === 0 && images.length === 0) {
       alert("Please select at least one image to upload.");
@@ -610,7 +610,6 @@ const StepF = (props) => {
           },
         }
       );
-
       console.log("✅ Files uploaded successfully:", response);
       await manageOrder(images);
       props.onFormChange();
@@ -652,7 +651,7 @@ const StepF = (props) => {
       console.log("📥 Fetched data:", response.data);
 
       const imagesData = response.data.data.map((item) => ({
-        url: item.images.fileImage 
+        url: item.images.fileImage
           ? `${process.env.NEXT_PUBLIC_API_URL}/images/${item.images.fileImage}`
           : `${process.env.NEXT_PUBLIC_API_URL}/images/${item.asset.file}`,
         id: item.id,
@@ -777,6 +776,15 @@ const StepF = (props) => {
           {uploading ? `Uploading... ${uploadProgress}%` : "Selanjutnya"}
         </Button>
       </div>
+
+      <Button
+        variant="ghost"
+        className="text-gray-700 hover:text-gray-900 text-sm mb-8"
+        onClick={() => { props.onFormChange(); props.nextStep(); }}
+        disabled={uploading || compressing}
+      >
+        Skip
+      </Button>
 
       {/* Debug Info */}
       {/* {process.env.NODE_ENV === 'development' && (
