@@ -696,7 +696,7 @@ const StepJ = (props) => {
           <div className="bg-white p-6 rounded-lg shadow-lg max-w-sm">
             <div className="flex items-center space-x-3 mb-3">
               <div className="w-6 h-6 border-4 border-t-transparent border-purple-500 rounded-full animate-spin"></div>
-              <span className="font-semibold">Kompresi Background...</span>
+              <span className="font-semibold">Memproses Background...</span>
             </div>
             {/* <p className="text-sm text-gray-600">Mempertahankan aspect ratio</p>
             <p className="text-xs text-gray-500 mt-1">Target: 500KB-1MB per background</p> */}
