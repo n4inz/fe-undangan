@@ -15,7 +15,7 @@ export default function GlobalError({ error, reset }) {
     }
   }, [])
 
-  const adminContact = `https://wa.me/${process.env.NEXT_PUBLIC_WA_NUMBER || '6281234567890'
+  const adminContact = `https://wa.me/${process.env.NEXT_PUBLIC_WA_NUMBER || ''
     }?text=${encodeURIComponent(
       `Halo Admin, saya mengalami error di website.\n\nURL: ${currentPath}\nPesan: ${error?.message || 'Unknown error'
       }\n\nMohon bantuannya 🙏`
