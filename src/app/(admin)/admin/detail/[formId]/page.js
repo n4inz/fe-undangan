@@ -838,6 +838,17 @@ const Detail = ({ params }) => {
           </div>
           <div className="mb-4">
             <label className="block text-gray-700">
+              Quotes ke-2
+            </label>
+            <Textarea
+              type="text"
+              name="quoteKe2"
+              value={formData.quoteKe2}
+              className="mt-1 p-2 w-full border border-gray-300 rounded-lg"
+            />
+          </div>
+          <div className="mb-4">
+            <label className="block text-gray-700">
               Salam Pembuka
             </label>
             <Textarea
