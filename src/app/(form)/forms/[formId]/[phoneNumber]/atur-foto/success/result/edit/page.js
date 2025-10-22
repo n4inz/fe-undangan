@@ -21,11 +21,6 @@ import { SelectValue } from '@radix-ui/react-select';
 import { getBankList } from '@/lib/bank';
 import BankCombobox from '@/components/admin/BankComboBox';
 import MusicCombobox from '@/components/admin/MusicComboBox';
-// Import TipTap components
-import { useEditor, EditorContent } from '@tiptap/react';
-import StarterKit from '@tiptap/starter-kit';
-import Underline from '@tiptap/extension-underline';
-import QuoteEditor from '@/components/QuoteEditor.client';
 
 const Edit = ({ params }) => {
 
@@ -1020,17 +1015,17 @@ const Edit = ({ params }) => {
                             placeholder="Masukkan Quote..."
                         /> */}
                     </div>
-                    <QuoteEditor
-                        value={quoteHtml}
-                        onChange={(html) => {
-                            setQuoteHtml(html);
-                            setFormData((prev) => ({
-                                ...prev,
-                                quote: html,
-                            }));
-                        }}
-                        params={params}
-                    />
+
+              <div className="mb-4">
+                <label className="block text-gray-700 mb-1">Quote</label>
+                <Textarea
+                  name="quote"
+                  value={formData.quote}
+                  onChange={handleChange}
+                  className="w-full border border-gray-300 rounded-lg"
+                  placeholder="Masukkan Quote..."
+                />
+              </div>
 
 
                     <div className="mb-4">

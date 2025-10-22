@@ -40,7 +40,7 @@ import Link from 'next/link';
 import { getCompanyProfile } from '@/lib/company';
 import { getQuotes } from '@/lib/quote';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"; // shadcnui dialog
-import QuoteEditor from '@/components/QuoteEditor.client';
+// import QuoteEditor from '@/components/QuoteEditor.client';
 
 const FORM_DATA_KEY = "formData";
 
@@ -62,7 +62,7 @@ const Home = () => {
   const searchParams = useSearchParams();
   const qs = searchParams?.toString().replace(/=/g, '') ?? '';
   // const qsWithPrefix = qs ? `?${qs}` : '';
-  
+
   //   // when session is loaded, redirect if needed
   //   useEffect(() => {
   // if (status === 'authenticated') {
@@ -1423,8 +1423,15 @@ const Home = () => {
                 />
               </div>
 
+              {errors.source && (
+                <p className="text-red-500 text-sm mb-1">
+                  {errors.source}
+                </p>
+              )}
 
-              <QuoteEditor
+
+
+              {/* <QuoteEditor
                 value={quoteHtml}
                 onChange={(html) => {
                   setQuoteHtml(html);
@@ -1433,13 +1440,18 @@ const Home = () => {
                     quote: html,
                   }));
                 }}
-              />
+              /> */}
 
-              {errors.source && (
-                <p className="text-red-500 text-sm mb-1">
-                  {errors.source}
-                </p>
-              )}
+              <div className="mb-4">
+                <label className="block text-gray-700 mb-1">Quote</label>
+                <Textarea
+                  name="quote"
+                  value={formData.quote}
+                  onChange={handleChange}
+                  className="w-full border border-gray-300 rounded-lg"
+                  placeholder="Masukkan Quote..."
+                />
+              </div>
 
               {/* Modal untuk memilih template quote */}
               <Dialog open={isQuoteModalOpen} onOpenChange={setIsQuoteModalOpen}>
