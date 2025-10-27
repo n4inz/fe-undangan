@@ -2,7 +2,6 @@
 import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import { Button } from "../ui/button";
-import Joyride, { STATUS } from 'react-joyride';
 import axios from "axios";
 import { useParams } from "next/navigation";
 import placeholder from "/public/images/placeholder.png";
@@ -32,13 +31,6 @@ const StepH = ({ number, nextStep, formData, setFormData, onFormChange, partName
       disableBeacon: true,
     }
   ];
-
-  const handleJoyrideCallback = (data) => {
-    const { status } = data;
-    if ([STATUS.FINISHED, STATUS.SKIPPED].includes(status)) {
-      setRunTour(false);
-    }
-  };
 
   const handleFileChange = (e) => {
     setStatusAsset(false);
@@ -238,18 +230,6 @@ const StepH = ({ number, nextStep, formData, setFormData, onFormChange, partName
       <ModalAsset isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} onSelectImage={handleSelectImage} />
 
       <div className="relative min-h-screen p-4 text-center flex-grow">
-        <Joyride
-          steps={tourSteps}
-          run={runTour}
-          continuous={false}
-          showSkipButton={true}
-          callback={handleJoyrideCallback}
-          styles={{
-            options: {
-              primaryColor: '#4F46E5',
-            }
-          }}
-        />
 
         {uploading && <LoadingOverlay progress={uploadProgress} />}
         <div className="flex justify-between items-center">

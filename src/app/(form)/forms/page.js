@@ -197,13 +197,13 @@ export default function Dashboard() {
         loadData();
     }, [status, session, router, fetchForms]);
 
-    useEffect(() => {
-        if (!loading) {
-            console.log("Forms data:", forms);
-            console.log("Company data:", company);
-            console.log("Bank accounts:", bankAccounts);
-        }
-    }, [forms, loading, company, bankAccounts]);
+    // useEffect(() => {
+    //     if (!loading) {
+    //         console.log("Forms data:", forms);
+    //         console.log("Company data:", company);
+    //         console.log("Bank accounts:", bankAccounts);
+    //     }
+    // }, [forms, loading, company, bankAccounts]);
 
     if (loading) {
         return (

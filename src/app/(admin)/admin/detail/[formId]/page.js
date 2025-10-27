@@ -49,7 +49,7 @@ const Detail = ({ params }) => {
       if (response.data.form.fileZip != null) {
         setFileName(response.data.form.fileZip);
       }
-      console.log("DATA:", response.data);
+      // console.log("DATA:", response.data);
     } catch (error) {
       console.error('Error fetching data:', error);
     }

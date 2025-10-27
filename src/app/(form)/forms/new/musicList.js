@@ -5,21 +5,31 @@ import { Button } from '@/components/ui/button';
 import axios from 'axios';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Badge } from '@/components/ui/badge';
+import { Lightbulb } from 'lucide-react'; // ⬅️ ikon lampu
 
 const formatTime = (seconds) => {
   if (isNaN(seconds)) return '00:00';
   const minutes = Math.floor(seconds / 60);
   const remainingSeconds = Math.floor(seconds % 60);
-  return `${minutes.toString().padStart(2, '0')}:${remainingSeconds.toString().padStart(2, '0')}`;
+  return `${minutes.toString().padStart(2, '0')}:${remainingSeconds
+    .toString()
+    .padStart(2, '0')}`;
 };
 
-const MusicList = ({ currentlyPlaying, setCurrentlyPlaying, audioRef, onSongSelected, selectedSongId: initialSelectedSongId, role = "user" }) => {
+const MusicList = ({
+  currentlyPlaying,
+  setCurrentlyPlaying,
+  audioRef,
+  onSongSelected,
+  selectedSongId: initialSelectedSongId,
+  role = 'user',
+}) => {
   const [data, setData] = useState([]);
   const [totalRows, setTotalRows] = useState(0);
   const [perPage, setPerPage] = useState(10);
   const [currentPage, setCurrentPage] = useState(1);
   const [search, setSearch] = useState('');
-  const [selectedSongId, setSelectedSongId] = useState(initialSelectedSongId); // State untuk radio button
+  const [selectedSongId, setSelectedSongId] = useState(initialSelectedSongId);
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
 
@@ -32,32 +42,31 @@ const MusicList = ({ currentlyPlaying, setCurrentlyPlaying, audioRef, onSongSele
     };
   }, [currentPage, perPage, search]);
 
-  const fetchData = useCallback(async (page, limit, searchQuery) => {
-    try {
-      const endpoint = (role === "admin" || searchQuery) ? "music" : "music-list";
-      const response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/${endpoint}`, {
-        params: { page, limit, search: searchQuery },
-        withCredentials: true,
-      });
-      setData(response.data.data);
-      setTotalRows(response.data.total);
-    } catch (error) {
-      console.error('Error fetching data:', error);
-    }
-  }, [role]);
+  const fetchData = useCallback(
+    async (page, limit, searchQuery) => {
+      try {
+        const endpoint = role === 'admin' || searchQuery ? 'music' : 'music-list';
+        const response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/${endpoint}`, {
+          params: { page, limit, search: searchQuery },
+          withCredentials: true,
+        });
+        setData(response.data.data);
+        setTotalRows(response.data.total);
+      } catch (error) {
+        console.error('Error fetching data:', error);
+      }
+    },
+    [role]
+  );
 
   const handlePlay = (id, file) => {
     if (currentlyPlaying === id) {
-      if (audioRef.current) {
-        audioRef.current.pause();
-      }
+      if (audioRef.current) audioRef.current.pause();
       setCurrentlyPlaying(null);
       setCurrentTime(0);
       setDuration(0);
     } else {
-      if (audioRef.current) {
-        audioRef.current.pause();
-      }
+      if (audioRef.current) audioRef.current.pause();
       setCurrentlyPlaying(id);
       setCurrentTime(0);
       setDuration(0);
@@ -85,32 +94,27 @@ const MusicList = ({ currentlyPlaying, setCurrentlyPlaying, audioRef, onSongSele
     setSearch(event.target.value);
   };
 
-  const handlePageChange = page => {
-    setCurrentPage(page);
-  };
-
+  const handlePageChange = (page) => setCurrentPage(page);
   const handlePerRowsChange = async (newPerPage, page) => {
     setPerPage(newPerPage);
     fetchData(page, newPerPage);
   };
 
   const handleRadioChange = (value) => {
-    setSelectedSongId(value); // Update state local
-    onSongSelected?.(value);  // Kirim ke parent (jika callback tersedia)
+    setSelectedSongId(value);
+    onSongSelected?.(value);
   };
 
   const columns = [
     {
       name: <span className="text-xl">✅</span>,
-      cell: row => (
-        <RadioGroupItem value={row.id.toString()} />
-      ),
+      cell: (row) => <RadioGroupItem value={row.id.toString()} />,
       ignoreRowClick: true,
       width: '56px',
     },
     {
       name: 'Music',
-      cell: row => (
+      cell: (row) => (
         <div className="flex flex-col gap-2">
           <Button
             type="button"
@@ -142,20 +146,20 @@ const MusicList = ({ currentlyPlaying, setCurrentlyPlaying, audioRef, onSongSele
             </div>
           )}
         </div>
-      )
+      ),
     },
     {
       name: 'Name',
-      cell: row => (
+      cell: (row) => (
         <div className="flex items-center gap-2">
           <span>
-            {row.name}
+            {row.name}{' '}
             {row.isVisible ? (
-            <Badge variant="secondary">Gratis</Badge>
-          ) : (
-            <Badge variant="outline">+Rp 5rb</Badge>
-          )}
-            </span>
+              <Badge variant="secondary">Gratis</Badge>
+            ) : (
+              <Badge variant="outline">+Rp 5rb</Badge>
+            )}
+          </span>
         </div>
       ),
       sortable: true,
@@ -164,33 +168,36 @@ const MusicList = ({ currentlyPlaying, setCurrentlyPlaying, audioRef, onSongSele
   ];
 
   return (
-    // RadioGroup dikontrol secara independen; onValueChange hanya mengubah state tanpa trigger playback
-    <RadioGroup
-      value={selectedSongId}
-      onValueChange={handleRadioChange} // Gunakan handler gabungan
-    >
-      <div className="w-full">
+    <RadioGroup value={selectedSongId} onValueChange={handleRadioChange}>
+      <div className="w-full flex flex-col gap-3 mb-4">
+        {/* Hint text dengan ikon lampu */}
+        <div className="flex items-center gap-2 text-gray-600 text-xs bg-yellow-50 border border-yellow-200 px-3 py-1 rounded-full w-fit">
+          <Lightbulb className="w-4 h-4 text-yellow-500" />
+          <span>Ketik nama lagu di sini...</span>
+        </div>
+
+        {/* Debounced Search Input (Full width, rounded) */}
         <DebounceInput
           minLength={1}
-          debounceTimeout={300}
-          placeholder="Cari Lagu"
+          debounceTimeout={400}
+          placeholder="Cari lagu..."
           value={search}
           onChange={handleSearch}
-          className="border border-gray-300 rounded-md p-2 w-1/2"
+          className="border border-gray-300 rounded-full p-2 w-full focus:outline-none focus:ring-2 focus:ring-blue-400"
         />
-        <div className="overflow-x-auto">
-          <DataTable
-            columns={columns}
-            data={data}
-            pagination
-            paginationServer
-            paginationTotalRows={totalRows}
-            onChangePage={handlePageChange}
-            // onChangeRowsPerPage={handlePerRowsChange}
-            paginationRowsPerPageOptions={[10]} // Disable rows-per-page dropdown
-            className="rdt_TableCol w-full"
-          />
-        </div>
+      </div>
+
+      <div className="overflow-x-auto">
+        <DataTable
+          columns={columns}
+          data={data}
+          pagination
+          paginationServer
+          paginationTotalRows={totalRows}
+          onChangePage={handlePageChange}
+          paginationRowsPerPageOptions={[10]}
+          className="rdt_TableCol w-full"
+        />
       </div>
     </RadioGroup>
   );

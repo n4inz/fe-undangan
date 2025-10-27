@@ -86,7 +86,7 @@ const handleDeleteMonth = useCallback(async () => {
     const response = await axios.delete(`${process.env.NEXT_PUBLIC_API_URL}/delete-month-images?year=${selectedYear}&month=${selectedMonth}`, {
       withCredentials: true,
     });
-    console.log('Delete response:', response.data);
+    // console.log('Delete response:', response.data);
     toast({ title: "Success", description: `All images in ${selectedMonth} ${selectedYear} deleted` });
 
     const [refreshImageResponse, refreshUncompressedResponse] = await Promise.all([

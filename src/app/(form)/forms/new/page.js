@@ -92,7 +92,7 @@ const Home = () => {
   const [options, setOptions] = useState([]);
   const [selectedTema, setSelectedTema] = useState(null);
   const [isLoadingOptions, setIsLoadingOptions] = useState(true);
-  const [maxStep, setMaxStep] = useState(16);
+  const [maxStep, setMaxStep] = useState(15);
   const [bankList, setBankList] = useState([]);
 
   const [currentlyPlaying, setCurrentlyPlaying] = useState(null);
@@ -223,7 +223,7 @@ const Home = () => {
           console.log("✅ Lock thema success:", res.data.data);
 
           setLockThema(true);
-          setMaxStep(15);
+          setMaxStep(14);
 
           setFormData((prev) => ({
             ...prev,
@@ -432,15 +432,15 @@ const Home = () => {
       case "linkSherlokResepsi":
       case "linkVideo":
         return 8;
-      case "turutMengundang":
-        return 13;
+      // case "turutMengundang":
+      //   return 13;
       case "source":
       case "quote":
-        return 15;
+        return 14;
       // ...and so on for all your steps.
       case "pilihanTema":
       case "idTema":
-        return 16;
+        return 15;
       default:
         return 1; // Default to step 1 if field name is not found
     }
@@ -1359,7 +1359,7 @@ const Home = () => {
               </div>
             </>
           )}
-          {currentStep === 13 && (
+          {/* {currentStep === 13 && (
             <>
               <div className="mb-4">
                 <label className="block text-gray-700">Turut Mengundang</label>
@@ -1371,8 +1371,8 @@ const Home = () => {
                 />
               </div>
             </>
-          )}
-          {currentStep === 14 && (
+          )} */}
+          {currentStep === 13 && (
             <>
               <div className="mb-4">
                 <MusicList
@@ -1386,7 +1386,7 @@ const Home = () => {
               </div>
             </>
           )}
-          {currentStep === 15 && (
+          {currentStep === 14 && (
             <>
               {/* Baris label + tombol, dua kolom rasio 3:2 */}
               <div className="mb-4 grid grid-cols-5 gap-2 items-start">
@@ -1501,7 +1501,7 @@ const Home = () => {
             </>
           )}
 
-          {currentStep === 16 && (
+          {currentStep === 15 && (
             <>
               <div className="mb-4">
                 <label className="block text-gray-700">

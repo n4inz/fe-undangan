@@ -50,6 +50,9 @@ const Edit = ({ params }) => {
     const [selectedTema, setSelectedTema] = useState(null);
 
     const [mounted, setMounted] = useState(false);
+    // tambahkan di bagian state hooks awal
+    const [lockEvents, setLockEvents] = useState(false);
+
 
 
     const handleFileChange = async (event) => {
@@ -214,6 +217,26 @@ const Edit = ({ params }) => {
         try {
             const response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/form-data/${params.formId}/${params.phoneNumber}`);
             const fetchedFormData = response.data.form || {};
+            const timeNowStr = response.data.timeNow; // ISO string from backend
+
+            // safety: parse timeNow and createdAt
+            const timeNow = timeNowStr ? new Date(timeNowStr) : new Date();
+            const createdAt = fetchedFormData.createdAt ? new Date(fetchedFormData.createdAt) : null;
+
+            // compute 7 days diff
+            const sevenDaysMs = 7 * 24 * 60 * 60 * 1000;
+            const isOlderThan7Days = createdAt ? (timeNow - createdAt) > sevenDaysMs : false;
+
+            // convert fetched datetimeResepsi (YYYY-MM-DD) to Date if available
+            let datetimeResepsiDate = null;
+            if (fetchedFormData.datetimeResepsi) {
+                // backend already returns YYYY-MM-DD, parse as local midnight
+                datetimeResepsiDate = new Date(fetchedFormData.datetimeResepsi + 'T00:00:00');
+            }
+
+            const isResepsiPassed = datetimeResepsiDate ? (datetimeResepsiDate < timeNow) : false;
+
+            const shouldLockEvents = isOlderThan7Days && isResepsiPassed;
 
             // Initialize new formData based on fetched data
             let updatedFormData = { ...fetchedFormData };
@@ -236,15 +259,17 @@ const Edit = ({ params }) => {
                 };
             }
 
-
-
-            // Set the updated form data in a single setFormData call
             if (!updatedFormData.rekening) {
                 updatedFormData.rekening = [];
             }
+
             setFormData(updatedFormData);
             setRekeningList(updatedFormData.rekening || []);
-            setQuoteHtml(updatedFormData.quote || ""); // <-- Tambahkan ini
+            setQuoteHtml(updatedFormData.quote || "");
+
+            // set lock state
+            setLockEvents(shouldLockEvents);
+
         } catch (error) {
             console.error('Error fetching data:', error);
         } finally {
@@ -514,6 +539,7 @@ const Edit = ({ params }) => {
                             value={formData.judulAcara1}
                             onChange={handleChange}
                             className="mt-1 p-2 w-full border border-gray-300 rounded-lg"
+                            disabled={lockEvents}
                         />
                     </div>
                     <div className="mb-4">
@@ -527,6 +553,7 @@ const Edit = ({ params }) => {
                             value={formData.datetimeAkad}
                             onChange={handleChange}
                             className="mt-1 p-2 w-full border border-gray-300 rounded-lg"
+                            disabled={lockEvents}
                         />
                     </div>
                     <div className="mb-4">
@@ -542,6 +569,7 @@ const Edit = ({ params }) => {
                             value={formData.timeAkad}
                             onChange={handleChange}
                             className="mt-1 p-2 w-full border border-gray-300 rounded-lg"
+                            disabled={lockEvents}
                         />
                     </div>
                     <div className="mb-4">
@@ -556,6 +584,7 @@ const Edit = ({ params }) => {
                             value={formData.judulAcara2}
                             onChange={handleChange}
                             className="mt-1 p-2 w-full border border-gray-300 rounded-lg"
+                            disabled={lockEvents}
                         />
                     </div>
                     <div className="mb-4">
@@ -569,6 +598,7 @@ const Edit = ({ params }) => {
                             value={formData.datetimeResepsi}
                             onChange={handleChange}
                             className="mt-1 p-2 w-full border border-gray-300 rounded-lg"
+                            disabled={lockEvents}
                         />
                     </div>
                     <div className="mb-4">
@@ -584,6 +614,7 @@ const Edit = ({ params }) => {
                             value={formData.timeResepsi}
                             onChange={handleChange}
                             className="mt-1 p-2 w-full border border-gray-300 rounded-lg"
+                            disabled={lockEvents}
                         />
                     </div>
                     <div className="mb-4">
@@ -1016,16 +1047,16 @@ const Edit = ({ params }) => {
                         /> */}
                     </div>
 
-              <div className="mb-4">
-                <label className="block text-gray-700 mb-1">Quote</label>
-                <Textarea
-                  name="quote"
-                  value={formData.quote}
-                  onChange={handleChange}
-                  className="w-full border border-gray-300 rounded-lg"
-                  placeholder="Masukkan Quote..."
-                />
-              </div>
+                    <div className="mb-4">
+                        <label className="block text-gray-700 mb-1">Quote</label>
+                        <Textarea
+                            name="quote"
+                            value={formData.quote}
+                            onChange={handleChange}
+                            className="w-full border border-gray-300 rounded-lg"
+                            placeholder="Masukkan Quote..."
+                        />
+                    </div>
 
 
                     <div className="mb-4">
