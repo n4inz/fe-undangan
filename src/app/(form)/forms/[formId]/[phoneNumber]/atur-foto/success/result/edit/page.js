@@ -997,7 +997,7 @@ const Edit = ({ params }) => {
                             </div>
                         </RadioGroup>
                     </div>
-                    <div className="mb-4">
+                    {/* <div className="mb-4">
                         <label className="block text-gray-700">Turut Mengundang</label>
                         <Textarea
                             name="turutMengundang"
@@ -1005,7 +1005,7 @@ const Edit = ({ params }) => {
                             onChange={handleChange}
                             className="mt-1 p-2 w-full border border-gray-300 rounded-lg"
                         />
-                    </div>
+                    </div> */}
                     <div className="mb-4 w-full max-w-full">
                         <label className="block text-gray-700">Pilih Musik</label>
                         <MusicCombobox
