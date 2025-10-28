@@ -236,7 +236,7 @@ const Edit = ({ params }) => {
 
             const isResepsiPassed = datetimeResepsiDate ? (datetimeResepsiDate < timeNow) : false;
 
-            const shouldLockEvents = isOlderThan7Days && isResepsiPassed;
+            const shouldLockEvents = isOlderThan7Days && isResepsiPassed && fetchedFormData.isPaid == 1;
 
             // Initialize new formData based on fetched data
             let updatedFormData = { ...fetchedFormData };

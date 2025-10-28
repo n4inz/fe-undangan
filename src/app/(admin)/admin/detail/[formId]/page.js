@@ -9,10 +9,22 @@ import axios from "axios";
 import { Button } from "@/components/ui/button";
 import { Loader2 } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { BiDotsVertical, BiImage, BiPencil, BiUserCircle } from "react-icons/bi";
+import { BiCopyAlt, BiDotsVertical, BiImage, BiPencil, BiUserCircle } from "react-icons/bi";
 import { DropdownMenuItem } from "@radix-ui/react-dropdown-menu";
 import { useRouter, useSearchParams } from "next/navigation";
 import { toast } from "@/components/ui/use-toast";
+import {
+  AlertDialog,
+  AlertDialogTrigger,
+  AlertDialogContent,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogCancel,
+  AlertDialogAction,
+} from "@/components/ui/alert-dialog"
+
 
 // import { BiX } from "react-icons/bi";
 
@@ -35,6 +47,8 @@ const Detail = ({ params }) => {
 
   const [fileName, setFileName] = useState('');
   const [music, setMusic] = useState([]);
+
+  const [isDuplicating, setIsDuplicating] = useState(false);
 
 
   const fetchData = async () => {
@@ -81,6 +95,36 @@ const Detail = ({ params }) => {
     window.open(downloadUrl, '_blank');
   };
 
+  const handleDuplicate = async (formId, phoneNumber) => {
+    try {
+      setIsDuplicating(true); // tampilkan overlay
+
+      const response = await axios.post(
+        `${process.env.NEXT_PUBLIC_API_URL}/forms/${formId}/${phoneNumber}/duplicate-by-admin`,
+        {}, // body kosong, jika API tidak butuh data tambahan
+        {
+          withCredentials: true, // ini harus di parameter ke-3, bukan di body
+        }
+      );
+
+      toast({
+        title: "Berhasil",
+        description: "Undangan berhasil diduplikat.",
+      });
+
+    } catch (error) {
+      console.error("Error duplicating form:", error.response?.data || error.message);
+      toast({
+        title: "Gagal",
+        description: error.response?.data?.message || "Gagal menduplikat undangan.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsDuplicating(false); // sembunyikan overlay
+    }
+  };
+
+
   useEffect(() => {
     fetchData();
     fetchImage()
@@ -120,44 +164,87 @@ const Detail = ({ params }) => {
             </div>
             {isAdmin === 1 && (
               <DropdownMenu>
-                <DropdownMenuTrigger className='ml-4' asChild>
-                  <span className="cursor-pointer"><BiDotsVertical className="h-4 w-4" /></span>
+                <DropdownMenuTrigger asChild>
+                  <button className="ml-4 cursor-pointer p-1 hover:bg-gray-100 rounded transition-colors duration-150">
+                    <BiDotsVertical className="h-4 w-4" />
+                  </button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent className="w-56">
-                  <DropdownMenuItem onClick={() => {
-                    router.push(`/admin/detail/${params.formId}/edit`);
-                  }}
-                    className="text-center cursor-pointer" // Add cursor-pointer class
-                    style={{ padding: "6px 12px" }}>
-                    <span className="flex items-center">
-                      <BiPencil className="mr-2 h-4 w-4" />
-                      <span>Edit</span>
-                    </span>
+
+                <DropdownMenuContent className="w-56 rounded-lg border border-gray-100 bg-white shadow-md">
+                  {/* Edit */}
+                  <DropdownMenuItem
+                    onClick={() => router.push(`/admin/detail/${params.formId}/edit`)}
+                    className="cursor-pointer px-3 py-2 flex items-center rounded-md transition-colors duration-150 hover:bg-gray-100"
+                  >
+                    <BiPencil className="mr-2 h-4 w-4 text-gray-600" />
+                    <span>Edit</span>
                   </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => {
-                    router.push(`/admin/detail/${params.formId}/edit/${formData.nomorWa}`);
-                  }}
-                    className="text-center cursor-pointer" // Add cursor-pointer class
-                    style={{ padding: "6px 12px" }}>
-                    <span className="flex items-center">
-                      <BiImage className="mr-2 h-4 w-4" />
-                      <span>Edit Foto</span>
-                    </span>
+
+                  {/* Edit Foto */}
+                  <DropdownMenuItem
+                    onClick={() =>
+                      router.push(`/admin/detail/${params.formId}/edit/${formData.nomorWa}`)
+                    }
+                    className="cursor-pointer px-3 py-2 flex items-center rounded-md transition-colors duration-150 hover:bg-gray-100"
+                  >
+                    <BiImage className="mr-2 h-4 w-4 text-gray-600" />
+                    <span>Edit Foto</span>
                   </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => {
-                    // Open in a new window/tab
-                    window.open(`/forms/${params.formId}/${formData.nomorWa}/atur-foto/success`, '_blank');
-                  }}
-                    className="text-center cursor-pointer"
-                    style={{ padding: "6px 12px" }}>
-                    <span className="flex items-center">
-                      <BiUserCircle className="mr-2 h-4 w-4" />
-                      <span>Panel User</span>
-                    </span>
+
+                  {/* Duplikat */}
+                  {formData?.isPaid === 1 && (
+                    <DropdownMenuItem
+                      onSelect={(e) => {
+                        e.preventDefault();
+                        setIsDuplicating(true);
+                      }}
+                      className="cursor-pointer px-3 py-2 flex items-center rounded-md transition-colors duration-150 hover:bg-gray-100"
+                    >
+                      <BiCopyAlt className="mr-2 h-4 w-4 text-gray-600" />
+                      <span>Duplikat Undangan</span>
+                    </DropdownMenuItem>
+                  )}
+
+                  {/* Panel User */}
+                  <DropdownMenuItem
+                    onClick={() =>
+                      window.open(
+                        `/forms/${params.formId}/${formData.nomorWa}/atur-foto/success`,
+                        "_blank"
+                      )
+                    }
+                    className="cursor-pointer px-3 py-2 flex items-center rounded-md transition-colors duration-150 hover:bg-gray-100"
+                  >
+                    <BiUserCircle className="mr-2 h-4 w-4 text-gray-600" />
+                    <span>Panel User</span>
                   </DropdownMenuItem>
                 </DropdownMenuContent>
-
               </DropdownMenu>
+            )}
+            {/* AlertDialog dipindahkan ke luar */}
+            {formData?.isPaid === 1 && (
+              <AlertDialog open={isDuplicating} onOpenChange={setIsDuplicating}>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Konfirmasi Duplikat</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      Apakah Anda yakin ingin menduplikat undangan ini?
+                      Data undangan akan disalin dan dibuat versi baru.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel onClick={() => setIsDuplicating(false)}>
+                      Batal
+                    </AlertDialogCancel>
+                    <AlertDialogAction
+                      onClick={() => handleDuplicate(params.formId, formData.nomorWa)}
+                      className="bg-blue-600 hover:bg-blue-700 text-white"
+                    >
+                      Ya, Duplikat
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
             )}
           </div>
 
