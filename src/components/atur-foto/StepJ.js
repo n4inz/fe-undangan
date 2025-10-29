@@ -27,6 +27,7 @@ import {
   horizontalListSortingStrategy,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
+import { AlertTriangle } from "lucide-react";
 
 // Sortable item component
 const SortableItem = ({ item, onRemove, uploading, remove }) => {
@@ -88,26 +89,26 @@ const StepJ = (props) => {
   // ================================
   //     IMAGE COMPRESSION FUNCTIONS
   // ================================
-  
+
   /**
    * Calculate proper dimensions while preserving aspect ratio
    */
   const calculateDimensions = (originalWidth, originalHeight, maxWidth, maxHeight) => {
     const aspectRatio = originalWidth / originalHeight;
-    
+
     let newWidth = originalWidth;
     let newHeight = originalHeight;
-    
+
     // Only resize if image is larger than max dimensions
     if (originalWidth > maxWidth || originalHeight > maxHeight) {
       const scaleX = maxWidth / originalWidth;
       const scaleY = maxHeight / originalHeight;
       const scale = Math.min(scaleX, scaleY);
-      
+
       newWidth = Math.floor(originalWidth * scale);
       newHeight = Math.floor(originalHeight * scale);
     }
-    
+
     return { newWidth, newHeight, scale: newWidth / originalWidth };
   };
 
@@ -117,18 +118,18 @@ const StepJ = (props) => {
   const compressImageWithAspectRatio = (file) => {
     return new Promise((resolve, reject) => {
       const img = new window.Image();
-      
+
       img.onload = () => {
         const canvas = document.createElement('canvas');
         const ctx = canvas.getContext('2d');
-        
+
         const originalSizeMB = file.size / (1024 * 1024);
         const targetMinKB = 500;
         const targetMaxKB = 1000;
-        
+
         // Define max dimensions based on file size
         let maxDimension, initialQuality;
-        
+
         if (originalSizeMB > 20) {
           maxDimension = 1600;
           initialQuality = 0.6;
@@ -142,33 +143,33 @@ const StepJ = (props) => {
           maxDimension = 2200;
           initialQuality = 0.8;
         }
-        
+
         // Calculate new dimensions preserving aspect ratio
         const { newWidth, newHeight } = calculateDimensions(
-          img.width, 
-          img.height, 
-          maxDimension, 
+          img.width,
+          img.height,
+          maxDimension,
           maxDimension
         );
-        
+
         canvas.width = newWidth;
         canvas.height = newHeight;
-        
+
         // White background
         ctx.fillStyle = '#FFFFFF';
         ctx.fillRect(0, 0, newWidth, newHeight);
-        
+
         // Enable high quality rendering
         ctx.imageSmoothingEnabled = true;
         ctx.imageSmoothingQuality = 'high';
-        
+
         // Draw image with preserved aspect ratio
         ctx.drawImage(img, 0, 0, newWidth, newHeight);
-        
+
         // Compression with quality adjustment
         let attempt = 0;
         const maxAttempts = 8;
-        
+
         const tryCompress = (quality) => {
           canvas.toBlob(
             (blob) => {
@@ -176,25 +177,25 @@ const StepJ = (props) => {
                 reject(new Error('Failed to create blob'));
                 return;
               }
-              
+
               const fileSizeKB = blob.size / 1024;
               attempt++;
-              
+
               console.log(`🔄 Attempt ${attempt}: Quality ${quality.toFixed(2)}, Size: ${fileSizeKB.toFixed(0)}KB`);
-              
+
               if ((fileSizeKB >= targetMinKB && fileSizeKB <= targetMaxKB) || attempt >= maxAttempts) {
                 const originalName = file.name.split('.')[0];
                 const compressedFile = new File([blob], `${originalName}.jpg`, {
                   type: 'image/jpeg',
                   lastModified: Date.now(),
                 });
-                
+
                 console.log(`✅ Background compression: ${img.width}x${img.height} → ${newWidth}x${newHeight}, ${fileSizeKB.toFixed(0)}KB`);
-                
+
                 resolve(compressedFile);
                 return;
               }
-              
+
               // Adjust quality
               let newQuality;
               if (fileSizeKB > targetMaxKB) {
@@ -204,7 +205,7 @@ const StepJ = (props) => {
                 const undershoot = (targetMinKB - fileSizeKB) / targetMinKB;
                 newQuality = Math.min(0.95, quality + undershoot * 0.1);
               }
-              
+
               newQuality = Math.max(0.2, Math.min(0.95, newQuality));
               setTimeout(() => tryCompress(newQuality), 100);
             },
@@ -212,12 +213,12 @@ const StepJ = (props) => {
             quality
           );
         };
-        
+
         tryCompress(initialQuality);
       };
 
       img.onerror = () => reject(new Error('Failed to load image'));
-      
+
       const reader = new FileReader();
       reader.onload = (e) => {
         img.src = e.target.result;
@@ -233,25 +234,25 @@ const StepJ = (props) => {
   const simpleFallback = (file) => {
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
-      
+
       reader.onload = (event) => {
         const img = new window.Image();
-        
+
         img.onload = () => {
           const canvas = document.createElement('canvas');
           const ctx = canvas.getContext('2d');
-          
+
           const { newWidth, newHeight } = calculateDimensions(img.width, img.height, 1800, 1800);
-          
+
           canvas.width = newWidth;
           canvas.height = newHeight;
-          
+
           ctx.fillStyle = '#FFFFFF';
           ctx.fillRect(0, 0, newWidth, newHeight);
           ctx.imageSmoothingEnabled = true;
           ctx.imageSmoothingQuality = 'high';
           ctx.drawImage(img, 0, 0, newWidth, newHeight);
-          
+
           canvas.toBlob(
             (blob) => {
               if (blob) {
@@ -269,11 +270,11 @@ const StepJ = (props) => {
             0.75
           );
         };
-        
+
         img.onerror = () => reject(new Error('Image load failed'));
         img.src = event.target.result;
       };
-      
+
       reader.onerror = () => reject(new Error('FileReader failed'));
       reader.readAsDataURL(file);
     });
@@ -284,30 +285,30 @@ const StepJ = (props) => {
    */
   const processFiles = async (files) => {
     const results = [];
-    
+
     console.log(`🎯 Starting background compression...`);
-    
+
     for (let i = 0; i < files.length; i++) {
       const file = files[i];
       const originalSizeMB = (file.size / (1024 * 1024)).toFixed(2);
-      
+
       console.log(`📁 Processing background ${i + 1}/${files.length}: ${file.name} (${originalSizeMB}MB)`);
-      
+
       try {
         let compressedFile;
-        
+
         try {
           compressedFile = await compressImageWithAspectRatio(file);
         } catch (error) {
           console.log('🔄 Main method failed, using fallback...');
           compressedFile = await simpleFallback(file);
         }
-        
+
         results.push(compressedFile);
-        
+
       } catch (error) {
         console.error(`❌ Failed to compress ${file.name}:`, error);
-        
+
         // Create placeholder
         const canvas = document.createElement('canvas');
         canvas.width = 800;
@@ -319,7 +320,7 @@ const StepJ = (props) => {
         ctx.font = '24px Arial';
         ctx.textAlign = 'center';
         ctx.fillText('Background Error', 400, 225);
-        
+
         canvas.toBlob((blob) => {
           if (blob) {
             const fallback = new File([blob], `${file.name.split('.')[0]}.jpg`, {
@@ -331,7 +332,7 @@ const StepJ = (props) => {
         }, 'image/jpeg', 0.8);
       }
     }
-    
+
     return results;
   };
 
@@ -423,13 +424,13 @@ const StepJ = (props) => {
 
     // Start compression
     setCompressing(true);
-    
+
     try {
       console.log(`🚀 Starting compression for ${selectedFiles.length} background files...`);
-      
+
       // Compress all files
       const compressedFiles = await processFiles(selectedFiles);
-      
+
       // Generate stable preview URLs for compressed files
       const newFileData = compressedFiles.map((file, index) => {
         return {
@@ -456,22 +457,22 @@ const StepJ = (props) => {
 
       // Clear old error if any
       setErrors({ ...errors, images: undefined });
-      
+
       // Show success message
       const totalSize = compressedFiles.reduce((sum, file) => sum + file.size, 0);
       const avgSizeKB = (totalSize / compressedFiles.length / 1024).toFixed(0);
-      
-      toast({ 
+
+      toast({
         title: `${compressedFiles.length} background berhasil dikompress`,
         // description: `Rata-rata ${avgSizeKB}KB per file`,
         variant: 'default'
       });
-      
+
     } catch (error) {
       console.error('Compression error:', error);
-      toast({ 
-        title: 'Gagal mengkompress background', 
-        variant: 'destructive' 
+      toast({
+        title: 'Gagal mengkompress background',
+        variant: 'destructive'
       });
     } finally {
       setCompressing(false);
@@ -543,7 +544,7 @@ const StepJ = (props) => {
       fd.append("order", item.order);
       fd.append("file", item.file);
       fd.append("source[]", JSON.stringify({ id: item.id, order: item.order }));
-      
+
       if (props.partName === 'background') {
         fd.append("backgroundOrder", item.order);
       }
@@ -689,7 +690,7 @@ const StepJ = (props) => {
   return (
     <div className="relative min-h-screen p-4 text-center flex-grow">
       {uploading && <LoadingOverlay progress={uploadProgress} />}
-      
+
       {/* Compression Loading Overlay */}
       {compressing && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
@@ -713,24 +714,32 @@ const StepJ = (props) => {
         length={images.length}
       />
 
-      <div className="flex justify-between items-center mb-4">
-        <h2 className="text-xl font-semibold flex-grow text-center">
-          {props.number}. {props.title} (Max. 5 Foto)
-        </h2>
-        <Button id="btn-asset" onClick={() => setIsModalOpen(true)}>
-          <FaImages className="text-lg" />
-        </Button>
+      <div className="flex flex-col mb-4">
+        <div className="flex justify-between items-center">
+          <h2 className="text-xl font-semibold flex-grow text-center">
+            {props.number}. {props.title} (Max. 5 Foto)
+          </h2>
+          <Button id="btn-asset" onClick={() => setIsModalOpen(true)}>
+            <FaImages className="text-lg" />
+          </Button>
+        </div>
+
+        <div className="flex items-center justify-center mt-1 text-yellow-600 text-sm gap-1">
+          <AlertTriangle className="w-4 h-4" />
+          <span>Minimal upload 4 foto</span>
+        </div>
       </div>
-      
+
+
       {/* <div className="bg-purple-50 border border-purple-200 rounded-lg p-3 mb-2 text-sm">
         <p className="text-purple-800 font-medium">🎯 Kompresi Background Pintar</p>
         <p className="text-purple-700">Background akan dikompress dengan aspect ratio terjaga</p>
       </div> */}
-      
+
       <p className="text-red-500 text-sm mb-2">
         Note: Drag gambar untuk atur urutan foto
       </p>
-      
+
       <DndContext
         sensors={sensors}
         collisionDetection={closestCenter}
@@ -777,8 +786,8 @@ const StepJ = (props) => {
           accept="image/*"
           multiple
         />
-        <Button 
-          onClick={() => fileInputRef.current.click()} 
+        <Button
+          onClick={() => fileInputRef.current.click()}
           disabled={uploading || compressing}
         >
           {compressing ? "Processing..." : images.length > 0 ? "Ganti Foto" : "Upload Photos"}
