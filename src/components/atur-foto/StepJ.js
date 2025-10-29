@@ -785,7 +785,7 @@ const StepJ = (props) => {
         </Button>
         <Button
           onClick={handleUploadClick}
-          disabled={uploading || compressing || (images.length === 0 && newFiles.length === 0)}
+          disabled={uploading || compressing || (images.length <= 3)}
         >
           {uploading ? "Uploading..." : "Selanjutnya"}
         </Button>

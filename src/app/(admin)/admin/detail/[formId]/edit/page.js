@@ -1226,6 +1226,18 @@ const EditDetail = ({ params }) => {
                         </div>
                         <div className="mb-4">
                             <label className="block text-gray-700">
+                                Tanggal tampilan undangan
+                            </label>
+                            <input
+                                type="date"
+                                name="tglTampilanUndangan"
+                                value={formData.tglTampilanUndangan}
+                                onChange={handleChange}
+                                className="mt-1 p-2 w-full border border-gray-300 rounded-lg"
+                            />
+                        </div>
+                        <div className="mb-4">
+                            <label className="block text-gray-700">
                                 Upload ZIP File (Max 1)
                             </label>
                             {!uploadComplete && (
