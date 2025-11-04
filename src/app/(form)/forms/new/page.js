@@ -40,6 +40,7 @@ import Link from 'next/link';
 import { getCompanyProfile } from '@/lib/company';
 import { getQuotes } from '@/lib/quote';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"; // shadcnui dialog
+import { sendNotification } from '@/utils/helpers';
 // import QuoteEditor from '@/components/QuoteEditor.client';
 
 const FORM_DATA_KEY = "formData";
@@ -336,7 +337,7 @@ const Home = () => {
         },
         withCredentials: true,
       })
-        .then((response) => {
+        .then(async (response) => {
           if (isLocalStorageAccessibleState) {
             try {
               window.localStorage.removeItem(FORM_DATA_KEY);
@@ -344,6 +345,7 @@ const Home = () => {
               console.warn("Error removing localStorage item:", error);
             }
           }
+          await sendNotification(response.data.id, response.data.nomorWa);
           router.push(`/forms/${response.data.id}/${response.data.nomorWa}/atur-foto`);
         })
         .catch((error) => {
