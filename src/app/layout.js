@@ -3,6 +3,7 @@ import { authOptions } from './api/auth/[...nextauth]/route';
 import { Inter } from "next/font/google";
 import Providers from './providers';
 import './styles/globals.css';
+import GoogleAnalytics from '@/components/GoogleAnalytics';
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -16,6 +17,7 @@ export default async function AppLayout({ children }) {
   return (
     <html lang="id">
       <body>
+        <GoogleAnalytics />
         <Providers session={session}>
           {children}
         </Providers>
