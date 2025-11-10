@@ -35,13 +35,20 @@ export const sendNotification = async (id, phoneNumber, customMessage = null) =>
     const cleanMainBase = mainBase ? String(mainBase).replace(/\/$/, "") : "";
 
     // Use raw phoneNumber in the link (URL-encoded to be URL-safe)
-    const link = cleanMainBase
+    const linkFoto = cleanMainBase
+      ? `${cleanMainBase}/forms/${id}/${phoneNumber}/atur-foto`
+      : `${id}/${phoneNumber}`;
+
+    const linkEdit = cleanMainBase
       ? `${cleanMainBase}/forms/${id}/${phoneNumber}/atur-foto`
       : `${id}/${phoneNumber}`;
 
     const payloadMessage =
       customMessage ??
-      `Terima kasih telah mengisi form undangan digital di sewaundangan. Silakan mengatur foto Anda di link ini: ${link}`;
+      `Terima kasih telah mengisi form undangan digital di sewaundangan. Silakan mengatur foto Anda di link ini:\n
+      Edit Data:\n${linkFoto}
+      \n\n
+      Edit Data:\n${linkEdit}`;
 
     const response = await axios.post(
       apiUrl,
