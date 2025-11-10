@@ -40,7 +40,7 @@ export const sendNotification = async (id, phoneNumber, customMessage = null) =>
       : `${id}/${phoneNumber}`;
 
     const linkEdit = cleanMainBase
-      ? `${cleanMainBase}/forms/${id}/${phoneNumber}/atur-foto`
+      ? `${cleanMainBase}/forms/${id}/${phoneNumber}/atur-foto/success/result/edit`
       : `${id}/${phoneNumber}`;
 
     const payloadMessage =
