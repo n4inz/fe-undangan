@@ -312,73 +312,72 @@ const Home = () => {
     const { name, email, image: avatar } = session?.user || {};
 
     try {
-      // Convert HTML quote back to text format before submitting
-      // const formattedFormData = {
-      //   ...formData,
-      //   quote: formData.quote
-      //     .replace(/<br>/g, '\n')
-      //     .replace(/<strong>(.*?)<\/strong>/g, '*$1*')
-      //     .replace(/<em>(.*?)<\/em>/g, '_$1_')
-      //     .replace(/<u>(.*?)<\/u>/g, '__$1__')
-      //     .replace(/<[^>]*>/g, '') // Remove any other HTML tags
-      // };
-      // Validate `formData` using Zod schema
+      // Validate form with zod
       schema.parse(formData);
       setErrors({});
 
+      // 1) Request one-time token from backend
+      let token;
+      try {
+        const tokenRes = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/form/token`, {
+          withCredentials: true, // if you rely on cookies
+        });
+        token = tokenRes.data.token;
+      } catch (err) {
+        console.error("Failed to get form token:", err);
+        setIsLoading(false);
+        alert("Gagal mengambil token, silakan coba lagi.");
+        return;
+      }
+
+      // 2) Build FormData & include token
       const fd = new FormData();
       fd.append("data", JSON.stringify(formData));
-      fd.append("rekeningList", JSON.stringify(rekeningList)); // Add rekeningList to FormData
-      fd.append("session", JSON.stringify({ name, email, avatar })); // Add session data to FormData
+      fd.append("rekeningList", JSON.stringify(rekeningList || []));
+      fd.append("session", JSON.stringify({ name, email, avatar }));
 
-      await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/forms`, fd, {
-        headers: {
-          "Content-Type": "application/json",
-        },
+      // 3) Submit protected form
+      const response = await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/forms`, fd, {
         withCredentials: true,
-      })
-        .then(async (response) => {
-          if (isLocalStorageAccessibleState) {
-            try {
-              window.localStorage.removeItem(FORM_DATA_KEY);
-            } catch (error) {
-              console.warn("Error removing localStorage item:", error);
-            }
-          }
-          await sendNotification(response.data.id, response.data.nomorWa);
-          router.push(`/forms/${response.data.id}/${response.data.nomorWa}/atur-foto`);
-        })
-        .catch((error) => {
-          console.error("Error uploading files:", error);
-          setIsLoading(false);
-        });
+        headers: {
+          Authorization: `Bearer ${token}` // <-- penting
+          // jangan set Content-Type, biarkan axios atur boundary otomatis
+        },
+      });
+
+      // success handling
+      if (isLocalStorageAccessibleState) {
+        try {
+          window.localStorage.removeItem(FORM_DATA_KEY);
+        } catch (err) {
+          console.warn("Error removing localStorage item:", err);
+        }
+      }
+
+      await sendNotification(response.data.id, response.data.nomorWa);
+      router.push(`/forms/${response.data.id}/${response.data.nomorWa}/atur-foto`);
     } catch (error) {
       setIsLoading(false);
+
       if (error instanceof z.ZodError) {
         const fieldErrors = {};
-        let lowestErrorStep = Infinity; // Track the lowest step with an error
-
+        let lowestErrorStep = Infinity;
         error.errors.forEach((err) => {
           fieldErrors[err.path[0]] = err.message;
-          const step = getStepFromFieldName(err.path[0]); // New function
+          const step = getStepFromFieldName(err.path[0]);
           lowestErrorStep = Math.min(lowestErrorStep, step);
         });
-
-        console.log("Validation errors:", fieldErrors);
         setErrors(fieldErrors);
-        setCurrentStep(lowestErrorStep); // Jump to the step with the lowest error
-
-        const firstErrorField = document.querySelector(
-          `[name="${error.errors[0].path[0]}"]`
-        );
-        if (firstErrorField) {
-          firstErrorField.scrollIntoView({ behavior: "smooth", block: "center" });
-        }
+        setCurrentStep(lowestErrorStep);
+        const firstErrorField = document.querySelector(`[name="${error.errors[0].path[0]}"]`);
+        if (firstErrorField) firstErrorField.scrollIntoView({ behavior: "smooth", block: "center" });
       } else {
         console.error("An unexpected error occurred:", error);
+        alert("Terjadi kesalahan, coba lagi.");
       }
     }
   };
+
 
   const handleSelectQuoteTemplate = (template) => {
     setFormData({

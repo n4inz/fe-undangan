@@ -45,10 +45,7 @@ export const sendNotification = async (id, phoneNumber, customMessage = null) =>
 
     const payloadMessage =
       customMessage ??
-      `Terima kasih telah mengisi form undangan digital di sewaundangan. Silakan mengatur foto Anda di link ini:\n
-      Edit Data:\n${linkFoto}
-      \n\n
-      Edit Data:\n${linkEdit}`;
+      `Terima kasih telah mengisi form undangan digital di sewaundangan. Silakan mengatur foto Anda di link ini:\nEdit Foto:\n${linkFoto}\n\nEdit Data:\n${linkEdit}`;
 
     const response = await axios.post(
       apiUrl,
