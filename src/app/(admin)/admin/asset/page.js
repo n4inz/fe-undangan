@@ -45,7 +45,7 @@ const Asset = () => {
 
   const fetchData = useCallback(async (page, limit, searchQuery) => {
     try {
-      const response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/asset`, {
+      const response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/api/asset`, {
         params: { page, limit, search: searchQuery },
         withCredentials: true,
       });
@@ -138,7 +138,7 @@ const Asset = () => {
 
   const handleDelete = () => {
     try {
-      axios.delete(`${process.env.NEXT_PUBLIC_API_URL}/asset/${selectedRow.id}`, {
+      axios.delete(`${process.env.NEXT_PUBLIC_API_URL}/api/asset/${selectedRow.id}`, {
         withCredentials: true,
       })
         .then(response => {

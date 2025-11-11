@@ -1,42 +1,58 @@
-import { URL } from 'url';
+import { URL } from "url";
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   eslint: {
-    ignoreDuringBuilds: true, // Ignores ESLint errors during the build process
+    ignoreDuringBuilds: true,
   },
+
   experimental: {
-    missingSuspenseWithCSRBailout: false, // Keep the experimental flag as defined
+    missingSuspenseWithCSRBailout: false,
   },
 
   async rewrites() {
     return [
       {
-        source: '/',
-        destination: '/',
+        source: "/",
+        destination: "/",
       },
     ];
   },
 
-  // Image optimization configuration with dynamic hostnames
   images: {
-    remotePatterns: process.env.NEXT_PUBLIC_IMAGE_HOSTS
-      ? process.env.NEXT_PUBLIC_IMAGE_HOSTS.split(',').map((host) => {
+    remotePatterns: (() => {
+      const envHosts = process.env.NEXT_PUBLIC_IMAGE_HOSTS;
+      const defaultHosts = [
+        "https://api.sewaundangan.com", // Production API
+        "http://localhost:5000",        // Local API
+      ];
+
+      // Gunakan dari ENV jika ada, kalau tidak fallback ke default
+      const hosts = envHosts
+        ? envHosts.split(",").map((h) => h.trim())
+        : defaultHosts;
+
+      console.log("🖼️ Allowed remote image hosts:");
+      console.table(hosts);
+
+      // Ubah setiap host jadi pattern valid Next.js
+      return hosts
+        .map((host) => {
           try {
             const url = new URL(host);
-            console.log('Configuring remote host:', url.hostname); // For debugging purposes
             return {
-              protocol: url.protocol.replace(':', ''), // Removes colon from protocol (http, https)
-              hostname: url.hostname, // Hostname extracted from the URL
-              port: url.port || '', // Use provided port or leave empty
-              pathname: '/**', // Matches any path, adjust as needed
+              protocol: url.protocol.replace(":", ""),
+              hostname: url.hostname,
+              port: url.port || "",
+              pathname: "/**", // bisa /asset/** kalau mau lebih ketat
             };
-          } catch (error) {
-            console.error(`Invalid host URL: ${host}`, error); // Log any errors for invalid hosts
-            return null; // Return null for invalid hosts
+          } catch (err) {
+            console.error(`❌ Invalid host in NEXT_PUBLIC_IMAGE_HOSTS: ${host}`, err);
+            return null;
           }
-        }).filter(Boolean) // Filters out any invalid hosts (null values)
-      : [],
+        })
+        .filter(Boolean);
+    })(),
   },
 };
 

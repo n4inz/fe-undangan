@@ -30,7 +30,7 @@ const ModalAsset = ({ isOpen, onClose, onSelectImage, selectType = 'single', par
         setIsLoading(true);
         try {
             const response = await axios.get(
-                `${process.env.NEXT_PUBLIC_API_URL}/asset?page=${currentPage}&limit=${limit}`
+                `${process.env.NEXT_PUBLIC_API_URL}/api/asset?page=${currentPage}&limit=${limit}`
             );
             
             const { data, total, page } = response.data;

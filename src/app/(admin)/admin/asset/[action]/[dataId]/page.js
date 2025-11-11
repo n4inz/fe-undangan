@@ -60,14 +60,14 @@ const FormTema = ({ params }) => {
       let response;
       switch (params.action) {
         case 'add':
-          response = await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/add-asset`, data, {
+          response = await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/api/add-asset`, data, {
             withCredentials: true,
             headers: { 'Content-Type': 'multipart/form-data' }
           });
           toast({ title: "Asset Added" });
           break;
         case 'edit':
-          response = await axios.put(`${process.env.NEXT_PUBLIC_API_URL}/asset/${params.dataId}`, data, {
+          response = await axios.put(`${process.env.NEXT_PUBLIC_API_URL}/api/asset/${params.dataId}`, data, {
             withCredentials: true,
             headers: { 'Content-Type': 'multipart/form-data' }
           });
@@ -99,7 +99,7 @@ const FormTema = ({ params }) => {
 
   const fetchData = async () => {
     try {
-      const response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/asset/${params.dataId}`, {
+      const response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/api/asset/${params.dataId}`, {
         withCredentials: true,
       });
       const data = response.data.data;
