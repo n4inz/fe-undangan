@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import DataTable from 'react-data-table-component';
 import { DebounceInput } from 'react-debounce-input';
 import { Button } from '@/components/ui/button';
@@ -33,31 +33,59 @@ const MusicList = ({
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
 
-  useEffect(() => {
-    fetchData(currentPage, perPage, search);
-    return () => {
-      if (audioRef.current) {
-        audioRef.current.pause();
-      }
-    };
-  }, [currentPage, perPage, search]);
+  const [isLoading, setIsLoading] = useState(false);
+  const containerRef = useRef(null);
 
+  // fetchData supports append (infinite scroll) or replace
   const fetchData = useCallback(
-    async (page, limit, searchQuery) => {
+    async (page, limit, searchQuery, append = false) => {
+      if (isLoading) return;
+      setIsLoading(true);
       try {
         const endpoint = role === 'admin' || searchQuery ? 'music' : 'music-list';
         const response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/${endpoint}`, {
           params: { page, limit, search: searchQuery },
           withCredentials: true,
         });
-        setData(response.data.data);
-        setTotalRows(response.data.total);
+        const fetched = response.data.data || [];
+        setTotalRows(response.data.total ?? fetched.length + (append ? data.length : 0));
+        if (append) {
+          setData((prev) => [...prev, ...fetched]);
+        } else {
+          setData(fetched);
+        }
       } catch (error) {
         console.error('Error fetching data:', error);
+      } finally {
+        setIsLoading(false);
       }
     },
-    [role]
+    [role, isLoading, data.length]
   );
+
+  // initial load & when search/perPage changes -> reset and load page 1
+  useEffect(() => {
+    setData([]);
+    setCurrentPage(1);
+    fetchData(1, perPage, search, false);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [search, perPage]);
+
+  // when currentPage changes (and >1) load next page and append
+  useEffect(() => {
+    if (currentPage === 1) return;
+    fetchData(currentPage, perPage, search, true);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentPage]);
+
+  // cleanup audio on unmount
+  useEffect(() => {
+    return () => {
+      if (audioRef?.current) {
+        audioRef.current.pause();
+      }
+    };
+  }, [audioRef]);
 
   const handlePlay = (id, file) => {
     if (currentlyPlaying === id) {
@@ -94,15 +122,27 @@ const MusicList = ({
     setSearch(event.target.value);
   };
 
-  const handlePageChange = (page) => setCurrentPage(page);
-  const handlePerRowsChange = async (newPerPage, page) => {
+  const handlePerRowsChange = async (newPerPage) => {
     setPerPage(newPerPage);
-    fetchData(page, newPerPage);
+    // fetch will run from useEffect for perPage
   };
 
   const handleRadioChange = (value) => {
     setSelectedSongId(value);
     onSongSelected?.(value);
+  };
+
+  // infinite scroll handler
+  const handleScroll = (e) => {
+    const target = e.target;
+    const threshold = 150; // px from bottom to trigger
+    if (
+      target.scrollTop + target.clientHeight >= target.scrollHeight - threshold &&
+      !isLoading &&
+      data.length < totalRows
+    ) {
+      setCurrentPage((prev) => prev + 1);
+    }
   };
 
   const columns = [
@@ -187,17 +227,30 @@ const MusicList = ({
         />
       </div>
 
-      <div className="overflow-x-auto">
+      {/* Scrollable container for infinite scroll */}
+      <div
+        ref={containerRef}
+        onScroll={handleScroll}
+        className="overflow-auto max-h-[60vh] border rounded-md"
+      >
         <DataTable
           columns={columns}
           data={data}
-          pagination
-          paginationServer
-          paginationTotalRows={totalRows}
-          onChangePage={handlePageChange}
-          paginationRowsPerPageOptions={[10]}
+          noHeader
+          // disable built-in pagination, we handle infinite scroll
+          pagination={false}
           className="rdt_TableCol w-full"
+          // allow table rows to wrap nicely inside container
         />
+
+        {/* loader / indikator & akhir list */}
+        <div className="p-4 text-center">
+          {isLoading && <div>Memuat...</div>}
+          {!isLoading && data.length === 0 && <div>Tidak ada data.</div>}
+          {!isLoading && data.length > 0 && data.length >= totalRows && (
+            <div className="text-sm text-gray-500">Sudah memuat semua lagu.</div>
+          )}
+        </div>
       </div>
     </RadioGroup>
   );
