@@ -4,8 +4,10 @@ import { useState, useEffect } from "react";
 import axios from "axios";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Pencil } from "lucide-react";
+import { Lock, Pencil } from "lucide-react";
 import Link from "next/link";
+import ChangePasswordModal from "./ChangePasswordModal";
+
 
 export default function SettingsPage() {
     const [companyInfo, setCompanyInfo] = useState({
@@ -19,6 +21,7 @@ export default function SettingsPage() {
     const [bankAccounts, setBankAccounts] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState(null);
+    const [showPasswordModal, setShowPasswordModal] = useState(false);
 
     useEffect(() => {
         const fetchData = async () => {
@@ -80,17 +83,34 @@ export default function SettingsPage() {
 
                         {/* Separator 1: Company Info */}
                         <Card className="mb-6">
-                            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                                <CardTitle className="text-lg font-medium">
-                                    Informasi Perusahaan
-                                </CardTitle>
-                                <Link href="/admin/setting/edit/company">
-                                    <Button variant="ghost" size="sm">
-                                        <Pencil className="h-4 w-4 mr-2" />
-                                        Edit
-                                    </Button>
-                                </Link>
+                            <CardHeader className="pb-2">
+                                <div className="flex items-start justify-between">
+                                    <CardTitle className="text-lg font-medium">
+                                        Informasi Perusahaan
+                                    </CardTitle>
+
+                                    <div className="flex flex-col items-end gap-2">
+                                        <Link href="/admin/setting/edit/company">
+                                            <Button variant="ghost" size="sm" className="flex items-center gap-1">
+                                                <Pencil className="h-4 w-4" />
+                                                Edit
+                                            </Button>
+                                        </Link>
+
+                                        <Button
+                                            variant="ghost"
+                                            size="sm"
+                                            className="flex items-center gap-1"
+                                            onClick={() => setShowPasswordModal(true)}
+                                        >
+                                            <Lock className="h-4 w-4" />
+                                            Ubah Password
+                                        </Button>
+                                    </div>
+                                </div>
                             </CardHeader>
+
+
                             <CardContent>
                                 {isLoading ? (
                                     <div>Loading company profile...</div>
@@ -165,6 +185,10 @@ export default function SettingsPage() {
                     </div>
                 </div>
             </div>
+<ChangePasswordModal
+    open={showPasswordModal}
+    onOpenChange={setShowPasswordModal}
+/>
         </>
     );
 }

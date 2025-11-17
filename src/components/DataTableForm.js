@@ -321,29 +321,41 @@ const DataTableForm = ({ initialStatus, onDataUpdate }) => {
   //   }
   // };
 
-  const handlePayment = async (row) => {
-    setSelectedRow({
-      id: row.id,
-      isPaid: row.isPaid,
-      paymentAmount: row.paymentAmount,
-    });
-    if (row.isPaid === 0) {
-      setOpen(true)
-      console.log(row)
-    } else {
-      const response = await axios.post(
-        `${process.env.NEXT_PUBLIC_API_URL}/update-payment/${row.id}`,
-        {
-          isPaid: row.isPaid,
-          paymentAmount: 0
-        },
-        {
-          withCredentials: true // This should be inside the config object (third argument)
-        }
-      );
-      handleDataUpdate(response.data.message);
-    }
+const handlePayment = async (row) => {
+  setSelectedRow({
+    id: row.id,
+    isPaid: row.isPaid,
+    paymentAmount: row.paymentAmount,
+  });
+
+  // Jika belum bayar → buka modal
+  if (row.isPaid === 0) {
+    setOpen(true);
+    console.log(row);
+  } else {
+    
+    // Ambil datetime device
+    const paidAt = new Date()
+      .toISOString()
+      .slice(0, 19)
+      .replace("T", " ");
+
+    const response = await axios.post(
+      `${process.env.NEXT_PUBLIC_API_URL}/update-payment/${row.id}`,
+      {
+        isPaid: row.isPaid,
+        paymentAmount: 0,
+        paidAt: paidAt, // ← FORMAT READY
+      },
+      {
+        withCredentials: true
+      }
+    );
+
+    handleDataUpdate(response.data.message);
   }
+};
+
 
   const handleLinkUndangan = async (row) => {
     setSelectedRow({
@@ -351,16 +363,6 @@ const DataTableForm = ({ initialStatus, onDataUpdate }) => {
       linkUndangan: row.linkUndangan,
     });
     setOpenLink(true)
-    // const response = await axios.post(
-    //   `${process.env.NEXT_PUBLIC_API_URL}/update-link/${row.id}`,
-    //   {
-    //     linkUndangan: row.linkUndangan,
-    //   },
-    //   {
-    //     withCredentials: true // This should be inside the config object (third argument)
-    //   }
-    // );
-    // handleDataUpdate(response.data.message);
   }
 
   const handleTambahDemo = async (row) => {
