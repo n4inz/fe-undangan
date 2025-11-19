@@ -112,8 +112,11 @@ const DataPhotoTable = ({ params, setUploading }) => {
             const formData = new FormData();
             formData.append('file', file);
             formData.append('partName', editingRow.partName);
-            formData.append('idImage', editingRow.idImage); // Add idImage
+            formData.append('idImage', editingRow.idImage ?? '');
+            formData.append('imageOrderId', editingRow.id ?? '');   // <<< NEW: image_order id
+            formData.append('order', editingRow.order ?? '');       // <<< NEW: optional
             formData.append('phoneNumber', params.phoneNumber);
+
 
             const response = await axios.put( // Change to PUT to match updatePhoto endpoint
                 `${process.env.NEXT_PUBLIC_API_URL}/update-photo/${params.formId}/${editingRow.partName}`,
@@ -198,13 +201,17 @@ const DataPhotoTable = ({ params, setUploading }) => {
     // ... (other imports and code remain the same)
 
     const handleFileUploadNew = async (e, row) => {
-        setUploading(true); // Use the setUploading from props
+        setUploading(true);
         const file = e.target.files[0];
         if (!file) return;
 
         const formData = new FormData();
         formData.append('file', file);
-        formData.append('idImage', row.idImage);
+        formData.append('idImage', row.idImage ?? '');
+        // <<< NEW: beri tahu backend baris image_order yang harus diupdate
+        formData.append('imageOrderId', row.id);         // id = image_order.id
+        formData.append('order', row.order ?? '');       // optional tapi berguna
+        formData.append('phoneNumber', params.phoneNumber);
 
         try {
             await axios.put(
@@ -217,10 +224,11 @@ const DataPhotoTable = ({ params, setUploading }) => {
             console.error('Upload error:', error);
             alert('Gagal mengupload gambar: ' + error.message);
         } finally {
-            setUploading(false); // Use the setUploading from props
+            setUploading(false);
             e.target.value = '';
         }
     };
+
 
     useEffect(() => {
         fetchData();
