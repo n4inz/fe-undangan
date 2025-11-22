@@ -157,9 +157,9 @@ const StepI = ({ number, nextStep, formData, setFormData, onFormChange, partName
         const imagesData = responseData.data;
 
         // Moved skip condition inside fetch
-        if (responseData?.form?.ceritaAwal == null) {
+        if (responseData?.form?.ceritaLamaran == null) {
           nextStep();
-          console.log("Skipping step because ceritaAwal is null");
+          console.log("Skipping step because ceritaLamaran is null");
           return;
         }
 

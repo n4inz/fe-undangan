@@ -62,27 +62,6 @@ const Home = () => {
 
   const searchParams = useSearchParams();
   const qs = searchParams?.toString().replace(/=/g, '') ?? '';
-  // const qsWithPrefix = qs ? `?${qs}` : '';
-
-  //   // when session is loaded, redirect if needed
-  //   useEffect(() => {
-  // if (status === 'authenticated') {
-  //       // kirim data user ke backend
-  //       const { name, email, image: avatar } = session.user;
-  //       axios.post(`${process.env.NEXT_PUBLIC_API_URL}/login-customer`, { name, email, avatar })
-  //         .then(res => {
-  //           console.log('User disimpan:', res.data);
-  //         })
-  //         .catch(err => {
-  //           console.error('Gagal simpan user:', err);
-  //         });
-  //     }
-  //     else{
-  //       // jika user tidak ada session, redirect ke login
-  //       router.push('/');
-  //     }
-  //     // Remove the console.log(session.user) line as it can cause errors
-  //   }, [status, session, router]);
 
   const [currentStep, setCurrentStep] = useState(1); // Track the current step
   const [mounted, setMounted] = useState(false); // Track if component is mounted
