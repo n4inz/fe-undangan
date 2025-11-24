@@ -155,10 +155,7 @@ const Edit = ({ params }) => {
     };
 
     const handleSelectMusicChange = (value) => {
-        setFormData(prev => ({
-            ...prev,
-            idMusic: value ? Number(value) : null, // Ensure proper number conversion
-        }));
+        setFormData((s) => ({ ...s, idMusic: value }));
     };
     // const handleRekeningChange = (e, index) => {
     //     const { name, value } = e.target;
@@ -1008,12 +1005,19 @@ const Edit = ({ params }) => {
                     </div> */}
                     <div className="mb-4 w-full max-w-full">
                         <label className="block text-gray-700">Pilih Musik</label>
-                        <MusicCombobox
+                        {/* <MusicCombobox
                             value={formData.idMusic || ''}
                             onValueChange={(value) => handleSelectMusicChange(value)}
                             list={musicList}
                             isLoading={isLoading}
+                        /> */}
+                        <MusicCombobox
+                            value={formData.idMusic || ""}
+                            onValueChange={(v) => handleSelectMusicChange(v)}
+                            apiUrl={process.env.NEXT_PUBLIC_API_URL}
+                            limit={10}
                         />
+
                     </div>
 
                     <div className="mb-4">
