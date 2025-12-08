@@ -25,7 +25,7 @@ export const sendNotification = async (id, phoneNumber, customMessage = null) =>
     const waBase = (process.env.NEXT_PUBLIC_WA_BOT_URL || "").replace(/\/$/, "");
     if (!waBase) throw new Error("Missing NEXT_PUBLIC_WA_BOT_URL environment variable");
 
-    const apiUrl = `${waBase}/api/send-notif/${encodedNumber}`;
+    const apiUrl = `${waBase}/api/send-notif/${id}/${encodedNumber}`;
 
     // Build link to app: prefer NEXT_PUBLIC_MAIN_URL, fallback to window.location.origin if available
     const mainBase =

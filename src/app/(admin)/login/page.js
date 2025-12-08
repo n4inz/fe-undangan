@@ -1,15 +1,15 @@
-"use client"
-import React, { useEffect, useState } from 'react'
-import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { loginSchema } from '@/lib/validation'
-import { useRouter } from 'next/navigation'
-import { z } from 'zod'
-import axios from 'axios'
-import { ClipLoader } from 'react-spinners'
-import Cookies from 'js-cookie'
+"use client";
+import React, { useEffect, useRef, useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { loginSchema } from "@/lib/validation";
+import { useRouter } from "next/navigation";
+import { z } from "zod";
+import axios from "axios";
+import { ClipLoader } from "react-spinners";
+import Cookies from "js-cookie";
 
 const Login = () => {
   const [formData, setFormData] = useState({ email: "", password: "" });
@@ -18,143 +18,244 @@ const Login = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [errors, setErrors] = useState({});
   const [status, setStatus] = useState(false);
+  const widgetIdRef = useRef(null);
 
-  // Load Turnstile script and register callbacks
-  useEffect(() => {
-    // add global callback functions that Turnstile can call
-    window.onTurnstileSuccess = (token) => {
-      setTurnstileToken(token);
-    };
-    window.onTurnstileExpired = () => {
+  // tsState: "loading" = show "Preparing verification…"
+  // "ready" = widget rendered (hide placeholder)
+  // "error" = hide placeholder and show error text
+  const [tsState, setTsState] = useState("loading");
+
+  // reset widget: clear token + show loading while widget resets,
+  // then mark ready after small delay (widget UI settles)
+  const resetTurnstile = () => {
+    try {
+      if (window.turnstile && widgetIdRef.current !== null) {
+        window.turnstile.reset(widgetIdRef.current);
+      }
+    } catch (err) {
+      console.warn("turnstile reset failed", err);
+    } finally {
       setTurnstileToken("");
-    };
+      setTsState("loading");
+      // small delay to allow visual widget to re-appear before hiding placeholder
+      setTimeout(() => setTsState("ready"), 300);
+    }
+  };
 
-    // inject script if not already present
-    if (!document.querySelector('script[src="https://challenges.cloudflare.com/turnstile/v0/api.js"]')) {
-      const s = document.createElement('script');
-      s.src = "https://challenges.cloudflare.com/turnstile/v0/api.js";
+  // Render widget safely after script loads
+  const safeRenderTurnstile = () => {
+    if (!window.turnstile) return;
+    if (widgetIdRef.current) return;
+
+    try {
+      widgetIdRef.current = window.turnstile.render("#cf-turnstile", {
+        sitekey: process.env.NEXT_PUBLIC_TURNSTILE_SITEKEY,
+        callback: (token) => {
+          setTurnstileToken(token);
+        },
+        "expired-callback": () => setTurnstileToken(""),
+      });
+
+      // widget rendered successfully — hide the "preparing" placeholder
+      setTsState("ready");
+    } catch (err) {
+      console.error("turnstile render failed", err);
+      // keep placeholder hidden and show error so user sees message
+      setTsState("error");
+      setErrors(prev => ({ ...prev, turnstile: "Verification is unavailable." }));
+    }
+  };
+
+  // load script + ensure render always happens
+  useEffect(() => {
+    const scriptSelector =
+      'script[src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit"]';
+    const existingScript = document.querySelector(scriptSelector);
+
+    if (!existingScript) {
+      const s = document.createElement("script");
+      s.src = "https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit";
       s.async = true;
       s.defer = true;
+      s.onload = () => {
+        const interval = setInterval(() => {
+          if (window.turnstile) {
+            safeRenderTurnstile();
+            clearInterval(interval);
+          }
+        }, 50);
+      };
+      s.onerror = () => {
+        // if script can't load, mark error so "preparing" doesn't hang
+        setTsState("error");
+        setErrors(prev => ({ ...prev, turnstile: "Verification failed to load." }));
+      };
       document.head.appendChild(s);
+    } else {
+      // script already exists — wait for turnstile API
+      const interval = setInterval(() => {
+        if (window.turnstile) {
+          safeRenderTurnstile();
+          clearInterval(interval);
+        }
+      }, 50);
     }
 
     return () => {
-      // cleanup (avoid leaking globals across navigations in dev)
       try {
-        delete window.onTurnstileSuccess;
-        delete window.onTurnstileExpired;
-      } catch (e) {}
+        if (window.turnstile && widgetIdRef.current) {
+          if (typeof window.turnstile.remove === "function") {
+            window.turnstile.remove(widgetIdRef.current);
+          }
+        }
+      } catch (err) {}
+      widgetIdRef.current = null;
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData({ ...formData, [name]: value });
-  }
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsLoading(true);
 
+    if (!turnstileToken) {
+      // no token -> reset and show validation message, hide preparing placeholder
+      resetTurnstile();
+      setErrors({ turnstile: "Please complete the verification" });
+      setTsState("error");
+      setIsLoading(false);
+      return;
+    }
+
     try {
       loginSchema.parse(formData);
       setErrors({});
 
-      if (!turnstileToken) {
-        setErrors({ turnstile: "Please complete the verification" });
-        setIsLoading(false);
-        return;
-      }
-
-      const response = await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/login`, {
-        email: formData.email,
-        password: formData.password,
-        turnstileToken // kirim token ke server untuk divalidasi
-      }, { withCredentials: true });
+      const response = await axios.post(
+        `${process.env.NEXT_PUBLIC_API_URL}/login`,
+        {
+          email: formData.email,
+          password: formData.password,
+          turnstileToken,
+        },
+        { withCredentials: true }
+      );
 
       if (response.status === 200) {
-        Cookies.set('client_token', response.data.token, { expires: 7 });
-        if(response.data.isAdmin == 1){
-          router.push(`/admin/dashboard`);
-        }else{
-          router.push(`/admin/list`);
+        Cookies.set("client_token", response.data.token, { expires: 7 });
+
+        if (response.data.isAdmin == 1) {
+          router.push("/admin/dashboard");
+        } else {
+          router.push("/admin/list");
         }
-      } else {
-        setStatus(true);
       }
     } catch (error) {
       if (error instanceof z.ZodError) {
         const fieldErrors = {};
-        error.errors.forEach(err => {
+        error.errors.forEach((err) => {
           fieldErrors[err.path[0]] = err.message;
         });
         setErrors(fieldErrors);
-        setStatus(false)
-      } else if (axios.isAxiosError && error.response) {
-        // jika server mengembalikan error (mis. turnstile gagal)
-        setStatus(true)
+        setTsState("error");
+      } else if (axios.isAxiosError(error) && error.response) {
+        const statusCode = error.response.status;
+
+        if (statusCode === 401) {
+          setStatus(true);
+          // wrong credentials — reset widget visually, but hide "preparing"
+          resetTurnstile();
+          setTsState("error");
+        } else if (statusCode === 403) {
+          setErrors({ turnstile: "Verification failed — try again" });
+          // verification failure — reset widget visually, but hide preparing text
+          resetTurnstile();
+          setTsState("error");
+        } else {
+          setErrors({ turnstile: "Server error — please try again later." });
+          setTsState("error");
+        }
       } else {
-        console.error('An unexpected error occurred:', error);
-        setStatus(true)
+        console.error("Unexpected error:", error);
+        setErrors({ turnstile: "Unexpected error occurred." });
+        setTsState("error");
       }
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
   return (
-    <div className="flex items-center justify-center min-h-screen">
-      <Card className="mx-auto max-w-sm">
-        <CardHeader className="space-y-1">
+    <div className="flex items-center justify-center min-h-screen px-4">
+      <Card className="mx-auto max-w-sm w-full">
+        <CardHeader className="space-y-1 py-4">
           <CardTitle className="text-2xl font-bold">Login</CardTitle>
-          <CardDescription>Enter your email and password to login to your account</CardDescription>
+          <CardDescription className="text-sm">Enter your email and password</CardDescription>
         </CardHeader>
-        <CardContent>
-          <form onSubmit={handleSubmit} encType='multipart/form-data'>
-            <div className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="email">Email</Label>
-                <Input name="email" id="email" type="email" placeholder="m@example.com" onChange={handleChange} />
-                {errors.email && <p className="text-red-500 text-sm mt-1">{errors.email}</p>}
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="password">Password</Label>
-                <Input name="password" id="password" type="password" onChange={handleChange} />
-                {errors.password && <p className="text-red-500 text-sm mt-1">{errors.password}</p>}
-                {status && <p className="text-red-500 text-sm mt-1">Wrong email or password</p>}
+
+        <CardContent className="py-3">
+          <form onSubmit={handleSubmit}>
+            <div className="space-y-3">
+              <div className="space-y-1">
+                <Label className="text-sm">Email</Label>
+                <Input name="email" type="email" onChange={handleChange} />
+                {errors.email && <p className="text-red-500 text-xs mt-1">{errors.email}</p>}
               </div>
 
-              {/* Turnstile widget */}
-              <div className="my-2">
-                {/* Cloudflare will create a hidden input named "cf-turnstile-response" when widget succeeds.
-                    We also set data-callback to call window.onTurnstileSuccess(token) */
-                }
+              <div className="space-y-1">
+                <Label className="text-sm">Password</Label>
+                <Input name="password" type="password" onChange={handleChange} />
+                {errors.password && (
+                  <p className="text-red-500 text-xs mt-1">{errors.password}</p>
+                )}
+                {status && <p className="text-red-500 text-xs mt-1">Wrong email or password</p>}
+              </div>
+
+              {/* Turnstile placeholder: only show "Preparing..." while tsState === "loading" */}
+              <div className="my-1">
                 <div
                   id="cf-turnstile"
-                  className="cf-turnstile"
-                  data-sitekey={process.env.NEXT_PUBLIC_TURNSTILE_SITEKEY}
-                  data-callback="onTurnstileSuccess"
-                  data-expired-callback="onTurnstileExpired"
-                />
-                {errors.turnstile && <p className="text-red-500 text-sm mt-1">{errors.turnstile}</p>}
+                  className="h-[150px] md:h-[140px] w-full flex items-center justify-center overflow-hidden bg-transparent rounded"
+                  aria-hidden={tsState !== "ready"}
+                >
+                  {tsState === "loading" && (
+                    <div className="animate-pulse text-gray-400 text-xs">
+                      Preparing verification…
+                    </div>
+                  )}
+
+                  {/* show specific verification error message if any and state is "error" */}
+                  {tsState === "error" && errors.turnstile && (
+                    <div className="text-xs text-yellow-600 text-center px-2">
+                      {errors.turnstile}
+                    </div>
+                  )}
+                </div>
               </div>
 
-              <Button type="submit" className="w-full px-4 py-2 rounded-lg" disabled={isLoading}>
-                {isLoading ? (
-                  <>
-                    <ClipLoader size={20} color="#fff" className="inline-block mr-2" /> {/* Spinner */}
-                    Login
-                  </>
-                ) : (
-                  'Login'
-                )}
-              </Button>
+              <div>
+                <Button type="submit" className="w-full py-2" disabled={isLoading}>
+                  {isLoading ? (
+                    <>
+                      <ClipLoader size={16} color="#fff" className="mr-2" />
+                      Login
+                    </>
+                  ) : (
+                    "Login"
+                  )}
+                </Button>
+              </div>
             </div>
           </form>
         </CardContent>
       </Card>
     </div>
-  )
-}
+  );
+};
 
-export default Login
+export default Login;
