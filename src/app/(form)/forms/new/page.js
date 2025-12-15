@@ -1,6 +1,6 @@
 "use client"
 import { useEffect, useRef, useState } from 'react';
-import Image from 'next/image';
+// import Image from 'next/image';
 import { z } from 'zod';
 // import LoadingSpinner from '../components/LoadingSpinner'; // Adjust the path as needed
 import { Input } from '@/components/ui/input';
@@ -41,6 +41,7 @@ import { getCompanyProfile } from '@/lib/company';
 import { getQuotes } from '@/lib/quote';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"; // shadcnui dialog
 import { sendNotification } from '@/utils/helpers';
+import { Separator } from '@/components/ui/separator';
 // import QuoteEditor from '@/components/QuoteEditor.client';
 
 const FORM_DATA_KEY = "formData";
@@ -88,6 +89,8 @@ const Home = () => {
   const [quotes, setQuotes] = useState([]); // State to hold quotes
   const [quoteHtml, setQuoteHtml] = useState(""); // State to hold the selected quote in HTML format
   const [lockThema, setLockThema] = useState(false);
+
+  const dateFromUrl = searchParams?.get("date");
 
   const { data: session, status } = useSession();
 
@@ -224,6 +227,29 @@ const Home = () => {
       lockThema();
     }
   }, [qs, setLockThema, setMaxStep, setFormData]);
+
+  useEffect(() => {
+    if (!mounted) return;
+    if (!dateFromUrl) return;
+
+    // validasi format tanggal
+    const parsed = dayjs(dateFromUrl, "YYYY-MM-DD", true);
+    if (!parsed.isValid()) return;
+
+    setFormData((prev) => {
+      // jangan override jika sudah ada isi
+      if (prev.datetimeAkad || prev.datetimeResepsi) {
+        return prev;
+      }
+
+      return {
+        ...prev,
+        datetimeAkad: parsed.format("YYYY-MM-DD"),
+        datetimeResepsi: parsed.format("YYYY-MM-DD"),
+      };
+    });
+  }, [mounted, dateFromUrl]);
+
 
   const handleChange = (e, index = null) => {
     const { name, value } = e.target;
@@ -837,7 +863,6 @@ const Home = () => {
               <div className="mb-4">
                 <label className="block text-gray-700">
                   Tanggal Acara (Akad / Pemberkatan )
-                  <span className='text-red-500'>*</span>
                 </label>
                 {/* <input
                   type="date"
@@ -863,20 +888,6 @@ const Home = () => {
               </div>
               <div className="mb-4">
                 <label className="block text-gray-700">
-                  Judul Acara 2
-                  <br></br>
-                  Ex: Resepsi / Mapparola dan lain-lain
-                </label>
-                <input
-                  type="text"
-                  name="judulAcara2"
-                  value={formData.judulAcara2}
-                  onChange={handleChange}
-                  className="mt-1 p-2 w-full border border-gray-300 rounded-lg"
-                />
-              </div>
-              <div className="mb-4">
-                <label className="block text-gray-700">
                   Jam Acara (Akad / Pemberkatan )
                   <span className='text-red-500'>*</span>
                   <br></br>
@@ -890,6 +901,69 @@ const Home = () => {
                   className="mt-1 p-2 w-full border border-gray-300 rounded-lg"
                 />
                 {errors.timeAkad && <p className="text-red-500 text-sm mt-1">{errors.timeAkad}</p>}
+              </div>
+              <div className="mb-4">
+                <label className="block text-gray-700">
+                  Alamat Acara Akad/Pemberkatan (Alamat)
+                  <br></br>
+                  Ex: Jl Jambu  Selatan No 123
+                </label>
+                <Input
+                  type="text"
+                  name="alamatAkad"
+                  value={formData.alamatAkad}
+                  onChange={handleChange}
+                  className="mt-1 p-2 w-full border border-gray-300 rounded-lg"
+                />
+                {errors.alamatAkad && <p className="text-red-500 text-sm mt-1">{errors.alamatAkad}</p>}
+              </div>
+
+              <div className="mb-4">
+                <label className="block text-gray-700">
+                  Tempat Acara Akad/Pemberkatan
+                  <span className='text-red-500'>*</span>
+                </label>
+                <RadioGroup value={formData.opsiAkad} name="opsiAkad" onValueChange={(value) => handleChange({ target: { name: 'opsiAkad', value } })}>
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="Wanita" id="WanitaAkad" />
+                    <Label htmlFor="WanitaAkad">Rumah Mempelai Wanita</Label>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="Pria" id="PriaAkad" />
+                    <Label htmlFor="PriaAkad">Rumah Mempelai Pria</Label>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="Lainnya" id="LainnyaAkad" />
+                    <Label htmlFor="LainnyaAkad">Lainnya</Label>
+                    <Input
+                      type="text"
+                      name="LainnyaInputAkad"
+                      value={formData.LainnyaInputAkad || ''}
+                      onChange={handleChange}
+                      className="w-full h-6 border border-gray-300 rounded-lg smaller-input"
+                      disabled={formData.opsiAkad !== "Lainnya"}
+                    />
+                  </div>
+                </RadioGroup>
+
+                {/* {errors.alamatResepsi && <p className="text-red-500 text-sm mt-1">{errors.alamatResepsi}</p>} */}
+              </div>
+
+              <Separator className="mb-4" />
+
+              <div className="mb-4">
+                <label className="block text-gray-700">
+                  Judul Acara 2
+                  <br></br>
+                  Ex: Resepsi / Mapparola dan lain-lain
+                </label>
+                <input
+                  type="text"
+                  name="judulAcara2"
+                  value={formData.judulAcara2}
+                  onChange={handleChange}
+                  className="mt-1 p-2 w-full border border-gray-300 rounded-lg"
+                />
               </div>
               <div className="mb-4">
                 <label className="block text-gray-700">
@@ -936,21 +1010,6 @@ const Home = () => {
               </div>
               <div className="mb-4">
                 <label className="block text-gray-700">
-                  Alamat Acara Akad/Pemberkatan (Alamat)<span className='text-red-500'>*</span>
-                  <br></br>
-                  Ex: Jl Jambu  Selatan No 123
-                </label>
-                <Input
-                  type="text"
-                  name="alamatAkad"
-                  value={formData.alamatAkad}
-                  onChange={handleChange}
-                  className="mt-1 p-2 w-full border border-gray-300 rounded-lg"
-                />
-                {errors.alamatAkad && <p className="text-red-500 text-sm mt-1">{errors.alamatAkad}</p>}
-              </div>
-              <div className="mb-4">
-                <label className="block text-gray-700">
                   Alamat Acara Resepsi (Alamat)<span className='text-red-500'>*</span>
                   <br></br>
                   Ex: Jl Jambu  Selatan No 123
@@ -963,36 +1022,6 @@ const Home = () => {
                   className="mt-1 p-2 w-full border border-gray-300 rounded-lg"
                 />
                 {errors.alamatResepsi && <p className="text-red-500 text-sm mt-1">{errors.alamatResepsi}</p>}
-              </div>
-              <div className="mb-4">
-                <label className="block text-gray-700">
-                  Tempat Acara Akad/Pemberkatan
-                  <span className='text-red-500'>*</span>
-                </label>
-                <RadioGroup value={formData.opsiAkad} name="opsiAkad" onValueChange={(value) => handleChange({ target: { name: 'opsiAkad', value } })}>
-                  <div className="flex items-center space-x-2">
-                    <RadioGroupItem value="Wanita" id="WanitaAkad" />
-                    <Label htmlFor="WanitaAkad">Rumah Mempelai Wanita</Label>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <RadioGroupItem value="Pria" id="PriaAkad" />
-                    <Label htmlFor="PriaAkad">Rumah Mempelai Pria</Label>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <RadioGroupItem value="Lainnya" id="LainnyaAkad" />
-                    <Label htmlFor="LainnyaAkad">Lainnya</Label>
-                    <Input
-                      type="text"
-                      name="LainnyaInputAkad"
-                      value={formData.LainnyaInputAkad || ''}
-                      onChange={handleChange}
-                      className="w-full h-6 border border-gray-300 rounded-lg smaller-input"
-                      disabled={formData.opsiAkad !== "Lainnya"}
-                    />
-                  </div>
-                </RadioGroup>
-
-                {/* {errors.alamatResepsi && <p className="text-red-500 text-sm mt-1">{errors.alamatResepsi}</p>} */}
               </div>
 
               <div className="mb-4">

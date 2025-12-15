@@ -116,208 +116,219 @@ const StepF = (props) => {
     return { newWidth, newHeight, scale: newWidth / originalWidth };
   };
 
-  const compressImageWithAspectRatio = (file) => {
-    return new Promise((resolve, reject) => {
-      const img = new window.Image();
-      img.onload = () => {
-        const canvas = document.createElement('canvas');
-        const ctx = canvas.getContext('2d');
+// util: helper to await canvas.toBlob
+const canvasToBlob = (canvas, type = 'image/jpeg', quality = 0.8) => {
+  return new Promise((resolve) => {
+    canvas.toBlob((blob) => resolve(blob), type, quality);
+  });
+};
 
-        const originalSizeMB = file.size / (1024 * 1024);
-        const targetMinKB = 500;
-        const targetMaxKB = 1000;
+// Improved compress using createImageBitmap (falls back to Image if not available)
+const compressImageWithAspectRatio = async (file) => {
+  // try to decode using createImageBitmap (more robust)
+  let bitmap;
+  try {
+    if (window.createImageBitmap) {
+      // createImageBitmap supports passing a Blob/File directly
+      bitmap = await createImageBitmap(file);
+    }
+  } catch (err) {
+    console.warn('createImageBitmap failed, falling back to Image():', err);
+  }
 
-        let maxDimension, initialQuality;
-
-        if (originalSizeMB > 20) {
-          maxDimension = 1600;
-          initialQuality = 0.6;
-        } else if (originalSizeMB > 10) {
-          maxDimension = 1800;
-          initialQuality = 0.7;
-        } else if (originalSizeMB > 5) {
-          maxDimension = 2000;
-          initialQuality = 0.75;
-        } else {
-          maxDimension = 2200;
-          initialQuality = 0.8;
-        }
-
-        const { newWidth, newHeight } = calculateDimensions(
-          img.width,
-          img.height,
-          maxDimension,
-          maxDimension
-        );
-
-        canvas.width = newWidth;
-        canvas.height = newHeight;
-
-        ctx.fillStyle = '#FFFFFF';
-        ctx.fillRect(0, 0, newWidth, newHeight);
-
-        ctx.imageSmoothingEnabled = true;
-        ctx.imageSmoothingQuality = 'high';
-
-        ctx.drawImage(img, 0, 0, newWidth, newHeight);
-
-        let attempt = 0;
-        const maxAttempts = 8;
-
-        const tryCompress = (quality) => {
-          canvas.toBlob(
-            (blob) => {
-              if (!blob) {
-                reject(new Error('Failed to create blob'));
-                return;
-              }
-
-              const fileSizeKB = blob.size / 1024;
-              attempt++;
-
-              console.log(`🔄 Attempt ${attempt}: Quality ${quality.toFixed(2)}, Size: ${fileSizeKB.toFixed(0)}KB`);
-
-              if ((fileSizeKB >= targetMinKB && fileSizeKB <= targetMaxKB) || attempt >= maxAttempts) {
-                const originalName = file.name.split('.')[0];
-                const compressedFile = new File([blob], `${originalName}.jpg`, {
-                  type: 'image/jpeg',
-                  lastModified: Date.now(),
-                });
-
-                console.log(`✅ Compression complete: ${img.width}x${img.height} → ${newWidth}x${newHeight}, ${fileSizeKB.toFixed(0)}KB`);
-                resolve(compressedFile);
-                return;
-              }
-
-              let newQuality;
-              if (fileSizeKB > targetMaxKB) {
-                const overshoot = (fileSizeKB - targetMaxKB) / targetMaxKB;
-                newQuality = quality - (0.1 + overshoot * 0.1);
-              } else if (fileSizeKB < targetMinKB) {
-                const undershoot = (targetMinKB - fileSizeKB) / targetMinKB;
-                newQuality = Math.min(0.95, quality + undershoot * 0.1);
-              }
-
-              newQuality = Math.max(0.2, Math.min(0.95, newQuality));
-              setTimeout(() => tryCompress(newQuality), 100);
-            },
-            'image/jpeg',
-            quality
-          );
-        };
-
-        tryCompress(initialQuality);
-      };
-
-      img.onerror = () => reject(new Error('Failed to load image'));
+  // if bitmap is available use it; otherwise use Image + FileReader as fallback
+  if (!bitmap) {
+    // previous approach but wrapped in Promise and using image.decode()
+    await new Promise((resolve, reject) => {
       const reader = new FileReader();
-      reader.onload = (e) => {
+      reader.onerror = () => reject(new Error('FileReader failed'));
+      reader.onload = async (e) => {
+        const img = new window.Image();
+        img.onload = () => resolve(img);
+        img.onerror = () => reject(new Error('Failed to load image (Image fallback)'));
         img.src = e.target.result;
       };
-      reader.onerror = () => reject(new Error('Failed to read file'));
       reader.readAsDataURL(file);
+    }).then((imgOrNothing) => {
+      // if we fallbacked to Image, createImageBitmap could be used from the image:
+      // but simpler: create an offscreen canvas from that image below (we'll handle in common code)
+      bitmap = imgOrNothing; // might be HTMLImageElement or undefined if using createImageBitmap earlier
+    }).catch((err) => {
+      throw err;
     });
-  };
+  }
 
-  const simpleFallback = (file) => {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onload = (event) => {
-        const img = new window.Image();
-        img.onload = () => {
-          const canvas = document.createElement('canvas');
-          const ctx = canvas.getContext('2d');
+  // compute dimensions regardless whether bitmap is ImageBitmap or HTMLImageElement
+  const width = bitmap.width || bitmap.naturalWidth;
+  const height = bitmap.height || bitmap.naturalHeight;
 
-          const { newWidth, newHeight } = calculateDimensions(img.width, img.height, 1800, 1800);
+  const originalSizeMB = file.size / (1024 * 1024);
+  let maxDimension = 2200;
+  let initialQuality = 0.8;
+  if (originalSizeMB > 20) {
+    maxDimension = 1600; initialQuality = 0.6;
+  } else if (originalSizeMB > 10) {
+    maxDimension = 1800; initialQuality = 0.7;
+  } else if (originalSizeMB > 5) {
+    maxDimension = 2000; initialQuality = 0.75;
+  }
 
-          canvas.width = newWidth;
-          canvas.height = newHeight;
+  const { newWidth, newHeight } = calculateDimensions(width, height, maxDimension, maxDimension);
 
-          ctx.fillStyle = '#FFFFFF';
-          ctx.fillRect(0, 0, newWidth, newHeight);
+  // draw on canvas
+  const canvas = document.createElement('canvas');
+  canvas.width = newWidth;
+  canvas.height = newHeight;
+  const ctx = canvas.getContext('2d');
+  ctx.fillStyle = '#FFFFFF';
+  ctx.fillRect(0, 0, newWidth, newHeight);
+  ctx.imageSmoothingEnabled = true;
+  ctx.imageSmoothingQuality = 'high';
 
-          ctx.imageSmoothingEnabled = true;
-          ctx.imageSmoothingQuality = 'high';
+  // if bitmap is an ImageBitmap use drawImage(bitmap), else if it's an Image element use drawImage(img, ...)
+  try {
+    ctx.drawImage(bitmap, 0, 0, newWidth, newHeight);
+  } catch (err) {
+    // drawing failed; rethrow to be handled by caller
+    throw new Error('Failed to draw image to canvas: ' + (err.message || err));
+  } finally {
+    // if bitmap is ImageBitmap, close to free memory
+    if (bitmap && bitmap.close) {
+      try { bitmap.close(); } catch (e) { /* ignore */ }
+    }
+  }
 
-          ctx.drawImage(img, 0, 0, newWidth, newHeight);
+  // iterative compression loop (awaiting canvasToBlob)
+  let attempt = 0;
+  const maxAttempts = 8;
+  const targetMinKB = 500;
+  const targetMaxKB = 1000;
+  let quality = initialQuality;
 
-          canvas.toBlob(
-            (blob) => {
-              if (blob) {
-                const originalName = file.name.split('.')[0];
-                const result = new File([blob], `${originalName}.jpg`, {
-                  type: 'image/jpeg',
-                  lastModified: Date.now(),
-                });
+  while (attempt < maxAttempts) {
+    attempt++;
+    const blob = await canvasToBlob(canvas, 'image/jpeg', quality);
+    if (!blob) throw new Error('canvas.toBlob returned null');
 
-                resolve(result);
-              } else {
-                reject(new Error('Fallback failed'));
-              }
-            },
-            'image/jpeg',
-            0.75
-          );
-        };
+    const fileSizeKB = blob.size / 1024;
+    console.log(`🔄 [${file.name}] attempt ${attempt} quality=${quality.toFixed(2)} size=${fileSizeKB.toFixed(0)}KB`);
 
-        img.onerror = () => reject(new Error('Image load failed'));
-        img.src = event.target.result;
-      };
-
-      reader.onerror = () => reject(new Error('FileReader failed'));
-      reader.readAsDataURL(file);
-    });
-  };
-
-  const processFiles = async (files) => {
-    const results = [];
-    console.log(`🎯 Starting compression for ${files.length} files...`);
-
-    for (let i = 0; i < files.length; i++) {
-      const file = files[i];
-      const originalSizeMB = (file.size / (1024 * 1024)).toFixed(2);
-
-      console.log(`📁 Processing file ${i + 1}/${files.length}: ${file.name} (${originalSizeMB}MB)`);
-
-      try {
-        let compressedFile;
-        try {
-          compressedFile = await compressImageWithAspectRatio(file);
-        } catch (error) {
-          console.log('🔄 Main method failed, using fallback...');
-          compressedFile = await simpleFallback(file);
-        }
-        results.push(compressedFile);
-      } catch (error) {
-        console.error(`❌ Failed to compress ${file.name}:`, error);
-
-        // Create placeholder
-        const canvas = document.createElement('canvas');
-        canvas.width = 800;
-        canvas.height = 450;
-        const ctx = canvas.getContext('2d');
-
-        ctx.fillStyle = '#f8f9fa';
-        ctx.fillRect(0, 0, 800, 450);
-        ctx.fillStyle = '#6c757d';
-        ctx.font = '24px Arial';
-        ctx.textAlign = 'center';
-        ctx.fillText('Image Error', 400, 225);
-
-        canvas.toBlob((blob) => {
-          if (blob) {
-            const fallback = new File([blob], `${file.name.split('.')[0]}.jpg`, {
-              type: 'image/jpeg',
-              lastModified: Date.now(),
-            });
-            results.push(fallback);
-          }
-        }, 'image/jpeg', 0.8);
-      }
+    if ((fileSizeKB >= targetMinKB && fileSizeKB <= targetMaxKB) || attempt >= maxAttempts) {
+      const originalName = file.name.split('.')[0];
+      return new File([blob], `${originalName}.jpg`, { type: 'image/jpeg', lastModified: Date.now() });
     }
 
-    return results;
-  };
+    // adjust quality
+    if (fileSizeKB > targetMaxKB) {
+      const overshoot = (fileSizeKB - targetMaxKB) / targetMaxKB;
+      quality = quality - (0.1 + overshoot * 0.1);
+    } else {
+      const undershoot = (targetMinKB - fileSizeKB) / targetMinKB;
+      quality = Math.min(0.95, quality + undershoot * 0.1);
+    }
+    // clamp
+    quality = Math.max(0.2, Math.min(0.95, quality));
+  }
+
+  // fallback: return last produced blob (shouldn't reach because loop returns)
+  const finalBlob = await canvasToBlob(canvas, 'image/jpeg', quality);
+  const originalName = file.name.split('.')[0];
+  return new File([finalBlob], `${originalName}.jpg`, { type: 'image/jpeg', lastModified: Date.now() });
+};
+
+// Improved simpleFallback using await canvasToBlob and createImageBitmap fallback
+const simpleFallback = async (file) => {
+  // use createImageBitmap if available for decode
+  let bitmap;
+  try {
+    if (window.createImageBitmap) {
+      bitmap = await createImageBitmap(file);
+    }
+  } catch (err) {
+    // fallback to img FileReader approach
+    await new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onerror = () => reject(new Error('FileReader failed in fallback'));
+      reader.onload = (event) => {
+        const img = new window.Image();
+        img.onload = () => { bitmap = img; resolve(); };
+        img.onerror = () => reject(new Error('Image load failed in fallback'));
+        img.src = event.target.result;
+      };
+      reader.readAsDataURL(file);
+    });
+  }
+
+  const { newWidth, newHeight } = calculateDimensions(bitmap.width || bitmap.naturalWidth, bitmap.height || bitmap.naturalHeight, 1800, 1800);
+  const canvas = document.createElement('canvas');
+  canvas.width = newWidth;
+  canvas.height = newHeight;
+  const ctx = canvas.getContext('2d');
+  ctx.fillStyle = '#FFFFFF';
+  ctx.fillRect(0, 0, newWidth, newHeight);
+  ctx.imageSmoothingEnabled = true;
+  ctx.imageSmoothingQuality = 'high';
+  ctx.drawImage(bitmap, 0, 0, newWidth, newHeight);
+
+  const blob = await canvasToBlob(canvas, 'image/jpeg', 0.75);
+  if (!blob) throw new Error('Fallback canvas.toBlob returned null');
+  const originalName = file.name.split('.')[0];
+  // close imageBitmap if possible
+  if (bitmap && bitmap.close) try { bitmap.close(); } catch(e) {}
+  return new File([blob], `${originalName}.jpg`, { type: 'image/jpeg', lastModified: Date.now() });
+};
+
+// IMPORTANT: processFiles must await the placeholder toBlob too
+const processFiles = async (files) => {
+  const results = [];
+  console.log(`🎯 Starting compression for ${files.length} files...`);
+
+  for (let i = 0; i < files.length; i++) {
+    const file = files[i];
+    const originalSizeMB = (file.size / (1024 * 1024)).toFixed(2);
+    console.log(`📁 Processing file ${i + 1}/${files.length}: ${file.name} (${originalSizeMB}MB)`);
+
+    try {
+      let compressedFile;
+      try {
+        compressedFile = await compressImageWithAspectRatio(file);
+      } catch (error) {
+        console.warn('🔄 Main method failed, using fallback for', file.name, error);
+        compressedFile = await simpleFallback(file);
+      }
+      results.push(compressedFile);
+    } catch (error) {
+      console.error(`❌ Failed to compress ${file.name}:`, error);
+
+      // Create placeholder (await the blob creation)
+      const canvas = document.createElement('canvas');
+      canvas.width = 800;
+      canvas.height = 450;
+      const ctx = canvas.getContext('2d');
+      ctx.fillStyle = '#f8f9fa';
+      ctx.fillRect(0, 0, 800, 450);
+      ctx.fillStyle = '#6c757d';
+      ctx.font = '24px Arial';
+      ctx.textAlign = 'center';
+      ctx.fillText('Image Error', 400, 225);
+
+      const blob = await canvasToBlob(canvas, 'image/jpeg', 0.8);
+      if (blob) {
+        const fallback = new File([blob], `${file.name.split('.')[0]}.jpg`, {
+          type: 'image/jpeg',
+          lastModified: Date.now(),
+        });
+        results.push(fallback);
+      } else {
+        // last-resort: push original file (or skip) — choose to push original to avoid index mismatch
+        results.push(file);
+      }
+    }
+  }
+
+  return results;
+};
+
 
   // Configure sensors for both mouse and touch
   const sensors = useSensors(

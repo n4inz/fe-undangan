@@ -76,21 +76,6 @@ export default function CommentSection({ params }) {
         }
     };
 
-    const handleSubmitComment = async (e) => {
-        e.preventDefault();
-        if (!newComment.trim()) return;
-
-        try {
-            const response = await axios.post(`/api/forms/${id}/comments`, {
-                comment: newComment
-            });
-            setComments([...comments, response.data.comment]);
-            setNewComment('');
-        } catch (err) {
-            setError(err.response?.data?.message || 'Failed to post comment');
-        }
-    };
-
     const formatDate = (dateString) => {
         const options = { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' };
         return new Date(dateString).toLocaleDateString('id-ID', options);
@@ -133,7 +118,7 @@ export default function CommentSection({ params }) {
                 <div className="relative z-10 flex flex-col items-center justify-center min-h-screen py-8">
                     <div className="w-full max-w-md p-6 bg-white rounded-lg shadow shadow-gray-200 flex flex-col items-center">
                         <div className="text-red-600 text-center font-medium mb-4">{error}</div>
-                        <Link href="/forms" className="flex items-center gap-2 text-blue-600 hover:underline">
+                        <Link href={`/forms/${params.formId}/${params.phoneNumber}/atur-foto/success/result`} className="flex items-center gap-2 text-blue-600 hover:underline">
                             <BiArrowBack className="h-5 w-5" />
                             <span>Kembali</span>
                         </Link>
@@ -153,7 +138,7 @@ export default function CommentSection({ params }) {
                     <Card>
                         <CardHeader className="border-b">
                             <div className="flex items-center mb-2">
-                                <Link href="/forms" className="mr-4">
+                                <Link href={`/forms/${params.formId}/${params.phoneNumber}/atur-foto/success/result`} className="mr-4">
                                     <BiArrowBack className="h-8 w-8" />
                                 </Link>
                                 <h2 className="text-xl font-semibold">Ucapan Tamu</h2>

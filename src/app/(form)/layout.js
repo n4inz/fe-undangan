@@ -1,5 +1,6 @@
 import { Inter } from "next/font/google";
 import "@/app/styles/globals.css";
+import "core-js/actual/array/find-last";
 
 const inter = Inter({ subsets: ["latin"] });
 
