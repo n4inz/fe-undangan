@@ -16,11 +16,15 @@ import LoadingOverlay from 'react-loading-overlay-ts'; // Import LoadingOverlay
 
 const Result = ({ params }) => {
     const router = useRouter();
-    const contactUrl = `https://wa.me/${process.env.NEXT_PUBLIC_WA_NUMBER}?text=Halo,%0ASaya%20ingin%20memesan%20undangan%20dengan%20kode%20id%20:%20${params.formId}`;
 
     const [data, setData] = useState([]);
     const [form, setForm] = useState({});
-    const [uploading, setUploading] = useState(false); // Add uploading state
+    const [uploading, setUploading] = useState(false);
+    const [formId, setFormId] = useState(null);
+
+    const contactUrl = formId
+        ? `https://wa.me/${process.env.NEXT_PUBLIC_WA_NUMBER}?text=Halo,%0ASaya%20ingin%20memesan%20undangan%20dengan%20kode%20id%20:%20${formId}`
+        : "#";
 
     const handleBackButtonClick = () => {
         router.push(`/forms/${params.formId}/${params.phoneNumber}/atur-foto/success`);
@@ -39,6 +43,7 @@ const Result = ({ params }) => {
                     ? formData.linkUndangan
                     : `${process.env.NEXT_PUBLIC_LINK_UNDANGAN}/${formData.slug || ''}`
             });
+            setFormId(formData.id || null);
             console.log('Form data:', response.data.form?.linkUndangan);
         } catch (error) {
             console.error('Error fetching data:', error);

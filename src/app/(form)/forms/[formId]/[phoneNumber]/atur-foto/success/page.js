@@ -75,7 +75,7 @@ const Success = ({ params }) => {
         {/* Success Message */}
         <div className="text-center">
           <p className="text-lg font-semibold">
-            Terima Kasih Telah Mengisi Form SewaUndangan. Pesanan dengan ID {formId} Akan Segera Kami Proses setelah melakukan pembayaran 🙏
+            Terima Kasih Telah Mengisi Form SewaUndangan. Pesanan dengan ID {form.id ?? "N/A"} Akan Segera Kami Proses setelah melakukan pembayaran 🙏
           </p>
         </div>
 

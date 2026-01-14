@@ -345,7 +345,7 @@ const Home = () => {
       const response = await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/forms`, fd, {
         withCredentials: true,
         headers: {
-          Authorization: `Bearer ${token}` // <-- penting
+          Authorization: `Bearer ${token}`
           // jangan set Content-Type, biarkan axios atur boundary otomatis
         },
       });
@@ -359,8 +359,8 @@ const Home = () => {
         }
       }
 
-      await sendNotification(response.data.id, response.data.nomorWa);
-      router.push(`/forms/${response.data.id}/${response.data.nomorWa}/atur-foto`);
+      await sendNotification(response.data.uuid, response.data.nomorWa);
+      router.push(`/forms/${response.data.uuid}/${response.data.nomorWa}/atur-foto`);
     } catch (error) {
       setIsLoading(false);
 

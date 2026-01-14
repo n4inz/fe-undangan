@@ -1,15 +1,18 @@
 "use client"
 import { useEffect, useRef, useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 // import { XMarkIcon } from '@heroicons/react/24/solid';
 import { BiLeftArrowAlt, BiX } from "react-icons/bi";
 import DataPhotoTable from '@/components/DataPhotoTable';
 
 
 const EditDetailPhoto = ({ params }) => {
+  const router = useRouter();
+  const searchParams = useSearchParams();
 
-    const router = useRouter();
+  const idFromQuery = searchParams.get("id"); // id asli dari query jika pakai uuid
+  const realId = idFromQuery || params.formId; // fallback ke params jika tidak ada
 
 
     const [mounted, setMounted] = useState(false); // Track if component is mounted
@@ -49,14 +52,14 @@ const EditDetailPhoto = ({ params }) => {
                     <div className="flex">
                         <Button
                             onClick={() => {
-                                router.push(`/admin/detail/${params.formId}`);
+                                router.push(`/admin/detail/${realId}`);
                             }}
                             className="text-center cursor-pointer bg-white" // Add bg-white class
                         >
                             <BiLeftArrowAlt className='w-4 h-4 text-black' />
                         </Button>
                         <div className="p-2">
-                            EDIT Detail Photo : ID {params.formId}
+                            EDIT Detail Photo : ID {realId}
                         </div>
                     </div>
 

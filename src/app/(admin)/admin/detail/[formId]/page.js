@@ -182,14 +182,19 @@ const Detail = ({ params }) => {
 
                   {/* Edit Foto */}
                   <DropdownMenuItem
-                    onClick={() =>
-                      router.push(`/admin/detail/${params.formId}/edit/${formData.nomorWa}`)
-                    }
+                    onClick={() => {
+                      const base = formData?.uuid
+                        ? `/admin/detail/${formData.uuid}/edit/${formData.nomorWa}?id=${formData.id}`
+                        : `/admin/detail/${formData.id}/edit/${formData.nomorWa}`;
+
+                      router.push(base);
+                    }}
                     className="cursor-pointer px-3 py-2 flex items-center rounded-md transition-colors duration-150 hover:bg-gray-100"
                   >
                     <BiImage className="mr-2 h-4 w-4 text-gray-600" />
                     <span>Edit Foto</span>
                   </DropdownMenuItem>
+
 
                   {/* Duplikat */}
                   {formData?.isPaid === 1 && (
@@ -209,7 +214,7 @@ const Detail = ({ params }) => {
                   <DropdownMenuItem
                     onClick={() =>
                       window.open(
-                        `/forms/${params.formId}/${formData.nomorWa}/atur-foto/success`,
+                        `/forms/${formData?.uuid ?? params.formId}/${formData?.nomorWa ?? ""}/atur-foto/success`,
                         "_blank"
                       )
                     }
