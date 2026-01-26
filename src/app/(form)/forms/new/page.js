@@ -359,7 +359,12 @@ const Home = () => {
         }
       }
 
-      await sendNotification(response.data.uuid, response.data.nomorWa);
+      sendNotification(response.data.uuid, response.data.nomorWa)
+        .catch(err => {
+          console.error("Send notification failed:", err);
+          // optional: kirim ke Sentry / log server
+        });
+
       router.push(`/forms/${response.data.uuid}/${response.data.nomorWa}/atur-foto`);
     } catch (error) {
       setIsLoading(false);
