@@ -2,31 +2,19 @@
 import { useEffect, useRef, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { useRouter, useSearchParams } from 'next/navigation';
-// import { XMarkIcon } from '@heroicons/react/24/solid';
 import { BiLeftArrowAlt, BiX } from "react-icons/bi";
 import DataPhotoTable from '@/components/DataPhotoTable';
 
 
 const EditDetailPhoto = ({ params }) => {
-  const router = useRouter();
-  const searchParams = useSearchParams();
+    const router = useRouter();
+    const searchParams = useSearchParams();
 
-  const idFromQuery = searchParams.get("id"); // id asli dari query jika pakai uuid
-  const realId = idFromQuery || params.formId; // fallback ke params jika tidak ada
+    const idFromQuery = searchParams.get("id"); // id asli dari query jika pakai uuid
+    const realId = idFromQuery || params.formId; // fallback ke params jika tidak ada
 
-
+    const [uploading, setUploading] = useState(false);
     const [mounted, setMounted] = useState(false); // Track if component is mounted
-
-
-    // const handleRekeningChange = (e, index) => {
-    //     const { name, value } = e.target;
-    //     const updatedRekening = [...formData.rekening];
-    //     updatedRekening[index] = { ...updatedRekening[index], [name]: value };
-    //     setFormData({ ...formData, rekening: updatedRekening });
-    // };
-
-    // Add new rekening entry
-
 
     useEffect(() => {
         setMounted(true); // Indicate that the component has mounted
@@ -63,11 +51,12 @@ const EditDetailPhoto = ({ params }) => {
                         </div>
                     </div>
 
-                    <DataPhotoTable params={params} />
+                    <DataPhotoTable params={params} setUploading={setUploading} />
                 </div >
-                
+
             </div >
-        </>
+            </>
+
     );
 
 

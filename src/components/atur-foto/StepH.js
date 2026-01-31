@@ -4,7 +4,7 @@ import Image from "next/image";
 import { Button } from "../ui/button";
 import axios from "axios";
 import { useParams } from "next/navigation";
-import placeholder from "/public/images/placeholder.png";
+import placeholder from "/public/images/placeholder.webp";
 import LoadingOverlay from "./LoadingOverlay";
 import { FaImages, FaEdit } from "react-icons/fa";
 import ModalAsset from "./ModalAsset";

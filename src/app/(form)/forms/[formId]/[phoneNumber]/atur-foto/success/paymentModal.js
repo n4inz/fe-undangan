@@ -14,10 +14,11 @@ import { paymentSchema } from "@/lib/validation";
 import { Loader2 } from "lucide-react";
 import axios from "axios";
 import Image from "next/image";
-import placeholder from "/public/images/placeholder.png";
+import placeholder from "/public/images/placeholder.webp";
 import { getBankAccounts, getCompanyProfile } from "@/lib/company";
 
 export default function PaymentModal({ formId, phoneNumber, buttonClassName }) {
+  // Main form state
   const [formData, setFormData] = useState({
     name: "",
     paket: "antri",
@@ -35,13 +36,71 @@ export default function PaymentModal({ formId, phoneNumber, buttonClassName }) {
   const [price, setPrice] = useState(0);
   const [isMusicDisabled, setIsMusicDisabled] = useState(false);
 
-  // accordion open index
+  // accordion open index for bank accounts
   const [openIndex, setOpenIndex] = useState(null);
 
+  // file input ref
   const fileInputRef = useRef(null);
   const apiBase = process.env.NEXT_PUBLIC_API_URL;
 
-  // Fetch data on mount
+  // ================== IMAGE PREVIEW (thumbnail + fullscreen) ==================
+  // previewUrl: either object URL (created from file) or remote URL (api)
+  const [previewUrl, setPreviewUrl] = useState(null);
+  // boolean to open preview dialog
+  const [isPreviewOpen, setIsPreviewOpen] = useState(false);
+  // track if the current previewUrl was created as object URL (so we can revoke)
+  const previewObjectUrlRef = useRef(null);
+
+  // helper to safely set preview from a File (object URL)
+  const setPreviewFromFile = (file) => {
+    // revoke previous object URL if exists
+    if (previewObjectUrlRef.current) {
+      try {
+        URL.revokeObjectURL(previewObjectUrlRef.current);
+      } catch (e) {
+        // ignore
+      }
+      previewObjectUrlRef.current = null;
+    }
+
+    if (!file) {
+      setPreviewUrl(null);
+      return;
+    }
+
+    const objUrl = URL.createObjectURL(file);
+    previewObjectUrlRef.current = objUrl;
+    setPreviewUrl(objUrl);
+  };
+
+  // helper to set preview to a remote URL (e.g., apiBase/...); revoke previous object url
+  const setPreviewFromRemote = (url) => {
+    if (previewObjectUrlRef.current) {
+      try {
+        URL.revokeObjectURL(previewObjectUrlRef.current);
+      } catch (e) {
+        // ignore
+      }
+      previewObjectUrlRef.current = null;
+    }
+    setPreviewUrl(url || null);
+  };
+
+  // cleanup on unmount: revoke object url if any
+  useEffect(() => {
+    return () => {
+      if (previewObjectUrlRef.current) {
+        try {
+          URL.revokeObjectURL(previewObjectUrlRef.current);
+        } catch (e) {
+          // ignore
+        }
+        previewObjectUrlRef.current = null;
+      }
+    };
+  }, []);
+
+  // ================== FETCH DATA ON MOUNT ==================
   useEffect(() => {
     const fetchBankAccounts = async () => {
       try {
@@ -90,7 +149,7 @@ export default function PaymentModal({ formId, phoneNumber, buttonClassName }) {
     fetchCompanyProfile();
   }, [formId, apiBase]);
 
-  // Calculate total (always fresh)
+  // ================== CALCULATE TOTAL ==================
   const calculateTotal = useCallback(
     (data = formData, currentPrice = price) => {
       let total = 0;
@@ -103,12 +162,12 @@ export default function PaymentModal({ formId, phoneNumber, buttonClassName }) {
     [formData, price]
   );
 
-  // Handle form changes
+  // ================== HANDLE INPUT CHANGES ==================
   const handleChange = (e) => {
     const { name, value, type, checked, files } = e.target;
 
     if (type === "file") {
-      const file = files[0];
+      const file = files && files[0];
       const allowedTypes = ["image/jpg", "image/jpeg", "image/png", "image/gif"];
 
       if (file && !allowedTypes.includes(file.type)) {
@@ -118,10 +177,13 @@ export default function PaymentModal({ formId, phoneNumber, buttonClassName }) {
           variant: "destructive",
         });
         setFormData((prev) => ({ ...prev, file: null }));
+        setPreviewFromFile(null);
         if (fileInputRef.current) fileInputRef.current.value = "";
         return;
       }
+
       setFormData((prev) => ({ ...prev, file }));
+      setPreviewFromFile(file || null);
     } else {
       setFormData((prev) => ({
         ...prev,
@@ -134,6 +196,7 @@ export default function PaymentModal({ formId, phoneNumber, buttonClassName }) {
     setFormData((prev) => ({ ...prev, paket: value }));
   };
 
+  // ================== SUBMIT PAYMENT ==================
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsLoading(true);
@@ -179,6 +242,7 @@ export default function PaymentModal({ formId, phoneNumber, buttonClassName }) {
 
       toast({ title: "Payment submitted successfully!" });
 
+      // reset form
       setFormData({
         name: "",
         paket: "antri",
@@ -188,8 +252,21 @@ export default function PaymentModal({ formId, phoneNumber, buttonClassName }) {
         isFont: false,
         revisi: true,
       });
+
+      // cleanup preview object url if any
+      if (previewObjectUrlRef.current) {
+        try {
+          URL.revokeObjectURL(previewObjectUrlRef.current);
+        } catch (e) {
+          // ignore
+        }
+        previewObjectUrlRef.current = null;
+      }
+      setPreviewUrl(null);
+
       if (fileInputRef.current) fileInputRef.current.value = "";
 
+      // check payment after upload
       await checkPayment();
     } catch (error) {
       if (error instanceof z.ZodError) {
@@ -216,6 +293,7 @@ export default function PaymentModal({ formId, phoneNumber, buttonClassName }) {
     }
   };
 
+  // ================== HELPERS ==================
   const handleCopy = (text, event) => {
     event?.preventDefault();
     navigator.clipboard
@@ -239,6 +317,12 @@ export default function PaymentModal({ formId, phoneNumber, buttonClassName }) {
       if (response.data != null) {
         setFormData({ ...response.data });
         setPaymentStatus(true);
+
+        // set preview to the saved file so user can fullscreen it
+        if (response.data.file) {
+          const remoteUrl = `${apiBase}/payment/${response.data.file}`;
+          setPreviewFromRemote(remoteUrl);
+        }
       }
     } catch (error) {
       console.error("Error checking payment:", error);
@@ -250,13 +334,6 @@ export default function PaymentModal({ formId, phoneNumber, buttonClassName }) {
     }
   };
 
-  const displayTotal = calculateTotal(formData, price);
-
-  useEffect(() => {
-    if (formId && phoneNumber) checkPayment();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [formId, phoneNumber]);
-
   // helper to get filename from stored path or return raw value if it's already filename
   const extractFilename = (filePath) => {
     if (!filePath) return null;
@@ -265,265 +342,361 @@ export default function PaymentModal({ formId, phoneNumber, buttonClassName }) {
     return String(filePath);
   };
 
-  // Download helper: fetch blob then download (works even if server doesn't set download header)
-  const handleDownloadImage = async (url, suggestedFilename) => {
-    try {
-      const res = await fetch(url, { credentials: "same-origin" });
-      if (!res.ok) throw new Error("Failed to fetch image");
-      const blob = await res.blob();
-      const blobUrl = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = blobUrl;
-      a.download = suggestedFilename || "qris.png";
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
-      URL.revokeObjectURL(blobUrl);
-      toast({ title: "Download started" });
-    } catch (err) {
-      console.error("Download failed:", err);
-      toast({ title: "Download failed", variant: "destructive" });
+  // show preview modal for a given URL (remote or object)
+  const openPreview = (url) => {
+    if (!url) return;
+    // if url is a remote path but not full, normalize
+    setPreviewUrl(url);
+    // if it's a remote url we ensure previewObjectUrlRef is cleared
+    if (previewObjectUrlRef.current && previewObjectUrlRef.current !== url) {
+      try {
+        URL.revokeObjectURL(previewObjectUrlRef.current);
+      } catch (e) {
+        // ignore
+      }
+      previewObjectUrlRef.current = null;
     }
+    setIsPreviewOpen(true);
   };
 
+  const displayTotal = calculateTotal(formData, price);
+
+  useEffect(() => {
+    if (formId && phoneNumber) checkPayment();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [formId, phoneNumber]);
+
+  // ================== RENDER ==================
   return (
-    <Dialog>
-      <DialogTrigger asChild>
-        <Button
-          className={`bg-green-700 hover:bg-green-900 text-white font-bold py-4 px-4 rounded-full flex items-center text-sm w-full justify-center ${buttonClassName}`}
-        >
-          <BiMoney className="h-8 w-8" />
-          Bayar Sekarang
-        </Button>
-      </DialogTrigger>
+    <>
+      <Dialog>
+        <DialogTrigger asChild>
+          <Button
+            className={`bg-green-700 hover:bg-green-900 text-white font-bold py-4 px-4 rounded-full flex items-center text-sm w-full justify-center ${buttonClassName}`}
+          >
+            <BiMoney className="h-8 w-8" />
+            Bayar Sekarang
+          </Button>
+        </DialogTrigger>
 
-      <DialogContent className="max-w-md w-full p-4 h-[100dvh] flex flex-col">
-        <DialogTitle>
-          {paymentStatus ? (
-            <h2 className="text-xl font-bold">Pembayaran Anda</h2>
-          ) : (
-            <h2 className="text-xl font-bold">Upload Bukti Transfer</h2>
-          )}
-        </DialogTitle>
+        <DialogContent className="max-w-md w-full p-4 h-[100dvh] flex flex-col">
+          <DialogTitle>
+            {paymentStatus ? (
+              <h2 className="text-xl font-bold">Pembayaran Anda</h2>
+            ) : (
+              <h2 className="text-xl font-bold">Upload Bukti Transfer</h2>
+            )}
+          </DialogTitle>
 
-        <ScrollArea className="flex-1 p-2">
-          {paymentStatus ? (
-            <div>
-              <div className="mt-4">
-                <p className="font-bold">Nama Rekening:</p>
-                <p>{formData.name}</p>
-              </div>
-              <div className="mt-4">
-                <p className="font-bold">Paket:</p>
-                <p>{formData.paket}</p>
-              </div>
-              <div className="mt-4">
-                <p className="font-bold">Ekstra:</p>
-                <p className="flex items-center">
-                  {formData.isMusic ? <BiCheck className="mr-2 text-green-600" /> : <BiX className="mr-2 text-red-600" />}
-                  Custom Musik
-                </p>
-                <p className="flex items-center">
-                  {formData.isFont ? <BiCheck className="mr-2 text-green-600" /> : <BiX className="mr-2 text-red-600" />}
-                  Custom Font
-                </p>
-                <p className="flex items-center">
-                  <BiCheck className="mr-2 text-green-600" /> Thema
-                </p>
-                <p className="flex items-center">
-                  <BiCheck className="mr-2 text-green-600" /> Revisi 5x
-                </p>
-              </div>
-              <div className="mt-4">
-                <p className="font-bold">Total:</p>
-                <p>Rp. {formData.totalPayment.toLocaleString("id-ID")}</p>
-              </div>
-              <div className="mt-4">
-                <p className="font-bold">Screenshot:</p>
-                <Image
-                  src={`${apiBase}/payment/${formData.file}`}
-                  alt="Payment"
-                  width={400}
-                  height={400}
-                  className="rounded-lg"
-                  placeholder="blur"
-                  blurDataURL={placeholder.src}
-                />
-              </div>
-            </div>
-          ) : (
-            <form onSubmit={handleSubmit} className="space-y-4">
+          <ScrollArea className="flex-1 p-2">
+            {paymentStatus ? (
               <div>
-                <Label htmlFor="name">Nama Rekening</Label>
-                <Input id="name" name="name" value={formData.name} onChange={handleChange} />
-                {errors.name && <p className="text-red-500 text-sm mt-1">{errors.name}</p>}
-              </div>
-
-              <div>
-                <Label>Pilih Paket</Label>
-                <div className="space-y-2">
-                  <RadioGroup value={formData.paket} onValueChange={handleRadioChange} className="space-y-2">
-                    <label className="flex items-center space-x-2">
-                      <RadioGroupItem value="antri" />
-                      <span>Paket Antri (1-3 Hari) - Rp {price.toLocaleString("id-ID")}</span>
-                    </label>
-                    <label className="flex items-center space-x-2">
-                      <RadioGroupItem value="express" />
-                      <span>Paket Express (3 Jam) - Rp {(price + 30000).toLocaleString("id-ID")}</span>
-                    </label>
-                  </RadioGroup>
+                <div className="mt-4">
+                  <p className="font-bold">Nama Rekening:</p>
+                  <p>{formData.name}</p>
                 </div>
-              </div>
+                <div className="mt-4">
+                  <p className="font-bold">Paket:</p>
+                  <p>{formData.paket}</p>
+                </div>
+                <div className="mt-4">
+                  <p className="font-bold">Ekstra:</p>
+                  <p className="flex items-center">
+                    {formData.isMusic ? <BiCheck className="mr-2 text-green-600" /> : <BiX className="mr-2 text-red-600" />}
+                    Custom Musik
+                  </p>
+                  <p className="flex items-center">
+                    {formData.isFont ? <BiCheck className="mr-2 text-green-600" /> : <BiX className="mr-2 text-red-600" />}
+                    Custom Font
+                  </p>
+                  <p className="flex items-center">
+                    <BiCheck className="mr-2 text-green-600" /> Thema
+                  </p>
+                  <p className="flex items-center">
+                    <BiCheck className="mr-2 text-green-600" /> Revisi 5x
+                  </p>
+                </div>
+                <div className="mt-4">
+                  <p className="font-bold">Total:</p>
+                  <p>Rp. {Number(formData.totalPayment || 0).toLocaleString("id-ID")}</p>
+                </div>
+                <div className="mt-4">
+                  <p className="font-bold">Screenshot:</p>
 
-              <div>
-                <Label htmlFor="file">Upload Bukti TF</Label>
-                <Input type="file" id="file" name="file" accept="image/*" onChange={handleChange} ref={fileInputRef} />
-                {errors.file && <p className="text-red-500 text-sm mt-1">{errors.file}</p>}
-              </div>
-
-              <div>
-                <Label>Req dan Pembayaran:</Label>
-                <div className="space-y-2">
-                  <label className="flex items-center space-x-2">
-                    <Checkbox name="tema" disabled checked={formData.tema} />
-                    <span>Thema = Rp {price.toLocaleString("id-ID")}</span>
-                  </label>
-                  <label className="flex items-center space-x-2">
-                    <Checkbox
-                      name="isMusic"
-                      checked={formData.isMusic}
-                      onCheckedChange={(checked) => {
-                        if (!isMusicDisabled) {
-                          setFormData({ ...formData, isMusic: checked });
-                        }
+                  {/* Use a normal img to allow click handler (Next Image may require remote domains config) */}
+                  {formData.file ? (
+                    <img
+                      src={`${apiBase}/payment/${formData.file}`}
+                      alt="Payment"
+                      className="rounded-lg cursor-pointer max-w-full h-auto object-contain"
+                      onClick={() => {
+                        openPreview(`${apiBase}/payment/${formData.file}`);
                       }}
-                      disabled={isMusicDisabled}
                     />
-                    <span>Request Ganti Music = 5rb</span>
-                  </label>
-                  <label className="flex items-center space-x-2">
-                    <Checkbox
-                      name="isFont"
-                      checked={formData.isFont}
-                      onCheckedChange={(checked) => setFormData({ ...formData, isFont: checked })}
-                    />
-                    <span>Custom Font/Thema = 20rb</span>
-                  </label>
-                  <label className="flex items-center space-x-2">
-                    <Checkbox name="revisi" disabled checked={formData.revisi} />
-                    <span>Revisi 5x = 0</span>
-                  </label>
+                  ) : (
+                    <p className="text-sm text-gray-500">No image available</p>
+                  )}
                 </div>
               </div>
+            ) : (
+              <form onSubmit={handleSubmit} className="space-y-4">
+                <div>
+                  <Label htmlFor="name">Nama Rekening</Label>
+                  <Input id="name" name="name" value={formData.name} onChange={handleChange} />
+                  {errors.name && <p className="text-red-500 text-sm mt-1">{errors.name}</p>}
+                </div>
 
-              <div className="font-bold">Total: Rp. {displayTotal.toLocaleString("id-ID")} IDR</div>
+                <div>
+                  <Label>Pilih Paket</Label>
+                  <div className="space-y-2">
+                    <RadioGroup value={formData.paket} onValueChange={handleRadioChange} className="space-y-2">
+                      <label className="flex items-center space-x-2">
+                        <RadioGroupItem value="antri" />
+                        <span>Paket Antri (1-3 Hari) - Rp {price.toLocaleString("id-ID")}</span>
+                      </label>
+                      <label className="flex items-center space-x-2">
+                        <RadioGroupItem value="express" />
+                        <span>Paket Express (3 Jam) - Rp {(price + 30000).toLocaleString("id-ID")}</span>
+                      </label>
+                    </RadioGroup>
+                  </div>
+                </div>
 
-              <div>
-                <Label>Metode Pembayaran</Label>
-                <ul className="text-sm space-y-3">
-                  {bankAccounts.length > 0 ? (
-                    bankAccounts.map((account, i) => {
-                      const filename = extractFilename(account.fileImage);
-                      const imageUrl = filename ? `${apiBase}/asset/${filename}` : null;
-                      const isOpen = openIndex === i;
+                <div>
+                  <Label htmlFor="file">Upload Bukti TF</Label>
+                  <Input type="file" id="file" name="file" accept="image/*" onChange={handleChange} ref={fileInputRef} />
+                  {errors.file && <p className="text-red-500 text-sm mt-1">{errors.file}</p>}
 
-                      return (
-                        <li key={account.id ?? `ba-${i}`} className="border rounded-lg overflow-hidden">
-                          {/* header */}
-                          <div
-                            className="flex items-center justify-between px-3 py-2 bg-white cursor-pointer"
+                  {/* Thumbnail preview for uploaded file */}
+                  {previewUrl && (
+                    <div className="mt-3">
+                      <p className="text-sm mb-1">Preview:</p>
+                      <div className="flex items-start gap-3">
+                        <img
+                          src={previewUrl}
+                          alt="Preview"
+                          className="w-28 h-28 object-cover rounded-lg border cursor-pointer hover:opacity-80"
+                          onClick={() => {
+                            // previewUrl may be object or remote
+                            openPreview(previewUrl);
+                          }}
+                        />
+                        <div className="flex flex-col gap-2">
+
+                          <button
+                            type="button"
+                            className="inline-flex items-center gap-2 px-3 py-1 bg-white border rounded shadow text-sm hover:bg-gray-100"
                             onClick={() => {
-                              if (imageUrl) {
-                                setOpenIndex(isOpen ? null : i);
+                              // clear preview & file
+                              setFormData((p) => ({ ...p, file: null }));
+                              if (fileInputRef.current) fileInputRef.current.value = "";
+                              if (previewObjectUrlRef.current) {
+                                try {
+                                  URL.revokeObjectURL(previewObjectUrlRef.current);
+                                } catch (e) {}
+                                previewObjectUrlRef.current = null;
                               }
+                              setPreviewUrl(null);
                             }}
-                            role={imageUrl ? "button" : undefined}
-                            aria-expanded={imageUrl ? isOpen : undefined}
                           >
-                            <div>
-                              <div className="font-medium">{account.name}</div>
-                              <div className="text-xs text-gray-600">{account.number}</div>
+                            Hapus
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                <div>
+                  <Label>Req dan Pembayaran:</Label>
+                  <div className="space-y-2">
+                    <label className="flex items-center space-x-2">
+                      <Checkbox name="tema" disabled checked={formData.tema} />
+                      <span>Thema = Rp {price.toLocaleString("id-ID")}</span>
+                    </label>
+                    <label className="flex items-center space-x-2">
+                      <Checkbox
+                        name="isMusic"
+                        checked={formData.isMusic}
+                        onCheckedChange={(checked) => {
+                          if (!isMusicDisabled) {
+                            setFormData({ ...formData, isMusic: checked });
+                          }
+                        }}
+                        disabled={isMusicDisabled}
+                      />
+                      <span>Request Ganti Music = 5rb</span>
+                    </label>
+                    <label className="flex items-center space-x-2">
+                      <Checkbox
+                        name="isFont"
+                        checked={formData.isFont}
+                        onCheckedChange={(checked) => setFormData({ ...formData, isFont: checked })}
+                      />
+                      <span>Custom Font/Thema = 20rb</span>
+                    </label>
+                    <label className="flex items-center space-x-2">
+                      <Checkbox name="revisi" disabled checked={formData.revisi} />
+                      <span>Revisi 5x = 0</span>
+                    </label>
+                  </div>
+                </div>
+
+                <div className="font-bold">Total: Rp. {displayTotal.toLocaleString("id-ID")} IDR</div>
+
+                <div>
+                  <Label>Metode Pembayaran</Label>
+                  <ul className="text-sm space-y-3">
+                    {bankAccounts.length > 0 ? (
+                      bankAccounts.map((account, i) => {
+                        const filename = extractFilename(account.fileImage);
+                        const imageUrl = filename ? `${apiBase}/asset/${filename}` : null;
+                        const isOpen = openIndex === i;
+
+                        return (
+                          <li key={account.id ?? `ba-${i}`} className="border rounded-lg overflow-hidden">
+                            {/* header */}
+                            <div
+                              className="flex items-center justify-between px-3 py-2 bg-white cursor-pointer"
+                              onClick={() => {
+                                if (imageUrl) {
+                                  setOpenIndex(isOpen ? null : i);
+                                }
+                              }}
+                              role={imageUrl ? "button" : undefined}
+                              aria-expanded={imageUrl ? isOpen : undefined}
+                            >
+                              <div>
+                                <div className="font-medium">{account.name}</div>
+                                <div className="text-xs text-gray-600">{account.number}</div>
+                              </div>
+
+                              <div className="flex items-center gap-2">
+                                {imageUrl ? (
+                                  <div className="flex items-center gap-2">
+                                    <button
+                                      type="button"
+                                      aria-label={isOpen ? "Tutup" : "Buka"}
+                                      className={`p-2 rounded hover:bg-gray-100 transform ${isOpen ? "rotate-180" : "rotate-0"}`}
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        setOpenIndex(isOpen ? null : i);
+                                      }}
+                                    >
+                                      <BiChevronDown className="w-5 h-5" />
+                                    </button>
+                                  </div>
+                                ) : (
+                                  <Button type="button" variant="ghost" size="sm" onClick={(e) => handleCopy(account.number, e)}>
+                                    <BiCopy className="w-4 h-4" />
+                                  </Button>
+                                )}
+                              </div>
                             </div>
 
-                            <div className="flex items-center gap-2">
-                              {imageUrl ? (
-                                <div className="flex items-center gap-2">
-                                  {/* <span className="text-xs text-gray-500 mr-2">QRIS</span> */}
+                            {/* panel (expanded) */}
+                            {imageUrl && isOpen && (
+                              <div className="bg-gray-50 p-3 relative">
+                                {/* download button top-right */}
+                                <div className="absolute top-2 right-2 z-20">
                                   <button
                                     type="button"
-                                    aria-label={isOpen ? "Tutup" : "Buka"}
-                                    className={`p-2 rounded hover:bg-gray-100 transform ${isOpen ? "rotate-180" : "rotate-0"}`}
-                                    onClick={(e) => {
+                                    onClick={async (e) => {
                                       e.stopPropagation();
-                                      setOpenIndex(isOpen ? null : i);
+                                      const suggested = `${account.number.replace(/\s+/g, "_")}_qris.png`;
+                                      await handleDownloadImage(imageUrl, suggested);
                                     }}
+                                    className="inline-flex items-center gap-2 px-3 py-1 bg-white border rounded shadow text-sm hover:bg-gray-100"
+                                    title="Download QRIS"
                                   >
-                                    <BiChevronDown className="w-5 h-5" />
+                                    <BiDownload className="w-4 h-4" />
+                                    Download
                                   </button>
                                 </div>
-                              ) : (
-                                <Button type="button" variant="ghost" size="sm" onClick={(e) => handleCopy(account.number, e)}>
-                                  <BiCopy className="w-4 h-4" />
-                                </Button>
-                              )}
-                            </div>
-                          </div>
 
-                          {/* panel (expanded) */}
-                          {imageUrl && isOpen && (
-                            <div className="bg-gray-50 p-3 relative">
-                              {/* download button top-right */}
-                              <div className="absolute top-2 right-2 z-20">
-                                <button
-                                  type="button"
-                                  onClick={async (e) => {
-                                    e.stopPropagation();
-                                    const suggested = `${account.number.replace(/\s+/g, "_")}_qris.png`;
-                                    await handleDownloadImage(imageUrl, suggested);
-                                  }}
-                                  className="inline-flex items-center gap-2 px-3 py-1 bg-white border rounded shadow text-sm hover:bg-gray-100"
-                                  title="Download QRIS"
-                                >
-                                  <BiDownload className="w-4 h-4" />
-                                  Download
-                                </button>
+                                <div className="w-full flex flex-col items-center justify-center">
+                                  {/* show full image; use object-contain so entire QR stays visible */}
+                                  <img
+                                    src={imageUrl}
+                                    alt={`${account.name} qris`}
+                                    className="max-w-full h-auto object-contain rounded-md border cursor-pointer"
+                                    style={{ maxHeight: "420px" }}
+                                    onClick={() => {
+                                      // open fullscreen preview for bank QR too
+                                      openPreview(imageUrl);
+                                    }}
+                                  />
+                                </div>
                               </div>
+                            )}
+                          </li>
+                        );
+                      })
+                    ) : (
+                      <li className="text-red-500">No bank accounts available</li>
+                    )}
+                  </ul>
+                  <p className="text-sm mt-2">Atas nama {company?.ownerName || "Unknown"}</p>
+                </div>
 
-                              <div className="w-full flex flex-col items-center justify-center">
-                                {/* show full image; use object-contain so entire QR stays visible */}
-                                <img
-                                  src={imageUrl}
-                                  alt={`${account.name} qris`}
-                                  className="max-w-full h-auto object-contain rounded-md border"
-                                  style={{ maxHeight: "420px" }}
-                                />
-                              </div>
-                            </div>
-                          )}
-                        </li>
-                      );
-                    })
+                <Button type="submit" className="w-full" disabled={isLoading}>
+                  {isLoading ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Submit
+                    </>
                   ) : (
-                    <li className="text-red-500">No bank accounts available</li>
+                    "Submit"
                   )}
-                </ul>
-                <p className="text-sm mt-2">Atas nama {company?.ownerName || "Unknown"}</p>
-              </div>
+                </Button>
+              </form>
+            )}
+          </ScrollArea>
+        </DialogContent>
+      </Dialog>
 
-              <Button type="submit" className="w-full" disabled={isLoading}>
-                {isLoading ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Submit
-                  </>
-                ) : (
-                  "Submit"
-                )}
-              </Button>
-            </form>
-          )}
-        </ScrollArea>
-      </DialogContent>
-    </Dialog>
+      {/* ================== FULLSCREEN PREVIEW DIALOG ================== */}
+      <Dialog open={isPreviewOpen} onOpenChange={setIsPreviewOpen}>
+        <DialogContent className="max-w-[95vw] max-h-[95vh] p-2 bg-black/90">
+          <div className="w-full h-full flex items-center justify-center relative">
+            {/* Close button top-right */}
+            <button
+              type="button"
+              onClick={() => setIsPreviewOpen(false)}
+              className="absolute top-3 right-3 z-30 inline-flex items-center justify-center p-2 rounded-full bg-white/10 hover:bg-white/20 text-white"
+              aria-label="Close preview"
+            >
+              ✕
+            </button>
+
+            {/* Download button top-right (below close) */}
+            {previewUrl && (
+              <button
+                type="button"
+                onClick={() => {
+                  const suggested = `${(formData.name || "preview").replace(/\s+/g, "_")}.png`;
+                  handleDownloadImage(previewUrl, suggested);
+                }}
+                className="absolute top-3 right-12 z-30 inline-flex items-center gap-2 px-3 py-1 bg-white/90 text-black rounded"
+                aria-label="Download preview"
+              >
+                <BiDownload className="w-4 h-4" />
+                Download
+              </button>
+            )}
+
+            {previewUrl ? (
+              <img
+                src={previewUrl}
+                alt="Fullscreen Preview"
+                className="max-w-full max-h-[90vh] object-contain rounded"
+              />
+            ) : (
+              <p className="text-white">No preview available</p>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
+    </>
   );
 }
