@@ -199,9 +199,9 @@ export default function Dashboard() {
 
     // useEffect(() => {
     //     if (!loading) {
-    //         console.log("Forms data:", forms);
-    //         console.log("Company data:", company);
-    //         console.log("Bank accounts:", bankAccounts);
+    //         // console.log("Forms data:", forms);
+    //         // console.log("Company data:", company);
+    //         // console.log("Bank accounts:", bankAccounts);
     //     }
     // }, [forms, loading, company, bankAccounts]);
 

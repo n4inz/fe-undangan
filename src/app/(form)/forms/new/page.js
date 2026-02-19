@@ -203,7 +203,7 @@ const Home = () => {
         const res = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/lock-thema/${qs}`);
 
         if (res.status === 200) {
-          console.log("✅ Lock thema success:", res.data.data);
+          // console.log("✅ Lock thema success:", res.data.data);
 
           setLockThema(true);
           setMaxStep(14);
@@ -216,7 +216,7 @@ const Home = () => {
         }
       } catch (error) {
         if (error.response?.status === 400) {
-          console.log("⚠️ Lock thema ignored (400)");
+          // console.log("⚠️ Lock thema ignored (400)");
         } else {
           console.error("❌ Error locking thema:", error);
         }
@@ -478,7 +478,7 @@ const Home = () => {
     const newRekeningList = [...rekeningList];
     newRekeningList[index].icon = value;
     setRekeningList(newRekeningList);
-    console.log(rekeningList)
+    // console.log(rekeningList)
   };
 
   const handleSelectChange = (id, name) => {
@@ -500,7 +500,7 @@ const Home = () => {
   };
 
   const handleSongSelected = (selectedId) => {
-    console.log("ID lagu terpilih:", selectedId);
+    // console.log("ID lagu terpilih:", selectedId);
     // Convert selectedId to integer before storing in formData
     const selectedIdInt = parseInt(selectedId, 10);
     setFormData({

@@ -51,7 +51,7 @@ export function DialogModalForm({ open, onOpenChange, index, row, formId, onData
           "Content-Type": "multipart/form-data",
         },
       });
-      console.log("Image uploaded successfully:", response.data);
+      // console.log("Image uploaded successfully:", response.data);
       onOpenChange(false); // Close the dialog after successful upload
       onDataUpdate();
       setIsLoading(false)
@@ -66,7 +66,7 @@ export function DialogModalForm({ open, onOpenChange, index, row, formId, onData
       setSelectedImage(null); // Clear the selected image when the dialog is closed
       setImageFile(null); // Clear the file as well
     }
-    console.log("row", row)
+    // console.log("row", row)
   }, [open]);
 
   return (

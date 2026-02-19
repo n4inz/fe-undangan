@@ -52,7 +52,7 @@ export function DialogModalPayment({ open, onOpenChange, index, row, formId, onD
     if (!open) {
       setFormData({ payment: "" }); // Clear the form when dialog is closed
     }
-    console.log("row", row);
+    // console.log("row", row);
   }, [open, row]);
 
   return (

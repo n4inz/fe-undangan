@@ -40,8 +40,8 @@ export function DialogModalLinkUndangan({ open, onOpenChange, index, row, formId
 
       onOpenChange(false);
       onDataUpdate(response.data.message);
-      console.log("Slug:", slug);
-      console.log("LinkUndangan:", `${baseUrl}/${slug}`);
+      // console.log("Slug:", slug);
+      // console.log("LinkUndangan:", `${baseUrl}/${slug}`);
     } catch (error) {
       console.error("Error:", error);
     } finally {

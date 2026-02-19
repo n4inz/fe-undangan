@@ -44,7 +44,7 @@ const Result = ({ params }) => {
                     : `${process.env.NEXT_PUBLIC_LINK_UNDANGAN}/${formData.slug || ''}`
             });
             setFormId(formData.id || null);
-            console.log('Form data:', response.data.form?.linkUndangan);
+            // console.log('Form data:', response.data.form?.linkUndangan);
         } catch (error) {
             console.error('Error fetching data:', error);
             setData([]);

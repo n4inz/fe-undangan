@@ -41,8 +41,8 @@ const StepI1 = ({ number, nextStep, formData, setFormData, onFormChange, partNam
         setSelectedImage(reader.result);
         setFile(selectedFile);
         setIsEditing(true);
-        console.log('Selected file:', selectedFile);
-        console.log('Selected file type:', selectedFile.type);
+        // console.log('Selected file:', selectedFile);
+        // console.log('Selected file type:', selectedFile.type);
       });
       reader.readAsDataURL(selectedFile);
     }
@@ -159,7 +159,7 @@ const StepI1 = ({ number, nextStep, formData, setFormData, onFormChange, partNam
       const imagesData = response.data.data;
       const imagesDataxx = response.data;
 
-      console.log("Images Data:", imagesDataxx);
+      // console.log("Images Data:", imagesDataxx);
 
       if (imagesData.length > 0) {
         let imageUrl;
@@ -173,7 +173,7 @@ const StepI1 = ({ number, nextStep, formData, setFormData, onFormChange, partNam
           return;
         }
 
-        console.log("Imageurl:", imageUrl);
+        // console.log("Imageurl:", imageUrl);
 
         setSelectedImage(imageUrl);
         setUploading(false);
@@ -210,7 +210,7 @@ const StepI1 = ({ number, nextStep, formData, setFormData, onFormChange, partNam
     setSelectedImage(assetData.imageUrl);
     setFile({ ...assetData, partName: partName });
     setStatusAsset(true);
-    console.log('Selected asset:', assetData);
+    // console.log('Selected asset:', assetData);
   };
 
   useEffect(() => {
@@ -221,7 +221,7 @@ const StepI1 = ({ number, nextStep, formData, setFormData, onFormChange, partNam
         file: file,
       }));
     }
-    console.log("FILE: " + file);
+    // console.log("FILE: " + file);
   }, [selectedImage, file, setFormData]);
 
   return (

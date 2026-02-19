@@ -181,7 +181,7 @@ const StepJ = (props) => {
               const fileSizeKB = blob.size / 1024;
               attempt++;
 
-              console.log(`🔄 Attempt ${attempt}: Quality ${quality.toFixed(2)}, Size: ${fileSizeKB.toFixed(0)}KB`);
+              // console.log(`🔄 Attempt ${attempt}: Quality ${quality.toFixed(2)}, Size: ${fileSizeKB.toFixed(0)}KB`);
 
               if ((fileSizeKB >= targetMinKB && fileSizeKB <= targetMaxKB) || attempt >= maxAttempts) {
                 const originalName = file.name.split('.')[0];
@@ -190,7 +190,7 @@ const StepJ = (props) => {
                   lastModified: Date.now(),
                 });
 
-                console.log(`✅ Background compression: ${img.width}x${img.height} → ${newWidth}x${newHeight}, ${fileSizeKB.toFixed(0)}KB`);
+                // console.log(`✅ Background compression: ${img.width}x${img.height} → ${newWidth}x${newHeight}, ${fileSizeKB.toFixed(0)}KB`);
 
                 resolve(compressedFile);
                 return;
@@ -286,13 +286,13 @@ const StepJ = (props) => {
   const processFiles = async (files) => {
     const results = [];
 
-    console.log(`🎯 Starting background compression...`);
+    // console.log(`🎯 Starting background compression...`);
 
     for (let i = 0; i < files.length; i++) {
       const file = files[i];
       const originalSizeMB = (file.size / (1024 * 1024)).toFixed(2);
 
-      console.log(`📁 Processing background ${i + 1}/${files.length}: ${file.name} (${originalSizeMB}MB)`);
+      // console.log(`📁 Processing background ${i + 1}/${files.length}: ${file.name} (${originalSizeMB}MB)`);
 
       try {
         let compressedFile;
@@ -300,7 +300,7 @@ const StepJ = (props) => {
         try {
           compressedFile = await compressImageWithAspectRatio(file);
         } catch (error) {
-          console.log('🔄 Main method failed, using fallback...');
+          // console.log('🔄 Main method failed, using fallback...');
           compressedFile = await simpleFallback(file);
         }
 
@@ -371,7 +371,7 @@ const StepJ = (props) => {
         imageUrls: newItems.map((img) => img.url),
       }));
 
-      console.log("Ordered images:", newItems);
+      // console.log("Ordered images:", newItems);
       return newItems;
     });
 
@@ -385,7 +385,7 @@ const StepJ = (props) => {
         order: index + 1
       }));
 
-      console.log("Ordered newFiles:", newFiles);
+      // console.log("Ordered newFiles:", newFiles);
       return newFiles;
     });
   };
@@ -426,7 +426,7 @@ const StepJ = (props) => {
     setCompressing(true);
 
     try {
-      console.log(`🚀 Starting compression for ${selectedFiles.length} background files...`);
+      // console.log(`🚀 Starting compression for ${selectedFiles.length} background files...`);
 
       // Compress all files
       const compressedFiles = await processFiles(selectedFiles);
@@ -483,7 +483,7 @@ const StepJ = (props) => {
   const handleRemoveImage = async (id, previewUrl, code) => {
     setRemove(true);
 
-    console.log("Removing image with CODE:", code);
+    // console.log("Removing image with CODE:", code);
 
     if (id && !code || code == null || code == undefined) {
       try {
@@ -566,7 +566,7 @@ const StepJ = (props) => {
           },
         }
       );
-      console.log("Files uploaded successfully:", response);
+      // console.log("Files uploaded successfully:", response);
       manageOrder(images);
 
       props.onFormChange();
@@ -583,7 +583,7 @@ const StepJ = (props) => {
   const manageOrder = async (images) => {
     try {
       const response = await axios.put(`${process.env.NEXT_PUBLIC_API_URL}/manage-bg-order/${params.formId}/${params.phoneNumber}`, images);
-      console.log("Order managed successfully:", response.data);
+      // console.log("Order managed successfully:", response.data);
     } catch (error) {
       console.error("Error managing order:", error);
       return null;
@@ -682,8 +682,8 @@ const StepJ = (props) => {
   }, []);
 
   useEffect(() => {
-    console.log('newFiles', newFiles);
-    console.log('images', images);
+    // console.log('newFiles', newFiles);
+    // console.log('images', images);
   }, [images, newFiles]);
 
   // ========== RENDER ========== //

@@ -22,7 +22,7 @@ const EditSetting = ({ params }) => {
     const [isLoading, setIsLoading] = useState(false);
     const [errors, setErrors] = useState({});
     useEffect(() => {
-        console.log(params); // ['edit', 'company']
+        // console.log(params); // ['edit', 'company']
     }
         , [params, router]);
     return (

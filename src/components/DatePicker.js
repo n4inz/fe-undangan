@@ -10,7 +10,7 @@ import { useEffect } from "react";
 const DatePicker = ({ name, value, onDateChange }) => {
 
   useEffect(() => {
-    console.log("value", value);
+    // console.log("value", value);
   }
     , [value]);
 
