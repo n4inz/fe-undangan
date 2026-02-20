@@ -117,9 +117,27 @@ export default function Dashboard() {
 
 
   useEffect(() => {
-    fetchFormData()
-    fetchIncomeData()
-    fetchTotalIncome()
+    const verifyAdmin = async () => {
+      try {
+        const res = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/cek-role`, {
+          withCredentials: true,
+        });
+
+        if (res.data.isAdmin !== 1) {
+          router.push("/admin/list");
+          return;
+        }
+
+        fetchFormData();
+        fetchIncomeData();
+        fetchTotalIncome();
+      } catch (error) {
+        console.error("Error verifying admin status:", error);
+        router.push("/login");
+      }
+    };
+
+    verifyAdmin();
   }, [])
 
   return (

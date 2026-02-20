@@ -141,6 +141,26 @@ export default function SettingsPage() {
                             </CardContent>
                         </Card>
 
+                        {/* Separator 3: Referral Settings */}
+                        <Card className="mb-6">
+                            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                                <CardTitle className="text-lg font-medium">
+                                    Pengaturan Referral
+                                </CardTitle>
+                                <Link href="/admin/setting/edit/referral">
+                                    <Button variant="ghost" size="sm">
+                                        <Pencil className="h-4 w-4 mr-2" />
+                                        Edit
+                                    </Button>
+                                </Link>
+                            </CardHeader>
+                            <CardContent>
+                                <div className="text-sm text-muted-foreground">
+                                    Atur persentase komisi referral global.
+                                </div>
+                            </CardContent>
+                        </Card>
+
                         {/* Separator 2: Bank Accounts */}
                         <Card>
                             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -185,10 +205,10 @@ export default function SettingsPage() {
                     </div>
                 </div>
             </div>
-<ChangePasswordModal
-    open={showPasswordModal}
-    onOpenChange={setShowPasswordModal}
-/>
+            <ChangePasswordModal
+                open={showPasswordModal}
+                onOpenChange={setShowPasswordModal}
+            />
         </>
     );
 }

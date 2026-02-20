@@ -100,9 +100,9 @@ const FormQuote = ({ params }) => {
     }
   }, []);
 
-  // useEffect(() => {
-  //   // console.log(formData);
-  // }, [formData]);
+  useEffect(() => {
+    console.log(formData);
+  }, [formData]);
 
   return (
     <>

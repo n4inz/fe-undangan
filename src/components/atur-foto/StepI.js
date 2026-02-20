@@ -41,8 +41,8 @@ const StepI = ({ number, nextStep, formData, setFormData, onFormChange, partName
         setSelectedImage(reader.result);
         setFile(selectedFile);
         setIsEditing(true);
-        // console.log('Selected file:', selectedFile);
-        // console.log('Selected file type:', selectedFile.type);
+        console.log('Selected file:', selectedFile);
+        console.log('Selected file type:', selectedFile.type);
       });
       reader.readAsDataURL(selectedFile);
     }
@@ -159,7 +159,7 @@ const StepI = ({ number, nextStep, formData, setFormData, onFormChange, partName
         // Moved skip condition inside fetch
         if (responseData?.form?.ceritaLamaran == null) {
           nextStep();
-          // console.log("Skipping step because ceritaLamaran is null");
+          console.log("Skipping step because ceritaLamaran is null");
           return;
         }
 
@@ -175,7 +175,7 @@ const StepI = ({ number, nextStep, formData, setFormData, onFormChange, partName
             return;
           }
 
-          // console.log("Imageurl:", imageUrl);
+          console.log("Imageurl:", imageUrl);
 
           setSelectedImage(imageUrl);
           setUploading(false);
@@ -211,7 +211,7 @@ const StepI = ({ number, nextStep, formData, setFormData, onFormChange, partName
     setSelectedImage(assetData.imageUrl);
     setFile({ ...assetData, partName: partName });
     setStatusAsset(true);
-    // console.log('Selected asset:', assetData);
+    console.log('Selected asset:', assetData);
   };
 
   useEffect(() => {
@@ -222,7 +222,7 @@ const StepI = ({ number, nextStep, formData, setFormData, onFormChange, partName
         file: file,
       }));
     }
-    // console.log("FILE: " + file);
+    console.log("FILE: " + file);
   }, [selectedImage, file, setFormData]);
 
   return (

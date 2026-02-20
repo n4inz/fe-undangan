@@ -6,6 +6,7 @@ import { DebounceInput } from 'react-debounce-input';
 import DataTable from 'react-data-table-component';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
+import { useRouter } from 'next/navigation';
 import axios from 'axios';
 import {
   DropdownMenu,
@@ -38,9 +39,29 @@ const Staff = () => {
   const [open, setOpen] = useState(false);
   const [selectedRow, setSelectedRow] = useState(null);
 
+  const router = useRouter();
+
   useEffect(() => {
-    fetchData(currentPage, perPage, search);
-  }, [currentPage, perPage, search]);
+    const verifyAdmin = async () => {
+      try {
+        const res = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/cek-role`, {
+          withCredentials: true,
+        });
+
+        if (res.data.isAdmin !== 1) {
+          router.push("/admin/list");
+          return;
+        }
+
+        fetchData(currentPage, perPage, search);
+      } catch (error) {
+        console.error('Error verifying admin status:', error);
+        router.push("/login");
+      }
+    };
+
+    verifyAdmin();
+  }, [currentPage, perPage, search, router, fetchData]);
 
   const fetchData = useCallback(async (page, limit, searchQuery) => {
     try {
@@ -50,7 +71,7 @@ const Staff = () => {
       });
       setData(response.data.data);
       setTotalRows(response.data.total);
-      // console.log(response.data.data);
+      console.log(response.data.data);
     } catch (error) {
       console.error('Error fetching data:', error);
     }
@@ -130,7 +151,7 @@ const Staff = () => {
     }
   };
 
-    const handleAction = (row) => {
+  const handleAction = (row) => {
     setSelectedRow(row);
     setOpen(true);
   };
@@ -147,20 +168,20 @@ const Staff = () => {
 
         {/* Main Content */}
         <div className="flex flex-col flex-grow w-full md:pl-24">
-        <AlertDialog open={open} onOpenChange={setOpen}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
-            <AlertDialogDescription>
-              This action cannot be undone. This will permanently delete this item.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel onClick={() => setOpen(false)}>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDelete}>Delete</AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+          <AlertDialog open={open} onOpenChange={setOpen}>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                <AlertDialogDescription>
+                  This action cannot be undone. This will permanently delete this item.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel onClick={() => setOpen(false)}>Cancel</AlertDialogCancel>
+                <AlertDialogAction onClick={handleDelete}>Delete</AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
           <div className="p-4">
             <div className="py-4">
               Staff

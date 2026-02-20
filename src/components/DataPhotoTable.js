@@ -178,7 +178,7 @@ const DataPhotoTable = ({ params, setUploading }) => {
                     ? formData.linkUndangan
                     : `${process.env.NEXT_PUBLIC_LINK_UNDANGAN}/${formData.slug || ''}`
             });
-            // console.log('Form data:', response.data.form?.linkUndangan);
+            console.log('Form data:', response.data.form?.linkUndangan);
         } catch (error) {
             console.error('Error fetching data:', error);
             setData([]);

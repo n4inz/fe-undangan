@@ -65,7 +65,7 @@ const DataTableForm = ({ initialStatus, onDataUpdate }) => {
       setData(response.data.data);
       setIsAdmin(response.data.isAdmin);
       setTotalRows(response.data.total);
-      // console.log(response.data.data);
+      console.log(response.data.data);
     } catch (error) {
       console.error('Error fetching data:', error);
     }
@@ -94,7 +94,7 @@ const DataTableForm = ({ initialStatus, onDataUpdate }) => {
     // If "All Status" is selected, set the filter to an empty string
     const statusValue = value === null ? '' : value;
     setFilterStatusForm(statusValue);
-    // console.log(statusValue);  // Logging to ensure it's properly set
+    console.log(statusValue);  // Logging to ensure it's properly set
   };
 
   const columns = [
@@ -278,7 +278,7 @@ const DataTableForm = ({ initialStatus, onDataUpdate }) => {
         }
       );
 
-      // console.log('Response', response);
+      console.log('Response', response);
 
       if (response.status === 200) {
         // Only fetch data if the request was successful
@@ -331,7 +331,7 @@ const handlePayment = async (row) => {
   // Jika belum bayar → buka modal
   if (row.isPaid === 0) {
     setOpen(true);
-    // console.log(row);
+    console.log(row);
   } else {
     
     // Ambil datetime device

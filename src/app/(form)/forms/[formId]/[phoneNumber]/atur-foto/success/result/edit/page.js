@@ -90,14 +90,14 @@ const Edit = ({ params }) => {
 
         try {
             // Validate the form data using your schema
-            // console.log("submitted formData: ", formData);
+            console.log("submitted formData: ", formData);
             mainSchema.parse(formData);
             setErrors({}); // Reset errors if validation passes
 
             // Send the form data as JSON
             const response = await axios.put(`${process.env.NEXT_PUBLIC_API_URL}/form-edit/${params.formId}/${params.phoneNumber}`, formData);
 
-            // console.log('Form updated successfully:', response);
+            console.log('Form updated successfully:', response);
             router.push(`/forms/${params.formId}/${params.phoneNumber}/atur-foto/success/result`);
         } catch (error) {
             if (error instanceof z.ZodError) {
@@ -113,7 +113,7 @@ const Edit = ({ params }) => {
                 if (firstErrorField) {
                     firstErrorField.scrollIntoView({ behavior: 'smooth', block: 'center' });
                 }
-                // console.log(fieldErrors);
+                console.log(fieldErrors);
             } else {
                 // Handle any other unexpected errors
                 console.error('An unexpected error occurred:', error);
@@ -313,7 +313,7 @@ const Edit = ({ params }) => {
     }, [mounted]);
 
     useEffect(() => {
-        // console.log("Updated formData: ", formData);
+        console.log("Updated formData: ", formData);
     }, [formData]);
 
     if (!mounted) {

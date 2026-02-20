@@ -32,7 +32,7 @@ const nextConfig = {
         ? envHosts.split(",").map((h) => h.trim())
         : defaultHosts;
 
-      // console.log("🖼️ Allowed remote image hosts:");
+      console.log("🖼️ Allowed remote image hosts:");
       console.table(hosts);
 
       // Ubah setiap host jadi pattern valid Next.js

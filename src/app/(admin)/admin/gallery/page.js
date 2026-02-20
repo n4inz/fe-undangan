@@ -122,7 +122,7 @@ const handleDeleteMonth = useCallback(async () => {
       const response = await axios.delete(`${process.env.NEXT_PUBLIC_API_URL}/delete-uncompressed-files`, {
         withCredentials: true,
       });
-      // console.log('Delete uncompressed response:', response.data);
+      console.log('Delete uncompressed response:', response.data);
       toast({ title: "Success", description: response.data.message });
 
       const uncompressedResponse = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/get-uncompressed-data`, {

@@ -145,7 +145,7 @@ const EditDetail = ({ params }) => {
 
         try {
             // Validate the form data using your schema
-            // console.log("submitted formData: ", formData);
+            console.log("submitted formData: ", formData);
             mainSchema.parse(formData);
             setErrors({}); // Reset errors if validation passes
 
@@ -154,7 +154,7 @@ const EditDetail = ({ params }) => {
                 withCredentials: true, // Add withCredentials to send cookies
             });
 
-            // console.log('Form updated successfully:', response);
+            console.log('Form updated successfully:', response);
             router.push(`/admin/detail/${response.data.id}?success=true`);
         } catch (error) {
             if (error instanceof z.ZodError) {
@@ -170,7 +170,7 @@ const EditDetail = ({ params }) => {
                 if (firstErrorField) {
                     firstErrorField.scrollIntoView({ behavior: 'smooth', block: 'center' });
                 }
-                // console.log(fieldErrors);
+                console.log(fieldErrors);
             } else {
                 // Handle any other unexpected errors
                 console.error('An unexpected error occurred:', error);
@@ -185,7 +185,7 @@ const EditDetail = ({ params }) => {
                 `${process.env.NEXT_PUBLIC_API_URL}/music?limit=1000`
             );
             setMusicList(response.data.data);
-            // console.log("musicList", response.data.data);
+            console.log("musicList", response.data.data);
         } catch (error) {
             console.error('Error fetching music list:', error);
         }
@@ -369,9 +369,9 @@ const EditDetail = ({ params }) => {
         }
     }, [mounted]);
 
-    // useEffect(() => {
-    //     console.log("Updated formData: ", formData);
-    // }, [formData]);
+    useEffect(() => {
+        console.log("Updated formData: ", formData);
+    }, [formData]);
 
     if (!mounted || isLoadingOptions) {
         return <div>Loading...</div>;
@@ -1232,28 +1232,6 @@ const EditDetail = ({ params }) => {
                                 type="date"
                                 name="tglTampilanUndangan"
                                 value={formData.tglTampilanUndangan}
-                                onChange={handleChange}
-                                className="mt-1 p-2 w-full border border-gray-300 rounded-lg"
-                            />
-                        </div>
-                        <div className="mb-4">
-                            <label className="block text-gray-700">Tanggal Akad Teks
-                            </label>
-                            <Input
-                                type="text"
-                                name="datetimeAkadText"
-                                value={formData.datetimeAkadText}
-                                onChange={handleChange}
-                                className="mt-1 p-2 w-full border border-gray-300 rounded-lg"
-                            />
-                        </div>
-                        <div className="mb-4">
-                            <label className="block text-gray-700">Tanggal Resepsi Teks
-                            </label>
-                            <Input
-                                type="text"
-                                name="datetimeResepsiText"
-                                value={formData.datetimeResepsiText}
                                 onChange={handleChange}
                                 className="mt-1 p-2 w-full border border-gray-300 rounded-lg"
                             />

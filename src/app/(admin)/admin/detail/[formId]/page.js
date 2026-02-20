@@ -130,9 +130,9 @@ const Detail = ({ params }) => {
     fetchImage()
   }, []);
 
-  // useEffect(() => {
-  //   // console.log("ListImages:", listImages)
-  // }, [listImages]);
+  useEffect(() => {
+    console.log("ListImages:", listImages)
+  }, [listImages]);
 
   useEffect(() => {
     if (success === 'true') {
@@ -970,26 +970,6 @@ const Detail = ({ params }) => {
               type="date"
               name="tglTampilanUndangan"
               value={formData.tglTampilanUndangan}
-              className="mt-1 p-2 w-full border border-gray-300 rounded-lg"
-            />
-          </div>
-          <div className="mb-4">
-            <label className="block text-gray-700">Tanggal Akad Teks
-            </label>
-            <Input
-              type="text"
-              name="datetimeAkadText"
-              value={formData.datetimeAkadText}
-              className="mt-1 p-2 w-full border border-gray-300 rounded-lg"
-            />
-          </div>
-          <div className="mb-4">
-            <label className="block text-gray-700">Tanggal Resepsi Teks
-            </label>
-            <Input
-              type="text"
-              name="datetimeResepsiText"
-              value={formData.datetimeResepsiText}
               className="mt-1 p-2 w-full border border-gray-300 rounded-lg"
             />
           </div>

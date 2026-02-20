@@ -625,7 +625,7 @@ const DateTimePicker = React.forwardRef(
     const buttonRef = useRef(null);
     const [displayDate, setDisplayDate] = React.useState(value || undefined);
     onMonthChange = onMonthChange || onChange;
-    // console.log(month)
+    console.log(month)
 
     const handleMonthChange = (newDay) => {
       if (!newDay) return;
@@ -669,7 +669,7 @@ const DateTimePicker = React.forwardRef(
       [displayDate]
     );
     useEffect(() => {
-      // console.log(month);
+      console.log(month);
     }, [month]);
     const initHourFormat = {
       hour24:

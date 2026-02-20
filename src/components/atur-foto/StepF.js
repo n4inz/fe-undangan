@@ -67,7 +67,7 @@ const SortableItem = ({ item, onRemove, uploading, remove }) => {
         onClick={(e) => {
           e.stopPropagation();
           e.preventDefault();
-          // console.log("🗑️ Remove button clicked:", item.id, item.code);
+          console.log("🗑️ Remove button clicked:", item.id, item.code);
           onRemove();
         }}
         className="absolute top-2 right-2 bg-red-500 text-white rounded-full p-1 hover:bg-red-600 z-20"
@@ -211,7 +211,7 @@ const compressImageWithAspectRatio = async (file) => {
     if (!blob) throw new Error('canvas.toBlob returned null');
 
     const fileSizeKB = blob.size / 1024;
-    // console.log(`🔄 [${file.name}] attempt ${attempt} quality=${quality.toFixed(2)} size=${fileSizeKB.toFixed(0)}KB`);
+    console.log(`🔄 [${file.name}] attempt ${attempt} quality=${quality.toFixed(2)} size=${fileSizeKB.toFixed(0)}KB`);
 
     if ((fileSizeKB >= targetMinKB && fileSizeKB <= targetMaxKB) || attempt >= maxAttempts) {
       const originalName = file.name.split('.')[0];
@@ -281,12 +281,12 @@ const simpleFallback = async (file) => {
 // IMPORTANT: processFiles must await the placeholder toBlob too
 const processFiles = async (files) => {
   const results = [];
-  // console.log(`🎯 Starting compression for ${files.length} files...`);
+  console.log(`🎯 Starting compression for ${files.length} files...`);
 
   for (let i = 0; i < files.length; i++) {
     const file = files[i];
     const originalSizeMB = (file.size / (1024 * 1024)).toFixed(2);
-    // console.log(`📁 Processing file ${i + 1}/${files.length}: ${file.name} (${originalSizeMB}MB)`);
+    console.log(`📁 Processing file ${i + 1}/${files.length}: ${file.name} (${originalSizeMB}MB)`);
 
     try {
       let compressedFile;
@@ -350,7 +350,7 @@ const processFiles = async (files) => {
     const { active, over } = event;
     if (!over || active.id === over.id) return;
 
-    // console.log("🔄 Drag end:", active.id, "->", over.id);
+    console.log("🔄 Drag end:", active.id, "->", over.id);
 
     setImages((items) => {
       const oldIndex = items.findIndex((item) => (item.id || item.url) === active.id);
@@ -370,7 +370,7 @@ const processFiles = async (files) => {
         imageUrls: newItems.map((img) => img.url),
       }));
 
-      // console.log("✅ Images reordered:", newItems);
+      console.log("✅ Images reordered:", newItems);
       return newItems;
     });
 
@@ -387,7 +387,7 @@ const processFiles = async (files) => {
         order: index + 1
       }));
 
-      // console.log("✅ NewFiles reordered:", newFiles);
+      console.log("✅ NewFiles reordered:", newFiles);
       return newFiles;
     });
   };
@@ -402,20 +402,20 @@ const processFiles = async (files) => {
 
   // 1. Handle file selection with compression
   const handleFileChange = async (e) => {
-    // console.log("📁 File selection triggered");
+    console.log("📁 File selection triggered");
 
     const selectedFiles = Array.from(e.target.files);
-    // console.log("📁 Selected files:", selectedFiles.length);
+    console.log("📁 Selected files:", selectedFiles.length);
 
     if (selectedFiles.length === 0) {
-      // console.log("❌ No files selected");
+      console.log("❌ No files selected");
       return;
     }
 
     // Validate file types
     const nonImageFiles = selectedFiles.filter((file) => !file.type.startsWith("image/"));
     if (nonImageFiles.length > 0) {
-      // console.log("❌ Non-image files detected:", nonImageFiles);
+      console.log("❌ Non-image files detected:", nonImageFiles);
       toast({ title: 'File bukan gambar!', variant: 'destructive' });
       // Reset file input
       if (fileInputRef.current) fileInputRef.current.value = '';
@@ -430,7 +430,7 @@ const processFiles = async (files) => {
     });
 
     if (invalidExtFiles.length > 0) {
-      // console.log("❌ Invalid extensions:", invalidExtFiles);
+      console.log("❌ Invalid extensions:", invalidExtFiles);
       toast({ title: 'Format gambar harus .jpg, .jpeg, .png, .webp, .gif, .avif', variant: 'destructive' });
       // Reset file input
       if (fileInputRef.current) fileInputRef.current.value = '';
@@ -439,7 +439,7 @@ const processFiles = async (files) => {
 
     // Validate max 15 images
     if (images.length + selectedFiles.length > 15) {
-      // console.log("❌ Too many images:", images.length + selectedFiles.length);
+      console.log("❌ Too many images:", images.length + selectedFiles.length);
       toast({ title: 'Maksimum upload foto adalah 15!', variant: 'destructive' });
       // Reset file input
       if (fileInputRef.current) fileInputRef.current.value = '';
@@ -447,13 +447,13 @@ const processFiles = async (files) => {
     }
 
     // Start compression
-    // console.log("🔄 Starting compression...");
+    console.log("🔄 Starting compression...");
     setCompressing(true);
 
     try {
       // Compress all files
       const compressedFiles = await processFiles(selectedFiles);
-      // console.log("✅ Compression completed:", compressedFiles.length);
+      console.log("✅ Compression completed:", compressedFiles.length);
 
       // Generate stable preview URLs for compressed files
       const newFileData = compressedFiles.map((file, index) => {
@@ -480,19 +480,19 @@ const processFiles = async (files) => {
         uniqueId: item.id, // Keep track of unique ID
       }));
 
-      // console.log("📁 New file data:", newFileData);
-      // console.log("🖼️ New image entries:", newImageEntries);
+      console.log("📁 New file data:", newFileData);
+      console.log("🖼️ New image entries:", newImageEntries);
 
       // Append to existing arrays
       setImages((prev) => {
         const updated = [...prev, ...newImageEntries];
-        // console.log("🖼️ Updated images state:", updated);
+        console.log("🖼️ Updated images state:", updated);
         return updated;
       });
 
       setNewFiles((prev) => {
         const updated = [...prev, ...newFileData];
-        // console.log("📁 Updated newFiles state:", updated);
+        console.log("📁 Updated newFiles state:", updated);
         return updated;
       });
 
@@ -509,7 +509,7 @@ const processFiles = async (files) => {
         variant: 'default'
       });
 
-      // console.log("✅ Files successfully added to state");
+      console.log("✅ Files successfully added to state");
     } catch (error) {
       console.error('❌ Compression error:', error);
       toast({ title: 'Gagal mengkompress foto', variant: 'destructive' });
@@ -522,18 +522,18 @@ const processFiles = async (files) => {
 
   // 2. Handle removing image
   const handleRemoveImage = async (id, previewUrl, code) => {
-    // console.log("🗑️ Remove image called:", { id, previewUrl, code });
+    console.log("🗑️ Remove image called:", { id, previewUrl, code });
     setRemove(true);
 
     if (id && code && code !== null && code !== undefined) {
       // This is an uploaded image - call API to remove
-      // console.log("🗑️ Removing uploaded image from server:", id);
+      console.log("🗑️ Removing uploaded image from server:", id);
       try {
         const response = await axios.delete(
           `${process.env.NEXT_PUBLIC_API_URL}/remove-image/${id}/${params.formId}/${params.phoneNumber}`
         );
         if (response.status === 200) {
-          // console.log("✅ Image removed from server successfully");
+          console.log("✅ Image removed from server successfully");
           const updatedImages = images.filter((image) => image.id !== id);
           setImages(updatedImages);
           props.setFormData((prev) => ({
@@ -548,12 +548,12 @@ const processFiles = async (files) => {
       }
     } else {
       // This is a new file - remove from local state
-      // console.log("🗑️ Removing new file from local state:", previewUrl);
+      console.log("🗑️ Removing new file from local state:", previewUrl);
       const updatedImages = images.filter((image) => image.url !== previewUrl);
       const updatedNewFiles = newFiles.filter((item) => item.previewUrl !== previewUrl);
 
-      // console.log("🗑️ Updated images after remove:", updatedImages);
-      // console.log("🗑️ Updated newFiles after remove:", updatedNewFiles);
+      console.log("🗑️ Updated images after remove:", updatedImages);
+      console.log("🗑️ Updated newFiles after remove:", updatedNewFiles);
 
       setImages(updatedImages);
       setNewFiles(updatedNewFiles);
@@ -562,7 +562,7 @@ const processFiles = async (files) => {
         imageUrls: updatedImages.map((img) => img.url),
       }));
 
-      // console.log("✅ New file removed successfully");
+      console.log("✅ New file removed successfully");
     }
     setRemove(false);
   };
@@ -579,19 +579,19 @@ const processFiles = async (files) => {
     }
 
     if (newFiles.length === 0 && images.length > 0) {
-      // console.log("📤 No new files to upload, managing order and proceeding");
+      console.log("📤 No new files to upload, managing order and proceeding");
       await manageOrder(images);
       props.nextStep();
       return;
     }
 
-    // console.log("📤 Starting upload process...");
+    console.log("📤 Starting upload process...");
     setUploading(true);
     const fd = new FormData();
 
     // Add all newFiles to FormData
     newFiles.forEach((item, index) => {
-      // console.log(`📤 Adding file ${index + 1} to FormData:`, item);
+      console.log(`📤 Adding file ${index + 1} to FormData:`, item);
       fd.append("id", item.id || '');
       fd.append("order", item.order || index + 1);
       fd.append("file", item.file);
@@ -605,7 +605,7 @@ const processFiles = async (files) => {
     }
     fd.append("partName", props.partName);
 
-    // console.log("📤 FormData prepared, sending to server...");
+    console.log("📤 FormData prepared, sending to server...");
 
     try {
       const response = await axios.post(
@@ -617,11 +617,11 @@ const processFiles = async (files) => {
             const { loaded, total } = progressEvent;
             const percent = Math.floor((loaded / total) * 100);
             setUploadProgress(percent);
-            // console.log(`📤 Upload progress: ${percent}%`);
+            console.log(`📤 Upload progress: ${percent}%`);
           },
         }
       );
-      // console.log("✅ Files uploaded successfully:", response);
+      console.log("✅ Files uploaded successfully:", response);
       await manageOrder(images);
       props.onFormChange();
       props.nextStep();
@@ -637,13 +637,13 @@ const processFiles = async (files) => {
 
   // Manage Order
   const manageOrder = async (images) => {
-    // console.log("📋 Managing order for images:", images);
+    console.log("📋 Managing order for images:", images);
     try {
       const response = await axios.put(
         `${process.env.NEXT_PUBLIC_API_URL}/manage-bg-order/${params.formId}/${params.phoneNumber}`,
         images
       );
-      // console.log("✅ Order managed successfully:", response.data);
+      console.log("✅ Order managed successfully:", response.data);
     } catch (error) {
       console.error("❌ Error managing order:", error);
       return null;
@@ -652,14 +652,14 @@ const processFiles = async (files) => {
 
   // 4. Fetch existing images from the server
   const fetchData = async () => {
-    // console.log("🔄 Fetching existing images...");
+    console.log("🔄 Fetching existing images...");
     try {
       const response = await axios.get(
         `${process.env.NEXT_PUBLIC_API_URL}/get-gallery/${params.formId}/${params.phoneNumber}`,
         { params: { partName: props.partName } }
       );
 
-      // console.log("📥 Fetched data:", response.data);
+      console.log("📥 Fetched data:", response.data);
 
       const imagesData = response.data.data.map((item) => ({
         url: item.images.fileImage
@@ -672,7 +672,7 @@ const processFiles = async (files) => {
         code: item.code || generateRandomCode(), // Ensure code exists
       }));
 
-      // console.log("🖼️ Processed images data:", imagesData);
+      console.log("🖼️ Processed images data:", imagesData);
       setImages(imagesData);
     } catch (error) {
       console.error("❌ Error fetching images:", error);
@@ -684,7 +684,7 @@ const processFiles = async (files) => {
   }, []);
 
   // useEffect(() => {
-  //   // console.log("🔄 State updated - newFiles:", newFiles.length, "images:", images.length);
+  //   console.log("🔄 State updated - newFiles:", newFiles.length, "images:", images.length);
   // }, [images, newFiles]);
 
   // RENDER
@@ -772,7 +772,7 @@ const processFiles = async (files) => {
 
           <Button
             onClick={() => {
-              // console.log("🔘 Upload button clicked");
+              console.log("🔘 Upload button clicked");
               fileInputRef.current?.click();
             }}
             disabled={uploading || compressing}

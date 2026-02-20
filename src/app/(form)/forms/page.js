@@ -133,7 +133,15 @@ export default function Dashboard() {
 
                     if (!isUserRegistered) {
                         localStorage.setItem(userKey, 'true');
-                    } else {
+                    }
+
+                    // Capture referral code if present in URL
+                    const refCode = searchParams.get('ref');
+                    if (refCode) {
+                        localStorage.setItem('referralCode', refCode);
+                    }
+
+                    if (isUserRegistered) { // Check valid user only if registered
                         const checkRes = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/check-user`, {
                             headers: {
                                 Authorization: `Bearer ${sessionToken}`,
@@ -199,9 +207,9 @@ export default function Dashboard() {
 
     // useEffect(() => {
     //     if (!loading) {
-    //         // console.log("Forms data:", forms);
-    //         // console.log("Company data:", company);
-    //         // console.log("Bank accounts:", bankAccounts);
+    //         console.log("Forms data:", forms);
+    //         console.log("Company data:", company);
+    //         console.log("Bank accounts:", bankAccounts);
     //     }
     // }, [forms, loading, company, bankAccounts]);
 
@@ -251,6 +259,13 @@ export default function Dashboard() {
                                                 </p>
                                             </div>
                                         </DropdownMenuLabel>
+                                        <DropdownMenuSeparator />
+                                        <DropdownMenuItem asChild>
+                                            <Link href="/forms/referral" className="cursor-pointer w-full">
+                                                Referral
+                                            </Link>
+                                        </DropdownMenuItem>
+                                        <DropdownMenuSeparator />
                                         <DropdownMenuItem onClick={() => signOut()}>
                                             Log out
                                         </DropdownMenuItem>

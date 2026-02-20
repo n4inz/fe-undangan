@@ -8,6 +8,6 @@ export const getTema = async (formId = null) => {
         const { data } = await axios.get(endpoint);
         return data;
     } catch (error) {
-        // console.log(error);
+        console.log(error);
     }
 };

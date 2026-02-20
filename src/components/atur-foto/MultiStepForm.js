@@ -117,7 +117,7 @@ const MultiStepForm = ({ onFormChange }) => {
       checkIsSyari();
     }
 
-    // console.log("STEP:", step);
+    console.log("STEP:", step);
   }, [step]);
 
   const finalStepTriggered = useRef(false); // track if it's been called

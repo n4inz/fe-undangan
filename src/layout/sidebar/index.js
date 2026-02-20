@@ -21,6 +21,7 @@ export default function Sidebar({ authenticated }) {
     const [company, setCompany] = useState(null);
     const [profileLoading, setProfileLoading] = useState(false);
     const [isFileManagerOpen, setFileManagerOpen] = useState(false);
+    const [isAffiliateOpen, setAffiliateOpen] = useState(false);
 
     if (!authenticated) {
         redirect("/login");
@@ -160,6 +161,21 @@ export default function Sidebar({ authenticated }) {
                             <MenuItem name="Asset" route="/admin/asset" icon={<BiImages />} />
                             <MenuItem name="Musik" route="/admin/music" icon={<BiSolidMusic />} />
                             <MenuItem name="Quote" route="/admin/quotes" icon={<BiChat />} />
+                            {/* Affiliate Management Group */}
+                            <Collapsible open={isAffiliateOpen} onOpenChange={setAffiliateOpen} className="pl-3">
+                                <CollapsibleTrigger className="w-full flex items-center justify-between px-4 py-2 hover:bg-muted rounded-md">
+                                    <div className="flex items-center gap-2">
+                                        <BiUserPlus className="text-lg" />
+                                        <span>Affiliate</span>
+                                    </div>
+                                    <ChevronDown className={`transition-transform ${isAffiliateOpen ? "rotate-180" : ""}`} size={16} />
+                                </CollapsibleTrigger>
+
+                                <CollapsibleContent className="ml-6 mt-1 space-y-1">
+                                    <MenuItem name="Komisi" route="/admin/referral" icon={<BiUserPlus />} />
+                                    <MenuItem name="Penarikan" route="/admin/withdrawal" icon={<BiMoney />} />
+                                </CollapsibleContent>
+                            </Collapsible>
                             {/* File Manager Group */}
                             <Collapsible open={isFileManagerOpen} onOpenChange={setFileManagerOpen} className="pl-3">
                                 <CollapsibleTrigger className="w-full flex items-center justify-between px-4 py-2 hover:bg-muted rounded-md">
