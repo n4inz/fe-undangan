@@ -1236,6 +1236,30 @@ const EditDetail = ({ params }) => {
                                 className="mt-1 p-2 w-full border border-gray-300 rounded-lg"
                             />
                         </div>
+
+                        <div className="mb-4">
+                            <label className="block text-gray-700">Tanggal Akad Teks
+                            </label>
+                            <Input
+                                type="text"
+                                name="datetimeAkadText"
+                                value={formData.datetimeAkadText}
+                                onChange={handleChange}
+                                className="mt-1 p-2 w-full border border-gray-300 rounded-lg"
+                            />
+                        </div>
+                        <div className="mb-4">
+                            <label className="block text-gray-700">Tanggal Resepsi Teks
+                            </label>
+                            <Input
+                                type="text"
+                                name="datetimeResepsiText"
+                                value={formData.datetimeResepsiText}
+                                onChange={handleChange}
+                                className="mt-1 p-2 w-full border border-gray-300 rounded-lg"
+                            />
+                        </div>
+
                         <div className="mb-4">
                             <label className="block text-gray-700">
                                 Upload ZIP File (Max 1)
