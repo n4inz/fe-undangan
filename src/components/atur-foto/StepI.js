@@ -267,20 +267,26 @@ const StepI = ({ number, nextStep, formData, setFormData, onFormChange, partName
           </div>
         </div>
 
-        <div className="flex justify-center gap-x-4 pb-4">
-          <input
-            type="file"
-            ref={fileInputRef}
-            onChange={handleFileChange}
-            style={{ display: "none" }}
-            accept="image/*"
-          />
-          <Button onClick={handleUploadClick} disabled={uploading}>
-            {selectedImage ? "Ganti Foto" : "Upload Foto"}
-          </Button>
+        <div className="flex flex-col items-center gap-y-4 pb-4">
+          <div className="flex justify-center gap-x-4 w-full">
+            <input
+              type="file"
+              ref={fileInputRef}
+              onChange={handleFileChange}
+              style={{ display: "none" }}
+              accept="image/*"
+            />
+            <Button onClick={handleUploadClick} disabled={uploading}>
+              {selectedImage ? "Ganti Foto" : "Upload Foto"}
+            </Button>
 
-          <Button onClick={handleNextClick} disabled={!file || uploading}>
-            {uploading ? "Uploading..." : "Selanjutnya"}
+            <Button onClick={handleNextClick} disabled={!file || uploading}>
+              {uploading ? "Uploading..." : "Selanjutnya"}
+            </Button>
+          </div>
+
+          <Button className="text-gray-700 hover:text-gray-900 text-sm w-full" onClick={nextStep} variant="outline" disabled={uploading} type="button">
+            Skip
           </Button>
         </div>
 
