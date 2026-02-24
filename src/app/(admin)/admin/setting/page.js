@@ -19,6 +19,7 @@ export default function SettingsPage() {
         ownerName: "",
     });
     const [bankAccounts, setBankAccounts] = useState([]);
+    const [referralPercentage, setReferralPercentage] = useState(null);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState(null);
     const [showPasswordModal, setShowPasswordModal] = useState(false);
@@ -58,6 +59,16 @@ export default function SettingsPage() {
                     setBankAccounts(formattedAccounts);
                 } else {
                     setBankAccounts([]);
+                }
+
+                // Fetch referral percentage
+                const referralResponse = await axios.get(
+                    `${process.env.NEXT_PUBLIC_API_URL}/referral/percentage`,
+                    { withCredentials: true }
+                );
+
+                if (referralResponse.data) {
+                    setReferralPercentage(referralResponse.data.referralPercentage);
                 }
             } catch (error) {
                 console.error("Failed to fetch data:", error);
@@ -157,6 +168,11 @@ export default function SettingsPage() {
                             <CardContent>
                                 <div className="text-sm text-muted-foreground">
                                     Atur persentase komisi referral global.
+                                    {referralPercentage !== null && (
+                                        <div className="mt-2 font-medium text-foreground">
+                                            Komisi saat ini: <span className="text-primary">{referralPercentage}%</span>
+                                        </div>
+                                    )}
                                 </div>
                             </CardContent>
                         </Card>

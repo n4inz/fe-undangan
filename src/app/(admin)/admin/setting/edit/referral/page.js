@@ -98,6 +98,11 @@ export default function AdminReferralSettings() {
                 title: "Berhasil disimpan",
                 description: "Persentase referral telah diperbarui.",
             });
+
+            // Redirect to settings page
+            setTimeout(() => {
+                router.push("/admin/setting");
+            }, 1000);
         } catch (error) {
             console.error("Error updating percentage:", error);
             toast({

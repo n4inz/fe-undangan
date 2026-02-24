@@ -153,7 +153,7 @@ export default function ReferralDashboard() {
         <div className="space-y-6">
             <h2 className="text-3xl font-bold tracking-tight">Referral Dashboard</h2>
 
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+            <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
                 {/* Referral Link Card */}
                 <Card>
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -162,18 +162,20 @@ export default function ReferralDashboard() {
                     </CardHeader>
                     <CardContent>
                         {referralData.link ? (
-                            <div className="flex flex-col space-y-2">
-                                <code className="relative rounded bg-muted px-[0.3rem] py-[0.2rem] font-mono text-sm font-semibold truncate">
-                                    {referralData.link}
-                                </code>
+                            <div className="flex flex-col space-y-3">
+                                <div className="bg-muted p-2 rounded-md border">
+                                    <code className="block font-mono text-xs font-semibold break-all whitespace-pre-wrap">
+                                        {referralData.link}
+                                    </code>
+                                </div>
                                 <Button size="sm" onClick={copyToClipboard} className="w-full">
                                     <Copy className="mr-2 h-4 w-4" />
                                     Salin Link
                                 </Button>
                             </div>
                         ) : (
-                            <div className="flex flex-col space-y-2">
-                                <p className="text-sm text-muted-foreground mb-2">
+                            <div className="flex flex-col space-y-3">
+                                <p className="text-sm text-muted-foreground">
                                     Anda belum memiliki kode referral. Klik tombol di bawah untuk membuatnya.
                                 </p>
                                 <Button size="sm" onClick={handleGenerateCode} disabled={generating} className="w-full">
@@ -249,33 +251,37 @@ export default function ReferralDashboard() {
                             ) : commissions.length === 0 ? (
                                 <div className="text-center py-8 text-muted-foreground">Belum ada riwayat komisi.</div>
                             ) : (
-                                <Table>
-                                    <TableHeader>
-                                        <TableRow>
-                                            <TableHead>Tanggal</TableHead>
-                                            <TableHead>Dari Undangan</TableHead>
-                                            <TableHead>Komisi</TableHead>
-                                        </TableRow>
-                                    </TableHeader>
-                                    <TableBody>
-                                        {commissions.map((comm) => (
-                                            <TableRow key={comm.id}>
-                                                <TableCell>
-                                                    {new Date(comm.createdAt).toLocaleDateString("id-ID", {
-                                                        day: "numeric", month: "long", year: "numeric"
-                                                    })}
-                                                </TableCell>
-                                                <TableCell>
-                                                    <div className="font-medium">{comm.form.namaPanggilanPria} & {comm.form.namaPanggilanWanita}</div>
-                                                    <div className="text-xs text-muted-foreground">{comm.form.name}</div>
-                                                </TableCell>
-                                                <TableCell className="font-bold text-green-600">
-                                                    +{formatCurrency(comm.amount)}
-                                                </TableCell>
-                                            </TableRow>
-                                        ))}
-                                    </TableBody>
-                                </Table>
+                                <div className="overflow-x-auto -mx-2 sm:mx-0">
+                                    <div className="min-w-[600px] p-2 sm:p-0">
+                                        <Table>
+                                            <TableHeader>
+                                                <TableRow>
+                                                    <TableHead>Tanggal</TableHead>
+                                                    <TableHead>Dari Undangan</TableHead>
+                                                    <TableHead>Komisi</TableHead>
+                                                </TableRow>
+                                            </TableHeader>
+                                            <TableBody>
+                                                {commissions.map((comm) => (
+                                                    <TableRow key={comm.id}>
+                                                        <TableCell className="whitespace-nowrap">
+                                                            {new Date(comm.createdAt).toLocaleDateString("id-ID", {
+                                                                day: "numeric", month: "long", year: "numeric"
+                                                            })}
+                                                        </TableCell>
+                                                        <TableCell>
+                                                            <div className="font-medium">{comm.form.namaPanggilanPria} & {comm.form.namaPanggilanWanita}</div>
+                                                            <div className="text-xs text-muted-foreground">{comm.form.name}</div>
+                                                        </TableCell>
+                                                        <TableCell className="font-bold text-green-600 whitespace-nowrap">
+                                                            +{formatCurrency(comm.amount)}
+                                                        </TableCell>
+                                                    </TableRow>
+                                                ))}
+                                            </TableBody>
+                                        </Table>
+                                    </div>
+                                </div>
                             )}
 
                             {/* Pagination */}
@@ -316,42 +322,46 @@ export default function ReferralDashboard() {
                             {withdrawals.length === 0 ? (
                                 <div className="text-center py-8 text-muted-foreground">Belum ada riwayat penarikan.</div>
                             ) : (
-                                <Table>
-                                    <TableHeader>
-                                        <TableRow>
-                                            <TableHead>Tanggal</TableHead>
-                                            <TableHead>Jumlah</TableHead>
-                                            <TableHead>Metode</TableHead>
-                                            <TableHead>Detail Akun</TableHead>
-                                            <TableHead>Status</TableHead>
-                                        </TableRow>
-                                    </TableHeader>
-                                    <TableBody>
-                                        {withdrawals.map((w) => (
-                                            <TableRow key={w.id}>
-                                                <TableCell>
-                                                    {new Date(w.createdAt).toLocaleDateString("id-ID", {
-                                                        day: "numeric", month: "long", year: "numeric"
-                                                    })}
-                                                </TableCell>
-                                                <TableCell className="font-bold">{formatCurrency(w.amount)}</TableCell>
-                                                <TableCell>{w.method === "BANK" ? "Bank" : "E-Wallet"}</TableCell>
-                                                <TableCell>
-                                                    <div className="text-sm font-medium">{w.accountNumber}</div>
-                                                    <div className="text-xs text-muted-foreground">{w.accountName} {w.bankName ? `(${w.bankName})` : ""}</div>
-                                                </TableCell>
-                                                <TableCell>
-                                                    <Badge variant={
-                                                        w.status === "APPROVED" ? "success" :
-                                                            w.status === "REJECTED" ? "destructive" : "warning"
-                                                    }>
-                                                        {w.status}
-                                                    </Badge>
-                                                </TableCell>
-                                            </TableRow>
-                                        ))}
-                                    </TableBody>
-                                </Table>
+                                <div className="overflow-x-auto -mx-2 sm:mx-0">
+                                    <div className="min-w-[800px] p-2 sm:p-0">
+                                        <Table>
+                                            <TableHeader>
+                                                <TableRow>
+                                                    <TableHead>Tanggal</TableHead>
+                                                    <TableHead>Jumlah</TableHead>
+                                                    <TableHead>Metode</TableHead>
+                                                    <TableHead>Detail Akun</TableHead>
+                                                    <TableHead>Status</TableHead>
+                                                </TableRow>
+                                            </TableHeader>
+                                            <TableBody>
+                                                {withdrawals.map((w) => (
+                                                    <TableRow key={w.id}>
+                                                        <TableCell className="whitespace-nowrap">
+                                                            {new Date(w.createdAt).toLocaleDateString("id-ID", {
+                                                                day: "numeric", month: "long", year: "numeric"
+                                                            })}
+                                                        </TableCell>
+                                                        <TableCell className="font-bold whitespace-nowrap">{formatCurrency(w.amount)}</TableCell>
+                                                        <TableCell className="whitespace-nowrap">{w.method === "BANK" ? "Bank" : "E-Wallet"}</TableCell>
+                                                        <TableCell>
+                                                            <div className="text-sm font-medium">{w.accountNumber}</div>
+                                                            <div className="text-xs text-muted-foreground">{w.accountName} {w.bankName ? `(${w.bankName})` : ""}</div>
+                                                        </TableCell>
+                                                        <TableCell>
+                                                            <Badge variant={
+                                                                w.status === "APPROVED" ? "success" :
+                                                                    w.status === "REJECTED" ? "destructive" : "warning"
+                                                            }>
+                                                                {w.status}
+                                                            </Badge>
+                                                        </TableCell>
+                                                    </TableRow>
+                                                ))}
+                                            </TableBody>
+                                        </Table>
+                                    </div>
+                                </div>
                             )}
                         </CardContent>
                     </Card>
