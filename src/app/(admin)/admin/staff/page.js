@@ -41,28 +41,6 @@ const Staff = () => {
 
   const router = useRouter();
 
-  useEffect(() => {
-    const verifyAdmin = async () => {
-      try {
-        const res = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/cek-role`, {
-          withCredentials: true,
-        });
-
-        if (res.data.isAdmin !== 1) {
-          router.push("/admin/list");
-          return;
-        }
-
-        fetchData(currentPage, perPage, search);
-      } catch (error) {
-        console.error('Error verifying admin status:', error);
-        router.push("/login");
-      }
-    };
-
-    verifyAdmin();
-  }, [currentPage, perPage, search, router, fetchData]);
-
   const fetchData = useCallback(async (page, limit, searchQuery) => {
     try {
       const response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/users`, {
@@ -88,6 +66,32 @@ const Staff = () => {
   const handlePerRowsChange = async (newPerPage, page) => {
     setPerPage(newPerPage);
     fetchData(page, newPerPage);
+  };
+
+  const handleAction = (row) => {
+    setSelectedRow(row);
+    setOpen(true);
+  };
+
+  const handleDelete = () => {
+    // alert(`Action for ${row.name}`);
+    try {
+      axios.delete(`${process.env.NEXT_PUBLIC_API_URL}/users/${selectedRow.id}`, {
+        withCredentials: true,
+      })
+        .then(response => {
+          // console.log('Response', response);
+          toast({
+            title: "Staff Deleted",
+          });
+          fetchData(currentPage, perPage, search);
+        })
+        .catch(error => {
+          console.error('Error', error);
+        });
+    } catch (error) {
+      console.error('Error', error);
+    }
   };
 
   const columns = [
@@ -130,32 +134,27 @@ const Staff = () => {
     },
   ];
 
-  const handleDelete = () => {
-    // alert(`Action for ${row.name}`);
-    try {
-      axios.delete(`${process.env.NEXT_PUBLIC_API_URL}/users/${selectedRow.id}`, {
-        withCredentials: true,
-      })
-        .then(response => {
-          // console.log('Response', response);
-          toast({
-            title: "Staff Deleted",
-          });
-          fetchData(currentPage, perPage, search);
-        })
-        .catch(error => {
-          console.error('Error', error);
+  useEffect(() => {
+    const verifyAdmin = async () => {
+      try {
+        const res = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/cek-role`, {
+          withCredentials: true,
         });
-    } catch (error) {
-      console.error('Error', error);
-    }
-  };
 
-  const handleAction = (row) => {
-    setSelectedRow(row);
-    setOpen(true);
-  };
+        if (res.data.isAdmin !== 1) {
+          router.push("/admin/list");
+          return;
+        }
 
+        fetchData(currentPage, perPage, search);
+      } catch (error) {
+        console.error('Error verifying admin status:', error);
+        router.push("/login");
+      }
+    };
+
+    verifyAdmin();
+  }, [currentPage, perPage, search, router, fetchData]);
 
   return (
     <>
