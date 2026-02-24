@@ -4,19 +4,23 @@ import { Inter } from "next/font/google";
 import Providers from './providers';
 import './styles/globals.css';
 import GoogleAnalytics from '@/components/GoogleAnalytics';
+import * as Sentry from '@sentry/nextjs';
 
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata = {
   title: "Login | Undangan Digital",
   description: "Masuk untuk mengelola undangan digital Anda dengan mudah dan cepat.",
+  other: {
+    ...Sentry.getTraceData()
+  }
 };
 
 export default async function AppLayout({ children }) {
   const session = await getServerSession(authOptions);
   return (
     <html lang="id">
-      <body>
+      <body className={inter.className}>
         <GoogleAnalytics />
         <Providers session={session}>
           {children}
