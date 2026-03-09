@@ -302,6 +302,53 @@ export default function PaymentModal({ formId, phoneNumber, buttonClassName }) {
       .catch(() => toast({ title: "Gagal menyalin rekening.", variant: "destructive" }));
   };
 
+  // Download image helper (fixes ReferenceError)
+  const handleDownloadImage = useCallback(async (url, suggestedFilename = "download.png") => {
+    if (!url) {
+      toast({ title: "Tidak ada file untuk di-download", variant: "destructive" });
+      return;
+    }
+
+    try {
+      let blob;
+
+      // If it's an object URL (created by URL.createObjectURL) or data URL, fetch still works.
+      // Use fetch to get a blob for remote and data URLs; for blob: urls fetch returns the blob as well in most browsers.
+      const res = await fetch(url, { mode: "cors" });
+      if (!res.ok) throw new Error(`Failed to fetch image (status ${res.status})`);
+      blob = await res.blob();
+
+      const blobUrl = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = blobUrl;
+      a.download = suggestedFilename || "download.png";
+      // Some browsers require link in DOM
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+
+      // revoke after short delay to allow download to start
+      setTimeout(() => {
+        try {
+          URL.revokeObjectURL(blobUrl);
+        } catch (e) {
+          // ignore
+        }
+      }, 1000);
+
+      toast({ title: "Download dimulai" });
+    } catch (err) {
+      console.error("Download error:", err);
+      // fallback: try opening in new tab if download fails for CORS reasons
+      try {
+        window.open(url, "_blank", "noopener,noreferrer");
+        toast({ title: "Gagal download langsung, dibuka di tab baru", variant: "warning" });
+      } catch (e) {
+        toast({ title: "Gagal mendownload gambar", description: err.message || "Unknown error", variant: "destructive" });
+      }
+    }
+  }, []);
+
   const checkPayment = async () => {
     if (!formId || !phoneNumber) {
       toast({
@@ -493,7 +540,7 @@ export default function PaymentModal({ formId, phoneNumber, buttonClassName }) {
                               if (previewObjectUrlRef.current) {
                                 try {
                                   URL.revokeObjectURL(previewObjectUrlRef.current);
-                                } catch (e) {}
+                                } catch (e) { }
                                 previewObjectUrlRef.current = null;
                               }
                               setPreviewUrl(null);
@@ -674,7 +721,7 @@ export default function PaymentModal({ formId, phoneNumber, buttonClassName }) {
               <button
                 type="button"
                 onClick={() => {
-                  const suggested = `${(formData.name || "preview").replace(/\s+/g, "_")}.png`;
+                  const suggested = `${(formData.name || "QRIS Preview").replace(/\s+/g, "_")}.png`;
                   handleDownloadImage(previewUrl, suggested);
                 }}
                 className="absolute top-3 right-12 z-30 inline-flex items-center gap-2 px-3 py-1 bg-white/90 text-black rounded"

@@ -7,6 +7,16 @@ import { Label } from "@/components/ui/label";
 import { FaTrash, FaPlus, FaImage, FaSpinner } from "react-icons/fa";
 import { useRouter } from "next/navigation";
 import { Trash, UploadCloud, UploadIcon } from "lucide-react";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 export default function BankAccountForm() {
   const router = useRouter();
@@ -14,6 +24,7 @@ export default function BankAccountForm() {
     { name: "", number: "", file: null, preview: null, id: null },
   ]);
   const [isLoading, setIsLoading] = useState(true);
+  const [deleteConfirm, setDeleteConfirm] = useState(null); // { type: 'image' | 'account', index: number }
   const apiBase = process.env.NEXT_PUBLIC_API_URL;
 
   useEffect(() => {
@@ -117,7 +128,7 @@ export default function BankAccountForm() {
   };
 
   // delete image on server (for existing account)
-  const handleDeleteImageServer = async (index) => {
+  const handleDeleteImageServer = (index) => {
     const acc = accounts[index];
     if (!acc?.id) {
       // local unsaved item: just clear preview
@@ -128,21 +139,7 @@ export default function BankAccountForm() {
       return;
     }
 
-    if (!confirm("Hapus gambar dari server?")) return;
-
-    try {
-      setIsLoading(true);
-      await axios.delete(`${apiBase}/bank-accounts/${acc.id}/image`, { withCredentials: true });
-
-      const updated = [...accounts];
-      updated[index].preview = null;
-      setAccounts(updated);
-    } catch (err) {
-      console.error("Failed to delete image:", err);
-      alert(err.response?.data?.error || "Gagal menghapus gambar di server");
-    } finally {
-      setIsLoading(false);
-    }
+    setDeleteConfirm({ type: "image", index });
   };
 
   const removeFileFromAccount = (index) => {
@@ -161,57 +158,98 @@ export default function BankAccountForm() {
   };
 
   // remove entire account (uses API if id present)
-  const removeAccount = async (index) => {
-    const accountToRemove = accounts[index];
+  const removeAccount = (index) => {
+    setDeleteConfirm({ type: "account", index });
+  };
 
-    // confirm before deleting
-    const ok = confirm("Yakin ingin menghapus rekening ini?");
-    if (!ok) return;
+  const executeDelete = async () => {
+    if (!deleteConfirm) return;
+    const { type, index } = deleteConfirm;
+    const acc = accounts[index];
 
-    if (accountToRemove?.id) {
+    if (type === "image") {
       try {
         setIsLoading(true);
-        await axios.delete(`${apiBase}/bank-accounts/${accountToRemove.id}`, {
-          withCredentials: true,
-        });
-      } catch (error) {
-        console.error("Failed to delete bank account:", error);
-        alert("Gagal menghapus rekening di server");
-        setIsLoading(false);
-        return;
+        await axios.delete(`${apiBase}/bank-accounts/${acc.id}/image`, { withCredentials: true });
+
+        const updated = [...accounts];
+        updated[index].preview = null;
+        setAccounts(updated);
+      } catch (err) {
+        console.error("Failed to delete image:", err);
+        alert(err.response?.data?.error || "Gagal menghapus gambar di server");
       } finally {
         setIsLoading(false);
       }
+    } else if (type === "account") {
+      if (acc?.id) {
+        try {
+          setIsLoading(true);
+          await axios.delete(`${apiBase}/bank-accounts/${acc.id}`, {
+            withCredentials: true,
+          });
+        } catch (error) {
+          console.error("Failed to delete bank account:", error);
+          alert("Gagal menghapus rekening di server");
+          setIsLoading(false);
+          setDeleteConfirm(null);
+          return;
+        } finally {
+          setIsLoading(false);
+        }
+      }
+      setAccounts((prev) => prev.filter((_, i) => i !== index));
     }
 
-    setAccounts((prev) => prev.filter((_, i) => i !== index));
+    setDeleteConfirm(null);
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsLoading(true);
     try {
-      // Only send accounts without an ID (new accounts)
       const newAccounts = accounts.filter((acc) => !acc.id);
+      const existingAccounts = accounts.filter((acc) => acc.id);
 
-      if (newAccounts.length === 0) {
+      if (newAccounts.length === 0 && existingAccounts.length === 0) {
         router.push("/admin/setting");
         return;
       }
 
-      const createPromises = newAccounts.map((account) => {
+      const promises = [];
+
+      // Create new accounts
+      newAccounts.forEach((account) => {
         const formData = new FormData();
         formData.append("name", account.name);
         formData.append("number", account.number);
         if (account.file) {
           formData.append("fileImage", account.file);
         }
-        return axios.post(`${apiBase}/bank-accounts`, formData, {
-          withCredentials: true,
-        });
+        promises.push(
+          axios.post(`${apiBase}/bank-accounts`, formData, {
+            withCredentials: true,
+          })
+        );
       });
 
-      await Promise.all(createPromises);
+      // Update existing accounts
+      existingAccounts.forEach((account) => {
+        promises.push(
+          axios.put(
+            `${apiBase}/bank-accounts/${account.id}`,
+            {
+              name: account.name,
+              number: account.number,
+            },
+            {
+              withCredentials: true,
+            }
+          )
+        );
+      });
+
+      await Promise.all(promises);
 
       router.push("/admin/setting");
     } catch (error) {
@@ -371,6 +409,25 @@ export default function BankAccountForm() {
           </Button>
         </div>
       </div>
+
+      <AlertDialog open={!!deleteConfirm} onOpenChange={(open) => !open && setDeleteConfirm(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Konfirmasi Hapus</AlertDialogTitle>
+            <AlertDialogDescription>
+              {deleteConfirm?.type === "image"
+                ? "Apakah Anda yakin ingin menghapus gambar logo ini dari server? Tindakan ini tidak dapat dibatalkan."
+                : "Apakah Anda yakin ingin menghapus rekening ini? Tindakan ini tidak dapat dibatalkan."}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Batal</AlertDialogCancel>
+            <AlertDialogAction onClick={executeDelete} className="bg-red-600 hover:bg-red-700">
+              Hapus
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </form>
   );
 }

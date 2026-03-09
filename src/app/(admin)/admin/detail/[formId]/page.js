@@ -11,6 +11,7 @@ import { Loader2 } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { BiCopyAlt, BiDotsVertical, BiImage, BiPencil, BiUserCircle } from "react-icons/bi";
 import { DropdownMenuItem } from "@radix-ui/react-dropdown-menu";
+import AdditionalEventsModal from "@/components/AdditionalEventsModal";
 import { useRouter, useSearchParams } from "next/navigation";
 import { toast } from "@/components/ui/use-toast";
 import {
@@ -49,6 +50,8 @@ const Detail = ({ params }) => {
   const [music, setMusic] = useState([]);
 
   const [isDuplicating, setIsDuplicating] = useState(false);
+  const [isEventsModalOpen, setIsEventsModalOpen] = useState(false);
+  const [weddingEvents, setWeddingEvents] = useState([]);
 
 
   const fetchData = async () => {
@@ -59,6 +62,7 @@ const Detail = ({ params }) => {
       setFormData(response.data.form);
       setIsAdmin(response.data.isAdmin);
       setRekeningList(response.data.form.rekening || []);
+      setWeddingEvents(response.data.form.wedding_events || []);
 
       if (response.data.form.fileZip != null) {
         setFileName(response.data.form.fileZip);
@@ -588,6 +592,32 @@ const Detail = ({ params }) => {
             />
             {/* {errors.alamatResepsi && <p className="text-red-500 text-sm mt-1">{errors.alamatResepsi}</p>} */}
           </div>
+
+          <div className="mb-6 p-4 border-2 border-dashed border-blue-200 rounded-xl bg-blue-50/30">
+            <div className="flex items-center justify-between gap-4">
+              <div>
+                <h4 className="font-bold text-blue-900">Acara Tambahan</h4>
+                <p className="text-xs text-blue-700">Pengajian, Siraman, Unduh Mantu, dll.</p>
+              </div>
+              <Button
+                type="button"
+                variant="outline"
+                className="bg-white border-blue-500 text-blue-600 hover:bg-blue-50 shadow-sm"
+                onClick={() => setIsEventsModalOpen(true)}
+              >
+                {weddingEvents.length > 0 && weddingEvents[0].nama ? 'Lihat Detail Acara' : 'Belum Ada Acara'}
+              </Button>
+            </div>
+            {weddingEvents.length > 0 && weddingEvents[0].nama && (
+              <div className="mt-3 flex flex-wrap gap-2">
+                {weddingEvents.map((ev, i) => ev.nama && (
+                  <span key={i} className="text-[10px] bg-blue-100 text-blue-700 px-2 py-1 rounded-full font-medium">
+                    {ev.nama}
+                  </span>
+                ))}
+              </div>
+            )}
+          </div>
           <div className="mb-4">
             <label className="block text-gray-700">
               Mauskkan Nama Provinsi
@@ -1064,6 +1094,13 @@ const Detail = ({ params }) => {
           </div>
         </div>
       </div>
+
+      <AdditionalEventsModal
+        isOpen={isEventsModalOpen}
+        onClose={setIsEventsModalOpen}
+        weddingEvents={weddingEvents}
+        readOnly={true}
+      />
     </>
   );
 

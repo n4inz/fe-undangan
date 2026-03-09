@@ -43,6 +43,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { sendNotification } from '@/utils/helpers';
 import { Separator } from '@/components/ui/separator';
 // import QuoteEditor from '@/components/QuoteEditor.client';
+import AdditionalEventsModal from '@/components/AdditionalEventsModal';
 
 const FORM_DATA_KEY = "formData";
 
@@ -89,6 +90,10 @@ const Home = () => {
   const [quotes, setQuotes] = useState([]); // State to hold quotes
   const [quoteHtml, setQuoteHtml] = useState(""); // State to hold the selected quote in HTML format
   const [lockThema, setLockThema] = useState(false);
+  const [weddingEvents, setWeddingEvents] = useState([
+    { nama: "", tanggal: "", waktu: "", tempat: "", alamat: "" },
+  ]);
+  const [isEventsModalOpen, setIsEventsModalOpen] = useState(false);
 
   const dateFromUrl = searchParams?.get("date");
 
@@ -299,6 +304,22 @@ const Home = () => {
     );
   };
 
+  const handleAddEvent = () => {
+    if (weddingEvents.length < 4) {
+      setWeddingEvents([...weddingEvents, { nama: "", tanggal: "", waktu: "", tempat: "", alamat: "" }]);
+    }
+  };
+
+  const handleRemoveEvent = (index) => {
+    setWeddingEvents(weddingEvents.filter((_, i) => i !== index));
+  };
+
+  const handleEventChange = (index, field, value) => {
+    const newEvents = [...weddingEvents];
+    newEvents[index][field] = value;
+    setWeddingEvents(newEvents);
+  };
+
   const validate = () => {
     const newErrors = {};
     // Add validation logic here
@@ -350,6 +371,7 @@ const Home = () => {
       const fd = new FormData();
       fd.append("data", JSON.stringify(formData));
       fd.append("rekeningList", JSON.stringify(rekeningList || []));
+      fd.append("weddingEvents", JSON.stringify(weddingEvents || []));
       fd.append("session", JSON.stringify({ name, email, avatar }));
 
       // 3) Submit protected form
@@ -1068,322 +1090,351 @@ const Home = () => {
                     />
                   </div>
                 </RadioGroup>
-
-                {/* {errors.alamatResepsi && <p className="text-red-500 text-sm mt-1">{errors.alamatResepsi}</p>} */}
               </div>
-            </>
-          )}
-
-          {currentStep === 6 && (
-            <>
+              {/* 
               <div className="mb-4">
-                <label className="block text-gray-700">
-                  Link Live streaming (YT)
-                </label>
-                <Input
-                  type="text"
-                  name="liveYt"
-                  value={formData.liveYt}
-                  onChange={handleChange}
-                  className="mt-1 p-2 w-full border border-gray-300 rounded-lg"
-                />
-
-              </div>
-              <div className="mb-4">
-                <label className="block text-gray-700">
-                  Username Instagram (Pria)
-                </label>
-                <Input
-                  type="text"
-                  name="usernameIgPria"
-                  value={formData.usernameIgPria}
-                  onChange={handleChange}
-                  className="mt-1 p-2 w-full border border-gray-300 rounded-lg"
-                />
-              </div>
-              <div className="mb-4">
-                <label className="block text-gray-700">
-                  Username Instagram (Wanita)
-                </label>
-                <Input
-                  type="text"
-                  name="usernameIgWanita"
-                  value={formData.usernameIgWanita}
-                  onChange={handleChange}
-                  className="mt-1 p-2 w-full border border-gray-300 rounded-lg"
-                />
-              </div>
-            </>
-          )}
-          {currentStep === 7 && (
-            <>
-              <div className="mb-4">
-                <label className="block text-gray-700">
-                  Pilih Model Rekening
-                </label>
-                <Select
-                  value={formData.rekeningStyle}
-                  onValueChange={(value) => setFormData((prevFormData) => ({ ...prevFormData, rekeningStyle: value }))}
-                  className="w-full h-6 border border-gray-300 rounded-lg">
-                  <SelectTrigger>
-                    <SelectValue placeholder="Pilih Model Rekening" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="kartu">Kartu</SelectItem>
-                    <SelectItem value="dropdown">Dropdown</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              {/* Dynamic Fields */}
-              <div className="mb-4">
-                {rekeningList.map((rekening, index) => (
-                  <div
-                    key={index}
-                    className="mb-4 relative border border-gray-300 rounded-lg p-4"
-                  >
-                    {/* Show Close Button for Second Input and Beyond */}
-                    {index > 0 && (
-                      <button
-                        type="button"
-                        onClick={() => handleRemoveRekening(index)}
-                        className="absolute top-2 right-2 text-red-500 hover:text-red-700"
-                        title="Hapus Rekening"
-                      >
-                        ✖
-                      </button>
-                    )}
-                    <label className="block text-gray-700">
-                      Icon Bank {index + 1}
-                    </label>
-                    <BankCombobox
-                      value={rekening.icon || ''}
-                      onValueChange={(value) => handleSelectBankChange(value, index)}
-                      bankList={bankList}
-                      isLoading={isLoading}
-                    />
-                    <label className="block text-gray-700">
-                      Nama Rekening {index + 1}
-                    </label>
-                    <Input
-                      type="text"
-                      name="namaRekening"
-                      value={rekening.namaRekening}
-                      onChange={(e) => handleChange(e, index)}
-                      className="mt-1 p-2 w-full border border-gray-300 rounded-lg"
-                      placeholder={`Nama Bank a/n Nasabah`}
-                    />
-                    <label className="block text-gray-700 mt-2">
-                      Nomor Rekening {index + 1}
-                    </label>
-                    <Input
-                      type="text"
-                      name="noRekening"
-                      value={rekening.noRekening}
-                      onChange={(e) => handleChange(e, index)}
-                      className="mt-1 p-2 w-full border border-gray-300 rounded-lg"
-                      placeholder={`012345xxxx`}
-                    />
-                  </div>
-                ))}
                 <Button
                   type="button"
-                  onClick={handleAddRekening}
-                  className="mt-2 px-4 py-2 bg-blue-500 text-white rounded-lg"
+                  variant="outline"
+                  className="w-full border-dashed border-blue-500 text-blue-500 hover:bg-blue-50"
+                  onClick={() => setIsEventsModalOpen(true)}
                 >
-                  + Tambah Rekening
+                  + Tambah Acara Tambahan (Opsional)
                 </Button>
-              </div>
-              <div className="mb-4">
-                <label className="block text-gray-700">
-                  Alamat Rumah Jika ada Pengiriman Hadiah Dari tamu Undangan
-                </label>
-                <Input
-                  type="text"
-                  name="alamatHadiah"
-                  value={formData.alamatHadiah}
-                  onChange={handleChange}
-                  className="mt-1 p-2 w-full border border-gray-300 rounded-lg"
-                />
-              </div>
+                {weddingEvents.some(e => e.nama) && (
+                  <p className="text-xs text-green-600 mt-1">
+                    ✓ {weddingEvents.filter(e => e.nama).length} acara tambahan ditambahkan
+                  </p>
+                )}
+              </div> 
+              */}
             </>
           )}
 
-          {currentStep === 8 && (
-            <>
-              <div className="mb-4">
-                <label className="block text-gray-700">
-                  Link Maps / Sharelok lokasi acara (Akad/Pemberkatan)
-                </label>
-                <Input
-                  type="text"
-                  name="linkSherlokAkad"
-                  value={formData.linkSherlokAkad}
-                  onChange={handleChange}
-                  className="mt-1 p-2 w-full border border-gray-300 rounded-lg"
-                />
-                {/* {errors.linkSherlokAkad && (
+          {
+            currentStep === 6 && (
+              <>
+                <div className="mb-4">
+                  <label className="block text-gray-700">
+                    Link Live streaming (YT)
+                  </label>
+                  <Input
+                    type="text"
+                    name="liveYt"
+                    value={formData.liveYt}
+                    onChange={handleChange}
+                    className="mt-1 p-2 w-full border border-gray-300 rounded-lg"
+                  />
+
+                </div>
+                <div className="mb-4">
+                  <label className="block text-gray-700">
+                    Username Instagram (Pria)
+                  </label>
+                  <Input
+                    type="text"
+                    name="usernameIgPria"
+                    value={formData.usernameIgPria}
+                    onChange={handleChange}
+                    className="mt-1 p-2 w-full border border-gray-300 rounded-lg"
+                  />
+                </div>
+                <div className="mb-4">
+                  <label className="block text-gray-700">
+                    Username Instagram (Wanita)
+                  </label>
+                  <Input
+                    type="text"
+                    name="usernameIgWanita"
+                    value={formData.usernameIgWanita}
+                    onChange={handleChange}
+                    className="mt-1 p-2 w-full border border-gray-300 rounded-lg"
+                  />
+                </div>
+              </>
+            )
+          }
+          {
+            currentStep === 7 && (
+              <>
+                <div className="mb-4">
+                  <label className="block text-gray-700">
+                    Pilih Model Rekening
+                  </label>
+                  <Select
+                    value={formData.rekeningStyle}
+                    onValueChange={(value) => setFormData((prevFormData) => ({ ...prevFormData, rekeningStyle: value }))}
+                    className="w-full h-6 border border-gray-300 rounded-lg">
+                    <SelectTrigger>
+                      <SelectValue placeholder="Pilih Model Rekening" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="kartu">Kartu</SelectItem>
+                      <SelectItem value="dropdown">Dropdown</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                {/* Dynamic Fields */}
+                <div className="mb-4">
+                  {rekeningList.map((rekening, index) => (
+                    <div
+                      key={index}
+                      className="mb-4 relative border border-gray-300 rounded-lg p-4"
+                    >
+                      {/* Show Close Button for Second Input and Beyond */}
+                      {index > 0 && (
+                        <button
+                          type="button"
+                          onClick={() => handleRemoveRekening(index)}
+                          className="absolute top-2 right-2 text-red-500 hover:text-red-700"
+                          title="Hapus Rekening"
+                        >
+                          ✖
+                        </button>
+                      )}
+                      <label className="block text-gray-700">
+                        Icon Bank {index + 1}
+                      </label>
+                      <BankCombobox
+                        value={rekening.icon || ''}
+                        onValueChange={(value) => handleSelectBankChange(value, index)}
+                        bankList={bankList}
+                        isLoading={isLoading}
+                      />
+                      <label className="block text-gray-700">
+                        Nama Rekening {index + 1}
+                      </label>
+                      <Input
+                        type="text"
+                        name="namaRekening"
+                        value={rekening.namaRekening}
+                        onChange={(e) => handleChange(e, index)}
+                        className="mt-1 p-2 w-full border border-gray-300 rounded-lg"
+                        placeholder={`Nama Bank a/n Nasabah`}
+                      />
+                      <label className="block text-gray-700 mt-2">
+                        Nomor Rekening {index + 1}
+                      </label>
+                      <Input
+                        type="text"
+                        name="noRekening"
+                        value={rekening.noRekening}
+                        onChange={(e) => handleChange(e, index)}
+                        className="mt-1 p-2 w-full border border-gray-300 rounded-lg"
+                        placeholder={`012345xxxx`}
+                      />
+                    </div>
+                  ))}
+                  <Button
+                    type="button"
+                    onClick={handleAddRekening}
+                    className="mt-2 px-4 py-2 bg-blue-500 text-white rounded-lg"
+                  >
+                    + Tambah Rekening
+                  </Button>
+                </div>
+                <div className="mb-4">
+                  <label className="block text-gray-700">
+                    Alamat Rumah Jika ada Pengiriman Hadiah Dari tamu Undangan
+                  </label>
+                  <Input
+                    type="text"
+                    name="alamatHadiah"
+                    value={formData.alamatHadiah}
+                    onChange={handleChange}
+                    className="mt-1 p-2 w-full border border-gray-300 rounded-lg"
+                  />
+                </div>
+              </>
+            )
+          }
+
+          {
+            currentStep === 8 && (
+              <>
+                <div className="mb-4">
+                  <label className="block text-gray-700">
+                    Link Maps / Sharelok lokasi acara (Akad/Pemberkatan)
+                  </label>
+                  <Input
+                    type="text"
+                    name="linkSherlokAkad"
+                    value={formData.linkSherlokAkad}
+                    onChange={handleChange}
+                    className="mt-1 p-2 w-full border border-gray-300 rounded-lg"
+                  />
+                  {/* {errors.linkSherlokAkad && (
                   <p className="text-red-500 text-sm mt-1">
                     {errors.linkSherlokAkad}
                   </p>
                 )} */}
-              </div>
-              <div className="mb-4">
-                <label className="block text-gray-700">
-                  Link Maps / Sharelok lokasi acara Resepsi
-                </label>
-                <Input
-                  type="text"
-                  name="linkSherlokResepsi"
-                  value={formData.linkSherlokResepsi}
-                  onChange={handleChange}
-                  className="mt-1 p-2 w-full border border-gray-300 rounded-lg"
-                />
-                {/* {errors.linkSherlokResepsi && (
+                </div>
+                <div className="mb-4">
+                  <label className="block text-gray-700">
+                    Link Maps / Sharelok lokasi acara Resepsi
+                  </label>
+                  <Input
+                    type="text"
+                    name="linkSherlokResepsi"
+                    value={formData.linkSherlokResepsi}
+                    onChange={handleChange}
+                    className="mt-1 p-2 w-full border border-gray-300 rounded-lg"
+                  />
+                  {/* {errors.linkSherlokResepsi && (
                   <p className="text-red-500 text-sm mt-1">
                     {errors.linkSherlokResepsi}
                   </p>
                 )} */}
-              </div>
-              <div className="mb-4">
-                <label className="block text-gray-700">
-                  Link Video Youtube (Gallery)
-                </label>
-                <Input
-                  type="text"
-                  name="linkVideo"
-                  value={formData.linkVideo}
-                  onChange={handleChange}
-                  className="mt-1 p-2 w-full border border-gray-300 rounded-lg"
-                />
-                {errors.linkVideo && (
-                  <p className="text-red-500 text-sm mt-1">
-                    {errors.linkVideo}
-                  </p>
-                )}
-              </div>
-            </>
-          )}
-
-          {currentStep === 9 && (
-            <>
-              <div className="mb-4">
-                <label className="block text-gray-700">
-                  Ceritakan awal bertemu
-                </label>
-                <div className="flex space-x-4">
+                </div>
+                <div className="mb-4">
+                  <label className="block text-gray-700">
+                    Link Video Youtube (Gallery)
+                  </label>
                   <Input
                     type="text"
-                    name="judulCeritaAwal"
-                    value={formData.judulCeritaAwal}
+                    name="linkVideo"
+                    value={formData.linkVideo}
                     onChange={handleChange}
-                    className="flex-1"
-                    placeholder="Judul Cerita Awal"
+                    className="mt-1 p-2 w-full border border-gray-300 rounded-lg"
                   />
-                  <Input
-                    name="dateCeritaAwal"
-                    type="month"
-                    id="month"
-                    value={formData.dateCeritaAwal}
-                    onChange={handleChange}
-                    className="flex-1"
-                  />
+                  {errors.linkVideo && (
+                    <p className="text-red-500 text-sm mt-1">
+                      {errors.linkVideo}
+                    </p>
+                  )}
                 </div>
-                <Textarea
-                  name="ceritaAwal"
-                  value={formData.ceritaAwal}
-                  onChange={handleChange}
-                  className="mt-1 p-2 w-full border border-gray-300 rounded-lg"
-                  placeholder="Ceritakan awal pertemuan kalian..."
-                />
-              </div>
-            </>
-          )}
-          {currentStep === 10 && (
-            <>
-              <div className="mb-4">
-                <label className="block text-gray-700">Ceritakan awal komitmen</label>
-                <div className="flex space-x-4">
-                  <Input
-                    type="text"
-                    name="judulCeritaJadian"
-                    value={formData.judulCeritaJadian}
-                    onChange={handleChange}
-                    className="flex-1"
-                    placeholder="Judul Komitmen"
-                  />
-                  <Input
-                    name="dateCeritaJadian"
-                    type="month"
-                    id="month"
-                    value={formData.dateCeritaJadian}
-                    onChange={handleChange}
-                    className="flex-1"
-                  />
-                </div>
-                <Textarea
-                  name="ceritaJadian"
-                  value={formData.ceritaJadian}
-                  onChange={handleChange}
-                  className="mt-1 p-2 w-full border border-gray-300 rounded-lg"
-                  placeholder="Ceritakan awal komitmen kalian..."
-                />
-              </div>
-            </>
-          )}
-          {currentStep === 11 && (
-            <>
-              <div className="mb-4">
-                <label className="block text-gray-700">Ceritakan awal lamaran</label>
-                <div className="flex space-x-4">
-                  <Input
-                    type="text"
-                    name="judulCeritaLamaran"
-                    value={formData.judulCeritaLamaran}
-                    onChange={handleChange}
-                    className="flex-1"
-                    placeholder="Judul Cerita Lamaran"
-                  />
-                  <Input
-                    name="dateCeritaLamaran"
-                    type="month"
-                    id="month"
-                    value={formData.dateCeritaLamaran}
-                    onChange={handleChange}
-                    className="flex-1"
-                  />
-                </div>
-                <Textarea
-                  name="ceritaLamaran"
-                  value={formData.ceritaLamaran}
-                  onChange={handleChange}
-                  className="mt-1 p-2 w-full border border-gray-300 rounded-lg"
-                  placeholder="Ceritakan lamaran kalian..."
-                />
-              </div>
-            </>
-          )}
+              </>
+            )
+          }
 
-          {currentStep === 12 && (
-            <>
-              <div className="mb-4">
-                <label className="block text-gray-700">
-                  Posisi Nama Penempatan Tulisan Untuk Mempelai
-                  <span className='text-red-500'>*</span>
-                </label>
-
-                <RadioGroup defaultValue={formData.penempatanTulisan} name="penempatanTulisan" onChange={handleChange}>
-                  <div className="flex items-center space-x-2">
-                    <RadioGroupItem value="Wanita" id="WanitaDulu" />
-                    <Label htmlFor="WanitaDulu"> Wanita Dulu</Label>
+          {
+            currentStep === 9 && (
+              <>
+                <div className="mb-4">
+                  <label className="block text-gray-700">
+                    Ceritakan awal bertemu
+                  </label>
+                  <div className="flex space-x-4">
+                    <Input
+                      type="text"
+                      name="judulCeritaAwal"
+                      value={formData.judulCeritaAwal}
+                      onChange={handleChange}
+                      className="flex-1"
+                      placeholder="Judul Cerita Awal"
+                    />
+                    <Input
+                      name="dateCeritaAwal"
+                      type="month"
+                      id="month"
+                      value={formData.dateCeritaAwal}
+                      onChange={handleChange}
+                      className="flex-1"
+                    />
                   </div>
-                  <div className="flex items-center space-x-2">
-                    <RadioGroupItem value="Pria" id="PriaDulu" />
-                    <Label htmlFor="PriaDulu">Pria Dulu</Label>
+                  <Textarea
+                    name="ceritaAwal"
+                    value={formData.ceritaAwal}
+                    onChange={handleChange}
+                    className="mt-1 p-2 w-full border border-gray-300 rounded-lg"
+                    placeholder="Ceritakan awal pertemuan kalian..."
+                  />
+                </div>
+              </>
+            )
+          }
+          {
+            currentStep === 10 && (
+              <>
+                <div className="mb-4">
+                  <label className="block text-gray-700">Ceritakan awal komitmen</label>
+                  <div className="flex space-x-4">
+                    <Input
+                      type="text"
+                      name="judulCeritaJadian"
+                      value={formData.judulCeritaJadian}
+                      onChange={handleChange}
+                      className="flex-1"
+                      placeholder="Judul Komitmen"
+                    />
+                    <Input
+                      name="dateCeritaJadian"
+                      type="month"
+                      id="month"
+                      value={formData.dateCeritaJadian}
+                      onChange={handleChange}
+                      className="flex-1"
+                    />
                   </div>
-                </RadioGroup>
-              </div>
-            </>
-          )}
+                  <Textarea
+                    name="ceritaJadian"
+                    value={formData.ceritaJadian}
+                    onChange={handleChange}
+                    className="mt-1 p-2 w-full border border-gray-300 rounded-lg"
+                    placeholder="Ceritakan awal komitmen kalian..."
+                  />
+                </div>
+              </>
+            )
+          }
+          {
+            currentStep === 11 && (
+              <>
+                <div className="mb-4">
+                  <label className="block text-gray-700">Ceritakan awal lamaran</label>
+                  <div className="flex space-x-4">
+                    <Input
+                      type="text"
+                      name="judulCeritaLamaran"
+                      value={formData.judulCeritaLamaran}
+                      onChange={handleChange}
+                      className="flex-1"
+                      placeholder="Judul Cerita Lamaran"
+                    />
+                    <Input
+                      name="dateCeritaLamaran"
+                      type="month"
+                      id="month"
+                      value={formData.dateCeritaLamaran}
+                      onChange={handleChange}
+                      className="flex-1"
+                    />
+                  </div>
+                  <Textarea
+                    name="ceritaLamaran"
+                    value={formData.ceritaLamaran}
+                    onChange={handleChange}
+                    className="mt-1 p-2 w-full border border-gray-300 rounded-lg"
+                    placeholder="Ceritakan lamaran kalian..."
+                  />
+                </div>
+              </>
+            )
+          }
+
+          {
+            currentStep === 12 && (
+              <>
+                <div className="mb-4">
+                  <label className="block text-gray-700">
+                    Posisi Nama Penempatan Tulisan Untuk Mempelai
+                    <span className='text-red-500'>*</span>
+                  </label>
+
+                  <RadioGroup defaultValue={formData.penempatanTulisan} name="penempatanTulisan" onChange={handleChange}>
+                    <div className="flex items-center space-x-2">
+                      <RadioGroupItem value="Wanita" id="WanitaDulu" />
+                      <Label htmlFor="WanitaDulu"> Wanita Dulu</Label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <RadioGroupItem value="Pria" id="PriaDulu" />
+                      <Label htmlFor="PriaDulu">Pria Dulu</Label>
+                    </div>
+                  </RadioGroup>
+                </div>
+              </>
+            )
+          }
           {/* {currentStep === 13 && (
             <>
               <div className="mb-4">
@@ -1397,66 +1448,69 @@ const Home = () => {
               </div>
             </>
           )} */}
-          {currentStep === 13 && (
-            <>
-              <div className="mb-4">
-                <MusicList
-                  currentlyPlaying={currentlyPlaying}
-                  setCurrentlyPlaying={setCurrentlyPlaying}
-                  audioRef={audioRef}
-                  // Callback untuk menerima nilai
-                  onSongSelected={handleSongSelected}
-                  selectedSongId={formData.idMusic ? formData.idMusic.toString() : ''} // Nilai yang dipilih
-                />
-              </div>
-            </>
-          )}
-          {currentStep === 14 && (
-            <>
-              {/* Baris label + tombol, dua kolom rasio 3:2 */}
-              <div className="mb-4 grid grid-cols-5 gap-2 items-start">
-                {/* Kolom‑1: Label (3/5) */}
-                <label className="col-span-3 block text-gray-700">
-                  Sumber Quote
-                  <br />
-                  <span className="text-sm text-gray-500">
-                    Contoh: QS. Ar‑Rum : 21, Matius 22: 37‑40, dll
-                  </span>
-                </label>
-
-                {/* Kolom‑2: Tombol (2/5) */}
-                <div className="col-span-2 flex justify-end">
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setIsQuoteModalOpen(true)}
-                    className="flex items-center gap-2 w-full md:w-auto"
-                  >
-                    <FileText className="h-4 w-4" />
-                    Template
-                  </Button>
+          {
+            currentStep === 13 && (
+              <>
+                <div className="mb-4">
+                  <MusicList
+                    currentlyPlaying={currentlyPlaying}
+                    setCurrentlyPlaying={setCurrentlyPlaying}
+                    audioRef={audioRef}
+                    // Callback untuk menerima nilai
+                    onSongSelected={handleSongSelected}
+                    selectedSongId={formData.idMusic ? formData.idMusic.toString() : ''} // Nilai yang dipilih
+                  />
                 </div>
-              </div>
-              <div className="mb-4">
-                <Input
-                  type="text"
-                  name="source"
-                  value={formData.source}
-                  onChange={handleChange}
-                  placeholder="Sumber Quote..."
-                />
-              </div>
+              </>
+            )
+          }
+          {
+            currentStep === 14 && (
+              <>
+                {/* Baris label + tombol, dua kolom rasio 3:2 */}
+                <div className="mb-4 grid grid-cols-5 gap-2 items-start">
+                  {/* Kolom‑1: Label (3/5) */}
+                  <label className="col-span-3 block text-gray-700">
+                    Sumber Quote
+                    <br />
+                    <span className="text-sm text-gray-500">
+                      Contoh: QS. Ar‑Rum : 21, Matius 22: 37‑40, dll
+                    </span>
+                  </label>
 
-              {errors.source && (
-                <p className="text-red-500 text-sm mb-1">
-                  {errors.source}
-                </p>
-              )}
+                  {/* Kolom‑2: Tombol (2/5) */}
+                  <div className="col-span-2 flex justify-end">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setIsQuoteModalOpen(true)}
+                      className="flex items-center gap-2 w-full md:w-auto"
+                    >
+                      <FileText className="h-4 w-4" />
+                      Template
+                    </Button>
+                  </div>
+                </div>
+                <div className="mb-4">
+                  <Input
+                    type="text"
+                    name="source"
+                    value={formData.source}
+                    onChange={handleChange}
+                    placeholder="Sumber Quote..."
+                  />
+                </div>
+
+                {errors.source && (
+                  <p className="text-red-500 text-sm mb-1">
+                    {errors.source}
+                  </p>
+                )}
 
 
 
-              {/* <QuoteEditor
+                {/* <QuoteEditor
                 value={quoteHtml}
                 onChange={(html) => {
                   setQuoteHtml(html);
@@ -1467,150 +1521,153 @@ const Home = () => {
                 }}
               /> */}
 
-              <div className="mb-4">
-                <label className="block text-gray-700 mb-1">Quote</label>
-                <Textarea
-                  name="quote"
-                  value={formData.quote}
-                  onChange={handleChange}
-                  className="w-full border border-gray-300 rounded-lg"
-                  placeholder="Masukkan Quote..."
-                />
-              </div>
+                <div className="mb-4">
+                  <label className="block text-gray-700 mb-1">Quote</label>
+                  <Textarea
+                    name="quote"
+                    value={formData.quote}
+                    onChange={handleChange}
+                    className="w-full border border-gray-300 rounded-lg"
+                    placeholder="Masukkan Quote..."
+                  />
+                </div>
 
-              {/* Modal untuk memilih template quote */}
-              <Dialog open={isQuoteModalOpen} onOpenChange={setIsQuoteModalOpen}>
-                <DialogContent className="w-full max-w-full sm:max-w-md" aria-describedby={undefined}>
-                  <DialogHeader>
-                    <DialogTitle className="text-lg sm:text-xl">Pilih Template Quote</DialogTitle>
-                  </DialogHeader>
-                  <div className="space-y-3 max-h-72 overflow-y-auto">
-                    {quotes.map((template, idx) => (
-                      <div
-                        key={idx}
-                        className="border rounded p-2 sm:p-3 hover:bg-blue-50 cursor-pointer"
-                        onClick={() => {
-                          // Convert template quote to HTML format
-                          const htmlQuote = template.quote
-                            .replace(/\n/g, '<br>')
-                            .replace(/\*(.*?)\*/g, '<strong>$1</strong>')
-                            .replace(/_(.*?)_/g, '<em>$1</em>')
-                            .replace(/__(.*?)__/g, '<u>$1</u>');
+                {/* Modal untuk memilih template quote */}
+                <Dialog open={isQuoteModalOpen} onOpenChange={setIsQuoteModalOpen}>
+                  <DialogContent className="w-full max-w-full sm:max-w-md" aria-describedby={undefined}>
+                    <DialogHeader>
+                      <DialogTitle className="text-lg sm:text-xl">Pilih Template Quote</DialogTitle>
+                    </DialogHeader>
+                    <div className="space-y-3 max-h-72 overflow-y-auto">
+                      {quotes.map((template, idx) => (
+                        <div
+                          key={idx}
+                          className="border rounded p-2 sm:p-3 hover:bg-blue-50 cursor-pointer"
+                          onClick={() => {
+                            // Convert template quote to HTML format
+                            const htmlQuote = template.quote
+                              .replace(/\n/g, '<br>')
+                              .replace(/\*(.*?)\*/g, '<strong>$1</strong>')
+                              .replace(/_(.*?)_/g, '<em>$1</em>')
+                              .replace(/__(.*?)__/g, '<u>$1</u>');
 
-                          setFormData({
-                            ...formData,
-                            source: template.source,
-                            quote: htmlQuote
-                          });
-                          setQuoteHtml(htmlQuote);
-                          setIsQuoteModalOpen(false);
-                        }}
-                      >
-                        <div className="font-semibold text-blue-700 text-sm sm:text-base">
-                          {template.source}
+                            setFormData({
+                              ...formData,
+                              source: template.source,
+                              quote: htmlQuote
+                            });
+                            setQuoteHtml(htmlQuote);
+                            setIsQuoteModalOpen(false);
+                          }}
+                        >
+                          <div className="font-semibold text-blue-700 text-sm sm:text-base">
+                            {template.source}
+                          </div>
+                          <div className="text-gray-700 text-xs sm:text-sm" dangerouslySetInnerHTML={{ __html: template.quote }} />
                         </div>
-                        <div className="text-gray-700 text-xs sm:text-sm" dangerouslySetInnerHTML={{ __html: template.quote }} />
-                      </div>
-                    ))}
-                  </div>
-                  <Button
-                    type="button"
-                    variant="secondary"
-                    className="w-full mt-3 sm:mt-4 text-xs sm:text-sm"
-                    onClick={() => setIsQuoteModalOpen(false)}
-                  >
-                    Tutup
-                  </Button>
-                </DialogContent>
-              </Dialog>
-            </>
-          )}
+                      ))}
+                    </div>
+                    <Button
+                      type="button"
+                      variant="secondary"
+                      className="w-full mt-3 sm:mt-4 text-xs sm:text-sm"
+                      onClick={() => setIsQuoteModalOpen(false)}
+                    >
+                      Tutup
+                    </Button>
+                  </DialogContent>
+                </Dialog>
+              </>
+            )
+          }
 
-          {currentStep === 15 && (
-            <>
-              <div className="mb-4">
-                <label className="block text-gray-700">
-                  Pilihan Thema Ceknya di{' '}
-                  <a
-                    href={profileLoading ? '#' : (company?.url || '#')}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-blue-500 hover:underline"
-                  >
-                    {profileLoading ? 'website' : company?.name}
-                  </a>
-                  <span className='text-red-500'>*</span>
-                </label>
+          {
+            currentStep === 15 && (
+              <>
+                <div className="mb-4">
+                  <label className="block text-gray-700">
+                    Pilihan Thema Ceknya di{' '}
+                    <a
+                      href={profileLoading ? '#' : (company?.url || '#')}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-blue-500 hover:underline"
+                    >
+                      {profileLoading ? 'website' : company?.name}
+                    </a>
+                    <span className='text-red-500'>*</span>
+                  </label>
 
-                <RadioGroup
-                  value={formData.pilihanTema}
-                  onValueChange={(value) => setFormData({ ...formData, pilihanTema: value })}
-                  className="space-y-2" >
-                  {/* Radio options lainnya */}
+                  <RadioGroup
+                    value={formData.pilihanTema}
+                    onValueChange={(value) => setFormData({ ...formData, pilihanTema: value })}
+                    className="space-y-2" >
+                    {/* Radio options lainnya */}
 
-                  <div className="flex items-center space-x-2">
-                    <RadioGroupItem value="Lainnya" id="LainnyaPilihanTema" />
-                    <Label htmlFor="LainnyaPilihanTema">Lainnya</Label>
-                  </div>
+                    <div className="flex items-center space-x-2">
+                      <RadioGroupItem value="Lainnya" id="LainnyaPilihanTema" />
+                      <Label htmlFor="LainnyaPilihanTema">Lainnya</Label>
+                    </div>
 
-                  {/* {formData.pilihanTema === "Lainnya" && ( */}
-                  <div className="relative w-full max-w-md">
-                    <Command className="border rounded-lg">
-                      <CommandInput
-                        placeholder="Pilih Tema..."
-                        value={commandInput}
-                        onValueChange={setCommandInput}
-                        onFocus={() => setCommandOpen(true)}
-                        onBlur={() => setTimeout(() => setCommandOpen(false), 200)}
-                        className="h-9 text-sm"
-                      />
+                    {/* {formData.pilihanTema === "Lainnya" && ( */}
+                    <div className="relative w-full max-w-md">
+                      <Command className="border rounded-lg">
+                        <CommandInput
+                          placeholder="Pilih Tema..."
+                          value={commandInput}
+                          onValueChange={setCommandInput}
+                          onFocus={() => setCommandOpen(true)}
+                          onBlur={() => setTimeout(() => setCommandOpen(false), 200)}
+                          className="h-9 text-sm"
+                        />
 
-                      {commandOpen && (
-                        <CommandList className="absolute top-full w-full mt-1 z-50">
-                          <CommandGroup className="bg-popover shadow-lg rounded-md border">
-                            {isLoadingOptions ? (
-                              <CommandItem value="loading" className="text-sm h-8" disabled>
-                                <span className="text-muted-foreground">Loading...</span>
-                              </CommandItem>
-                            ) : options.length > 0 ? (
-                              options.map((option) => (
-                                <CommandItem
-                                  key={option.id}
-                                  value={option.id}
-                                  onSelect={() => {
-                                    handleSelectChange(option.id, option.name);
-                                    setCommandInput(option.name);
-                                    setCommandOpen(false);
-                                  }}
-                                  className="text-sm h-8 flex justify-between"
-                                >
-                                  <span>{option.name}</span>
-                                  {/* {option.price && (
+                        {commandOpen && (
+                          <CommandList className="absolute top-full w-full mt-1 z-50">
+                            <CommandGroup className="bg-popover shadow-lg rounded-md border">
+                              {isLoadingOptions ? (
+                                <CommandItem value="loading" className="text-sm h-8" disabled>
+                                  <span className="text-muted-foreground">Loading...</span>
+                                </CommandItem>
+                              ) : options.length > 0 ? (
+                                options.map((option) => (
+                                  <CommandItem
+                                    key={option.id}
+                                    value={option.id}
+                                    onSelect={() => {
+                                      handleSelectChange(option.id, option.name);
+                                      setCommandInput(option.name);
+                                      setCommandOpen(false);
+                                    }}
+                                    className="text-sm h-8 flex justify-between"
+                                  >
+                                    <span>{option.name}</span>
+                                    {/* {option.price && (
                                     <span className="text-red-500 ml-2">
                                       (Rp. {option.price.toLocaleString("id-ID")})
                                     </span>
                                   )} */}
+                                  </CommandItem>
+                                ))
+                              ) : (
+                                <CommandItem value="no-options" className="text-sm h-8" disabled>
+                                  <span className="text-muted-foreground">Tidak ada pilihan tersedia</span>
                                 </CommandItem>
-                              ))
-                            ) : (
-                              <CommandItem value="no-options" className="text-sm h-8" disabled>
-                                <span className="text-muted-foreground">Tidak ada pilihan tersedia</span>
-                              </CommandItem>
-                            )}
-                          </CommandGroup>
-                        </CommandList>
-                      )}
-                    </Command>
-                  </div>
-                  {/* )} */}
-                </RadioGroup>
-                {errors.pilihanTema && <p className="text-red-500 text-sm mt-1">{errors.pilihanTema}</p>}
-                {errors.idTema && <p className="text-red-500 text-sm mt-1">{errors.idTema}</p>}
+                              )}
+                            </CommandGroup>
+                          </CommandList>
+                        )}
+                      </Command>
+                    </div>
+                    {/* )} */}
+                  </RadioGroup>
+                  {errors.pilihanTema && <p className="text-red-500 text-sm mt-1">{errors.pilihanTema}</p>}
+                  {errors.idTema && <p className="text-red-500 text-sm mt-1">{errors.idTema}</p>}
 
-                {/* {errors.alamatResepsi && <p className="text-red-500 text-sm mt-1">{errors.alamatResepsi}</p>} */}
-              </div>
-            </>
-          )}
+                  {/* {errors.alamatResepsi && <p className="text-red-500 text-sm mt-1">{errors.alamatResepsi}</p>} */}
+                </div>
+              </>
+            )
+          }
           <div className="flex justify-end"> {/* Use justify-end to align to the right */}
             {currentStep > 1 && (
               <button type="button" onClick={handlePrevious} className="px-4 py-2 bg-gray-300 rounded-md mr-2"> {/* Added margin for spacing */}
@@ -1636,7 +1693,18 @@ const Home = () => {
           </div>
           {Object.keys(errors).length > 0 && <p className="text-red-500 text-sm mt-1">Semua Form bertanda (<span className="text-lg">*</span>) harus diisi</p>}
         </form>
-      </div>
+
+        {/* 
+        <AdditionalEventsModal
+          isOpen={isEventsModalOpen}
+          onClose={setIsEventsModalOpen}
+          weddingEvents={weddingEvents}
+          handleAddEvent={handleAddEvent}
+          handleRemoveEvent={handleRemoveEvent}
+          handleEventChange={handleEventChange}
+        /> 
+        */}
+      </div >
     </div >
   );
 }

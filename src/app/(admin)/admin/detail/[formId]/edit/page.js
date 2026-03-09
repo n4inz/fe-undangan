@@ -22,6 +22,7 @@ import { getBankList } from '@/lib/bank';
 import BankCombobox from '@/components/admin/BankComboBox';
 import MusicCombobox from '@/components/admin/MusicComboBox';
 import QuoteEditor from '@/components/QuoteEditor.client';
+import AdditionalEventsModal from '@/components/AdditionalEventsModal';
 
 const formatDateTime = (datetime) => {
     if (!datetime) return '';
@@ -55,6 +56,8 @@ const EditDetail = ({ params }) => {
     const [selectedTema, setSelectedTema] = useState(null);
     const [bankList, setBankList] = useState([]);
     const [quoteHtml, setQuoteHtml] = useState("");
+    const [isEventsModalOpen, setIsEventsModalOpen] = useState(false);
+    const [weddingEvents, setWeddingEvents] = useState([{ nama: "", tanggal: "", waktu: "", tempat: "", alamat: "" }]);
 
     const handleFileChange = async (event) => {
         const file = event.target.files[0]; // Get only the first file
@@ -150,7 +153,12 @@ const EditDetail = ({ params }) => {
             setErrors({}); // Reset errors if validation passes
 
             // Send the form data as JSON
-            const response = await axios.put(`${process.env.NEXT_PUBLIC_API_URL}/forms/${params.formId}`, formData, {
+            const submissionData = {
+                ...formData,
+                wedding_events: weddingEvents
+            };
+
+            const response = await axios.put(`${process.env.NEXT_PUBLIC_API_URL}/forms/${params.formId}`, submissionData, {
                 withCredentials: true, // Add withCredentials to send cookies
             });
 
@@ -324,6 +332,11 @@ const EditDetail = ({ params }) => {
             }
             setFormData(updatedFormData);
             setRekeningList(updatedFormData.rekening || []);
+
+            if (fetchedFormData.wedding_events && fetchedFormData.wedding_events.length > 0) {
+                setWeddingEvents(fetchedFormData.wedding_events);
+            }
+
             setQuoteHtml(updatedFormData.quote || "");
         } catch (error) {
             console.error('Error fetching data:', error);
@@ -359,6 +372,22 @@ const EditDetail = ({ params }) => {
     useEffect(() => {
         setMounted(true); // Indicate that the component has mounted
     }, []);
+
+    const handleAddEvent = () => {
+        if (weddingEvents.length < 4) {
+            setWeddingEvents([...weddingEvents, { nama: "", tanggal: "", waktu: "", tempat: "", alamat: "" }]);
+        }
+    };
+
+    const handleRemoveEvent = (index) => {
+        setWeddingEvents(weddingEvents.filter((_, i) => i !== index));
+    };
+
+    const handleEventChange = (index, field, value) => {
+        const newEvents = [...weddingEvents];
+        newEvents[index][field] = value;
+        setWeddingEvents(newEvents);
+    };
 
     useEffect(() => {
         if (mounted) {
@@ -716,6 +745,32 @@ const EditDetail = ({ params }) => {
                                 className="mt-1 p-2 w-full border border-gray-300 rounded-lg"
                             />
                             {errors.alamatResepsi && <p className="text-red-500 text-sm mt-1">{errors.alamatResepsi}</p>}
+                        </div>
+
+                        <div className="mb-6 p-4 border-2 border-dashed border-blue-200 rounded-xl bg-blue-50/30">
+                            <div className="flex items-center justify-between gap-4">
+                                <div>
+                                    <h4 className="font-bold text-blue-900">Acara Tambahan</h4>
+                                    <p className="text-xs text-blue-700">Pengajian, Siraman, Unduh Mantu, dll.</p>
+                                </div>
+                                <Button
+                                    type="button"
+                                    variant="outline"
+                                    className="bg-white border-blue-500 text-blue-600 hover:bg-blue-50 shadow-sm"
+                                    onClick={() => setIsEventsModalOpen(true)}
+                                >
+                                    {weddingEvents.length > 0 && weddingEvents[0].nama ? 'Edit Acara' : '+ Atur Acara'}
+                                </Button>
+                            </div>
+                            {weddingEvents.length > 0 && weddingEvents[0].nama && (
+                                <div className="mt-3 flex flex-wrap gap-2">
+                                    {weddingEvents.map((ev, i) => ev.nama && (
+                                        <span key={i} className="text-[10px] bg-blue-100 text-blue-700 px-2 py-1 rounded-full font-medium">
+                                            {ev.nama}
+                                        </span>
+                                    ))}
+                                </div>
+                            )}
                         </div>
                         <div className="mb-4">
                             <label className="block text-gray-700">
@@ -1322,26 +1377,32 @@ const EditDetail = ({ params }) => {
 
 
 
-                        <Button type="submit" className="bg-blue-500 text-white px-4 py-2 rounded-lg" disabled={isLoading}>
+                        <Button type="submit" className="w-full bg-blue-600 hover:bg-blue-700 py-6 text-lg font-bold shadow-lg shadow-blue-200 mt-8 mb-4" disabled={isLoading}>
                             {isLoading ? (
                                 <>
-                                    {/* <ClipLoader size={20} color="#fff" className="inline-block mr-2" /> */}
-                                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                    Submit
+                                    <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                                    Memperbarui...
                                 </>
                             ) : (
-                                'Submit'
+                                'Simpan Perubahan'
                             )}
                         </Button>
                         {Object.keys(errors).length > 0 && <p className="text-red-500 text-sm mt-1">Semua Form bertanda (<span className="text-lg">*</span>) harus diisi</p>}
                     </form>
+
+                    <AdditionalEventsModal
+                        isOpen={isEventsModalOpen}
+                        onClose={setIsEventsModalOpen}
+                        weddingEvents={weddingEvents}
+                        handleAddEvent={handleAddEvent}
+                        handleRemoveEvent={handleRemoveEvent}
+                        handleEventChange={handleEventChange}
+                    />
                 </div >
 
             </div >
         </>
     );
-
-
-}
+};
 
 export default EditDetail;

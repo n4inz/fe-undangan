@@ -99,7 +99,7 @@ export default function AdminReferral() {
             <div className="flex flex-col flex-grow w-full md:pl-24">
                 <div className="container max-w-6xl mx-auto py-8 px-4">
                     <div className="flex justify-between items-center mb-6">
-                        <h1 className="text-3xl font-bold tracking-tight">Referral Commissions</h1>
+                        <p className="font-bold tracking-tight">Referral Commissions</p>
                         {/* Placeholder for export button if needed */}
                     </div>
 
