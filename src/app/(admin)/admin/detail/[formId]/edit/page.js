@@ -153,9 +153,10 @@ const EditDetail = ({ params }) => {
             setErrors({}); // Reset errors if validation passes
 
             // Send the form data as JSON
+            const validEvents = weddingEvents.filter(event => event.nama && event.nama.trim() !== "");
             const submissionData = {
                 ...formData,
-                wedding_events: weddingEvents
+                wedding_events: validEvents
             };
 
             const response = await axios.put(`${process.env.NEXT_PUBLIC_API_URL}/forms/${params.formId}`, submissionData, {

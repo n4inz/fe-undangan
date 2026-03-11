@@ -1091,7 +1091,7 @@ const Home = () => {
                   </div>
                 </RadioGroup>
               </div>
-              {/* 
+
               <div className="mb-4">
                 <Button
                   type="button"
@@ -1106,8 +1106,8 @@ const Home = () => {
                     ✓ {weddingEvents.filter(e => e.nama).length} acara tambahan ditambahkan
                   </p>
                 )}
-              </div> 
-              */}
+              </div>
+
             </>
           )}
 
@@ -1694,7 +1694,7 @@ const Home = () => {
           {Object.keys(errors).length > 0 && <p className="text-red-500 text-sm mt-1">Semua Form bertanda (<span className="text-lg">*</span>) harus diisi</p>}
         </form>
 
-        {/* 
+
         <AdditionalEventsModal
           isOpen={isEventsModalOpen}
           onClose={setIsEventsModalOpen}
@@ -1702,8 +1702,8 @@ const Home = () => {
           handleAddEvent={handleAddEvent}
           handleRemoveEvent={handleRemoveEvent}
           handleEventChange={handleEventChange}
-        /> 
-        */}
+        />
+
       </div >
     </div >
   );

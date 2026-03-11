@@ -39,7 +39,7 @@ const AdditionalEventsModal = ({
                                         <h3 className="font-bold text-blue-700 flex items-center gap-2">
                                             Acara {displayNumber}
                                         </h3>
-                                        {weddingEvents.length > 1 && !readOnly && (
+                                        {!readOnly && (
                                             <Button
                                                 type="button"
                                                 variant="ghost"
