@@ -21,7 +21,6 @@ import { SelectValue } from '@radix-ui/react-select';
 import { getBankList } from '@/lib/bank';
 import BankCombobox from '@/components/admin/BankComboBox';
 import MusicCombobox from '@/components/admin/MusicComboBox';
-import AdditionalEventsModal from '@/components/AdditionalEventsModal';
 
 const Edit = ({ params }) => {
 
@@ -39,9 +38,7 @@ const Edit = ({ params }) => {
     const [isLoadingOptions, setIsLoadingOptions] = useState(true);
 
     const [options, setOptions] = useState([]); // Store options for the Select component
-    // const [mounted, setMounted] = useState(false);
-    const [activeTab, setActiveTab] = useState('Pengantin');
-    const TABS = ['Pengantin', 'Acara', 'Lokasi', 'Love Story', 'Sosial Media', 'Galeri', 'Pengaturan']; // Track if component is mounted
+    // const [mounted, setMounted] = useState(false); // Track if component is mounted
 
     const [selectedFile, setSelectedFile] = useState(null);
     const [progress, setProgress] = useState(0);
@@ -55,8 +52,6 @@ const Edit = ({ params }) => {
     const [mounted, setMounted] = useState(false);
     // tambahkan di bagian state hooks awal
     const [lockEvents, setLockEvents] = useState(false);
-    const [isEventsModalOpen, setIsEventsModalOpen] = useState(false);
-    const [weddingEvents, setWeddingEvents] = useState([{ nama: "", tanggal: "", waktu: "", tempat: "", alamat: "" }]);
 
 
 
@@ -100,13 +95,7 @@ const Edit = ({ params }) => {
             setErrors({}); // Reset errors if validation passes
 
             // Send the form data as JSON
-            const validEvents = weddingEvents.filter(event => event.nama && event.nama.trim() !== "");
-            const submissionData = {
-                ...formData,
-                wedding_events: validEvents
-            };
-
-            const response = await axios.put(`${process.env.NEXT_PUBLIC_API_URL}/form-edit/${params.formId}/${params.phoneNumber}`, submissionData);
+            const response = await axios.put(`${process.env.NEXT_PUBLIC_API_URL}/form-edit/${params.formId}/${params.phoneNumber}`, formData);
 
             console.log('Form updated successfully:', response);
             router.push(`/forms/${params.formId}/${params.phoneNumber}/atur-foto/success/result`);
@@ -273,11 +262,6 @@ const Edit = ({ params }) => {
 
             setFormData(updatedFormData);
             setRekeningList(updatedFormData.rekening || []);
-
-            if (fetchedFormData.wedding_events && fetchedFormData.wedding_events.length > 0) {
-                setWeddingEvents(fetchedFormData.wedding_events);
-            }
-
             setQuoteHtml(updatedFormData.quote || "");
 
             // set lock state
@@ -318,22 +302,6 @@ const Edit = ({ params }) => {
     useEffect(() => {
         setMounted(true); // Indicate that the component has mounted
     }, []);
-
-    const handleAddEvent = () => {
-        if (weddingEvents.length < 4) {
-            setWeddingEvents([...weddingEvents, { nama: "", tanggal: "", waktu: "", tempat: "", alamat: "" }]);
-        }
-    };
-
-    const handleRemoveEvent = (index) => {
-        setWeddingEvents(weddingEvents.filter((_, i) => i !== index));
-    };
-
-    const handleEventChange = (index, field, value) => {
-        const newEvents = [...weddingEvents];
-        newEvents[index][field] = value;
-        setWeddingEvents(newEvents);
-    };
 
     useEffect(() => {
         if (mounted) {
@@ -379,730 +347,654 @@ const Edit = ({ params }) => {
                     </div>
                 </div>
 
-
-                {/* TABS HEADER */}
-                <div className="w-full border-b border-gray-200 sticky top-0 bg-white z-10 px-4 py-3 flex items-center justify-between">
-                    <div className="flex space-x-2 overflow-x-auto no-scrollbar pb-1">
-                        {TABS.map((tab) => (
-                            <button
-                                key={tab}
-                                type="button"
-                                onClick={() => setActiveTab(tab)}
-                                className={`whitespace-nowrap px-4 py-2 text-sm font-medium rounded-full transition-colors border ${activeTab === tab
-                                    ? 'bg-black text-white border-black'
-                                    : 'bg-white text-black border-gray-300 hover:bg-gray-100'
-                                    }`}
-                            >
-                                {tab}
-                            </button>
-                        ))}
+                <form onSubmit={handleSubmit} className='m-4 lg:m-0'>
+                    {/* Mempelai Pria */}
+                    <div className="mb-4">
+                        <label className="block text-gray-700">Nama Lengkap Mempelai Pria
+                            <span className='text-red-500'>*</span></label>
+                        <Input
+                            type="text"
+                            name="namaLengkapPria"
+                            value={formData.namaLengkapPria}
+                            onChange={handleChange}
+                            className="mt-1 p-2 w-full border border-gray-300 rounded-lg"
+                        />
+                        {errors.namaLengkapPria && <p className="text-red-500 text-sm mt-1">{errors.namaLengkapPria}</p>}
                     </div>
-                    {/* Floating Save Button on Header */}
-                    {/* <Button
-                        onClick={handleSubmit}
-                        disabled={isLoading}
-                        className="ml-4 bg-black text-white px-4 py-2 rounded-full font-medium text-sm border border-black hover:bg-gray-800 transition-colors whitespace-nowrap"
-                    >
-                        {isLoading ? 'Menyimpan...' : 'Simpan'}
-                    </Button> */}
-                </div>
+                    <div className="mb-4">
+                        <label className="block text-gray-700">Nama Panggilan Mempelai Pria
+                            <span className='text-red-500'>*</span></label>
+                        <Input
+                            type="text"
+                            name="namaPanggilanPria"
+                            value={formData.namaPanggilanPria}
+                            onChange={handleChange}
+                            className="mt-1 p-2 w-full border border-gray-300 rounded-lg"
+                        />
+                        {errors.namaPanggilanPria && <p className="text-red-500 text-sm mt-1">{errors.namaPanggilanPria}</p>}
+                    </div>
+                    <div className="mb-4">
+                        <label className="block text-gray-700">Nama Orang Tua Mempelai Pria<span className='text-red-500'>*</span>
+                            <br></br>Ex: Bapak Rozan Dan Ibu Marlina
+                        </label>
+                        <Input
+                            type="text"
+                            name="namaOrtuPria"
+                            value={formData.namaOrtuPria}
+                            onChange={handleChange}
+                            className="mt-1 p-2 w-full border border-gray-300 rounded-lg"
+                        />
+                        {errors.namaOrtuPria && <p className="text-red-500 text-sm mt-1">{errors.namaOrtuPria}</p>}
+                    </div>
+                    <div className="mb-4">
+                        <label className="block text-gray-700">
+                            Tempat Lahir Mempelai Pria
+                        </label>
+                        <Input
+                            type="text"
+                            name="tempatLahirPria"
+                            value={formData.tempatLahirPria}
+                            onChange={handleChange}
+                            className="mt-1 p-2 w-full border border-gray-300 rounded-lg"
+                        />
+                        {errors.tempatLahirPria && <p className="text-red-500 text-sm mt-1">{errors.tempatLahirPria}</p>}
+                    </div>
+                    <div className="mb-4">
+                        <label className="block text-gray-700">Tanggal Lahir Mempelai Pria</label>
+                        <input
+                            type="date"
+                            name="tglLahirPria"
+                            value={formData.tglLahirPria}
+                            onChange={handleChange}
+                            className="mt-1 p-2 w-full border border-gray-300 rounded-lg"
+                        />
+                        {errors.tglLahirPria && <p className="text-red-500 text-sm mt-1">{errors.tglLahirPria}</p>}
+                    </div>
+                    <div className="mb-4">
+                        <label className="block text-gray-700">
+                            Anak Ke Berapa (Mempelai Pria)
+                            <br />
+                            Ex: Pertama, Kedua, Bungsu, Sulung, dan lain-lain
+                        </label>
+                        <Input
+                            type="text"
+                            name="anakKeberapaPria"
+                            value={formData.anakKeberapaPria}
+                            onChange={handleChange}
+                            className="mt-1 p-2 w-full border border-gray-300 rounded-lg"
+                        />
+                    </div>
+                    <div className="mb-4">
+                        <label className="block text-gray-700">
+                            Alamat (Mempelai Pria)
+                        </label>
+                        <Input
+                            type="text"
+                            name="alamatPria"
+                            value={formData.alamatPria}
+                            onChange={handleChange}
+                            className="mt-1 p-2 w-full border border-gray-300 rounded-lg"
+                        />
+                    </div>
+                    {/* Mempelai Wanita */}
+                    <div className="mb-4">
+                        <label className="block text-gray-700">Nama Lengkap Mempelai Wanita
+                            <span className='text-red-500'>*</span></label>
+                        <Input
+                            type="text"
+                            name="namaLengkapWanita"
+                            value={formData.namaLengkapWanita}
+                            onChange={handleChange}
+                            className="mt-1 p-2 w-full border border-gray-300 rounded-lg"
+                        />
+                        {errors.namaLengkapWanita && <p className="text-red-500 text-sm mt-1">{errors.namaLengkapWanita}</p>}
+                    </div>
+                    <div className="mb-4">
+                        <label className="block text-gray-700">Nama Panggilan Mempelai Wanita
+                            <span className='text-red-500'>*</span></label>
+                        <Input
+                            type="text"
+                            name="namaPanggilanWanita"
+                            value={formData.namaPanggilanWanita}
+                            onChange={handleChange}
+                            className="mt-1 p-2 w-full border border-gray-300 rounded-lg"
+                        />
+                        {errors.namaPanggilanWanita && <p className="text-red-500 text-sm mt-1">{errors.namaPanggilanWanita}</p>}
+                    </div>
+                    <div className="mb-4">
+                        <label className="block text-gray-700">Nama Orang Tua Mempelai Wanita<span className='text-red-500'>*</span>
+                            <br></br>Ex: Bapak Rozan Dan Ibu Marlina
+                        </label>
+                        <Input
+                            type="text"
+                            name="namaOrtuWanita"
+                            value={formData.namaOrtuWanita}
+                            onChange={handleChange}
+                            className="mt-1 p-2 w-full border border-gray-300 rounded-lg"
+                        />
+                        {errors.namaOrtuWanita && <p className="text-red-500 text-sm mt-1">{errors.namaOrtuWanita}</p>}
+                    </div>
+                    <div className="mb-4">
+                        <label className="block text-gray-700">Tempat Lahir Mempelai Wanita
+                        </label>
+                        <Input
+                            type="text"
+                            name="tempatLahirWanita"
+                            value={formData.tempatLahirWanita}
+                            onChange={handleChange}
+                            className="mt-1 p-2 w-full border border-gray-300 rounded-lg"
+                        />
+                        {errors.tempatLahirWanita && <p className="text-red-500 text-sm mt-1">{errors.tempatLahirWanita}</p>}
+                    </div>
+                    <div className="mb-4">
+                        <label className="block text-gray-700">Tanggal Lahir Mempelai Wanita</label>
+                        <input
+                            type="date"
+                            name="tglLahirWanita"
+                            value={formData.tglLahirWanita}
+                            onChange={handleChange}
+                            className="mt-1 p-2 w-full border border-gray-300 rounded-lg"
+                        />
+                        {errors.tglLahirWanita && <p className="text-red-500 text-sm mt-1">{errors.tglLahirWanita}</p>}
+                    </div>
+                    <div className="mb-4">
+                        <label className="block text-gray-700">
+                            Anak Ke Berapa (Mempelai Wanita)
+                            <br />
+                            Ex: Pertama, Kedua, Bungsu, Sulung, dan lain-lain
+                        </label>
+                        <Input
+                            type="text"
+                            name="anakKeberapaWanita"
+                            value={formData.anakKeberapaWanita}
+                            onChange={handleChange}
+                            className="mt-1 p-2 w-full border border-gray-300 rounded-lg"
+                        />
+                    </div>
+                    <div className="mb-4">
+                        <label className="block text-gray-700">
+                            Alamat (Mempelai Wanita)
+                        </label>
+                        <Input
+                            type="text"
+                            name="alamatWanita"
+                            value={formData.alamatWanita}
+                            onChange={handleChange}
+                            className="mt-1 p-2 w-full border border-gray-300 rounded-lg"
+                        />
+                    </div>
+                    {/* Acara */}
+                    <div className="mb-4">
+                        <label className="block text-gray-700">
+                            Judul Acara 1
+                            <br></br>
+                            Ex: Akad Nikah / Pemberkatan
+                        </label>
+                        <input
+                            type="text"
+                            name="judulAcara1"
+                            value={formData.judulAcara1}
+                            onChange={handleChange}
+                            className="mt-1 p-2 w-full border border-gray-300 rounded-lg"
+                            disabled={lockEvents}
+                        />
+                    </div>
+                    <div className="mb-4">
+                        <label className="block text-gray-700">
+                            Tanggal dan Jam Acara (Akad / Pemberkatan )
+                            <span className='text-red-500'>*</span>
+                        </label>
+                        <input
+                            type="date"
+                            name="datetimeAkad"
+                            value={formData.datetimeAkad}
+                            onChange={handleChange}
+                            className="mt-1 p-2 w-full border border-gray-300 rounded-lg"
+                            disabled={lockEvents}
+                        />
+                    </div>
+                    <div className="mb-4">
+                        <label className="block text-gray-700">
+                            Jam Acara (Akad / Pemberkatan )
+                            <span className='text-red-500'>*</span>
+                            <br></br>
+                            Ex: 12.00 WIB - Selesai
+                        </label>
+                        <input
+                            type="text"
+                            name="timeAkad"
+                            value={formData.timeAkad}
+                            onChange={handleChange}
+                            className="mt-1 p-2 w-full border border-gray-300 rounded-lg"
+                            disabled={lockEvents}
+                        />
+                    </div>
+                    <div className="mb-4">
+                        <label className="block text-gray-700">
+                            Judul Acara 2
+                            <br></br>
+                            Ex: Resepsi / Pesta
+                        </label>
+                        <input
+                            type="text"
+                            name="judulAcara2"
+                            value={formData.judulAcara2}
+                            onChange={handleChange}
+                            className="mt-1 p-2 w-full border border-gray-300 rounded-lg"
+                            disabled={lockEvents}
+                        />
+                    </div>
+                    <div className="mb-4">
+                        <label className="block text-gray-700">
+                            Tanggal dan Jam Acara Resepsi
+                            <span className='text-red-500'>*</span>
+                        </label>
+                        <input
+                            type="date"
+                            name="datetimeResepsi"
+                            value={formData.datetimeResepsi}
+                            onChange={handleChange}
+                            className="mt-1 p-2 w-full border border-gray-300 rounded-lg"
+                            disabled={lockEvents}
+                        />
+                    </div>
+                    <div className="mb-4">
+                        <label className="block text-gray-700">
+                            Jam Acara Resepsi
+                            <span className='text-red-500'>*</span>
+                            <br></br>
+                            Ex: 12.00 WIB - Selesai
+                        </label>
+                        <input
+                            type="text"
+                            name="timeResepsi"
+                            value={formData.timeResepsi}
+                            onChange={handleChange}
+                            className="mt-1 p-2 w-full border border-gray-300 rounded-lg"
+                            disabled={lockEvents}
+                        />
+                    </div>
+                    <div className="mb-4">
+                        <label className="block text-gray-700">
+                            Alamat Acara Akad/Pemberkatan (Alamat)<span className='text-red-500'>*</span>
+                            <br></br>
+                            Ex: Jl Jambu  Selatan No 123
+                        </label>
+                        <Input
+                            type="text"
+                            name="alamatAkad"
+                            value={formData.alamatAkad}
+                            onChange={handleChange}
+                            className="mt-1 p-2 w-full border border-gray-300 rounded-lg"
+                        />
+                        {errors.alamatAkad && <p className="text-red-500 text-sm mt-1">{errors.alamatAkad}</p>}
+                    </div>
+                    <div className="mb-4">
+                        <label className="block text-gray-700">
+                            Alamat Acara Resepsi (Alamat)<span className='text-red-500'>*</span>
+                            <br></br>
+                            Ex: Jl Jambu  Selatan No 123
+                        </label>
+                        <Input
+                            type="text"
+                            name="alamatResepsi"
+                            value={formData.alamatResepsi}
+                            onChange={handleChange}
+                            className="mt-1 p-2 w-full border border-gray-300 rounded-lg"
+                        />
+                        {errors.alamatResepsi && <p className="text-red-500 text-sm mt-1">{errors.alamatResepsi}</p>}
+                    </div>
+                    <div className="mb-4">
+                        <label className="block text-gray-700">
+                            Tempat Acara Akad/Pemberkatan
+                            <span className='text-red-500'>*</span>
+                        </label>
+                        <RadioGroup value={formData.opsiAkad} name="opsiAkad" onValueChange={(value) => handleChange({ target: { name: 'opsiAkad', value } })}>
+                            <div className="flex items-center space-x-2">
+                                <RadioGroupItem value="Wanita" id="WanitaAkad" />
+                                <Label htmlFor="WanitaAkad">Rumah Mempelai Wanita</Label>
+                            </div>
+                            <div className="flex items-center space-x-2">
+                                <RadioGroupItem value="Pria" id="PriaAkad" />
+                                <Label htmlFor="PriaAkad">Rumah Mempelai Pria</Label>
+                            </div>
+                            <div className="flex items-center space-x-2">
+                                <RadioGroupItem value="Lainnya" id="LainnyaAkad" />
+                                <Label htmlFor="LainnyaAkad">Lainnya</Label>
+                                <Input
+                                    type="text"
+                                    name="LainnyaInputAkad"
+                                    value={formData.LainnyaInputAkad || ''}
+                                    onChange={handleChange}
+                                    className="w-full h-6 border border-gray-300 rounded-lg smaller-input"
+                                    disabled={formData.opsiAkad !== "Lainnya"}
+                                />
+                            </div>
+                        </RadioGroup>
 
-                <form onSubmit={handleSubmit} className='m-4 lg:m-0 w-full px-4 pt-4'>
-                    {activeTab === 'Pengantin' && (<>
-                        {/* Mempelai Pria */}
-                        <div className="mb-4">
-                            <label className="block text-gray-700">Nama Lengkap Mempelai Pria
-                                <span className='text-red-500'>*</span></label>
-                            <Input
-                                type="text"
-                                name="namaLengkapPria"
-                                value={formData.namaLengkapPria}
-                                onChange={handleChange}
-                                className="mt-1 p-2 w-full border border-gray-300 rounded-lg"
-                            />
-                            {errors.namaLengkapPria && <p className="text-red-500 text-sm mt-1">{errors.namaLengkapPria}</p>}
-                        </div>
-                        <div className="mb-4">
-                            <label className="block text-gray-700">Nama Panggilan Mempelai Pria
-                                <span className='text-red-500'>*</span></label>
-                            <Input
-                                type="text"
-                                name="namaPanggilanPria"
-                                value={formData.namaPanggilanPria}
-                                onChange={handleChange}
-                                className="mt-1 p-2 w-full border border-gray-300 rounded-lg"
-                            />
-                            {errors.namaPanggilanPria && <p className="text-red-500 text-sm mt-1">{errors.namaPanggilanPria}</p>}
-                        </div>
-                        <div className="mb-4">
-                            <label className="block text-gray-700">Nama Orang Tua Mempelai Pria<span className='text-red-500'>*</span>
-                                <br></br>Ex: Bapak Rozan Dan Ibu Marlina
-                            </label>
-                            <Input
-                                type="text"
-                                name="namaOrtuPria"
-                                value={formData.namaOrtuPria}
-                                onChange={handleChange}
-                                className="mt-1 p-2 w-full border border-gray-300 rounded-lg"
-                            />
-                            {errors.namaOrtuPria && <p className="text-red-500 text-sm mt-1">{errors.namaOrtuPria}</p>}
-                        </div>
-                        <div className="mb-4">
-                            <label className="block text-gray-700">
-                                Tempat Lahir Mempelai Pria
-                            </label>
-                            <Input
-                                type="text"
-                                name="tempatLahirPria"
-                                value={formData.tempatLahirPria}
-                                onChange={handleChange}
-                                className="mt-1 p-2 w-full border border-gray-300 rounded-lg"
-                            />
-                            {errors.tempatLahirPria && <p className="text-red-500 text-sm mt-1">{errors.tempatLahirPria}</p>}
-                        </div>
-                        <div className="mb-4">
-                            <label className="block text-gray-700">Tanggal Lahir Mempelai Pria</label>
-                            <input
-                                type="date"
-                                name="tglLahirPria"
-                                value={formData.tglLahirPria}
-                                onChange={handleChange}
-                                className="mt-1 p-2 w-full border border-gray-300 rounded-lg"
-                            />
-                            {errors.tglLahirPria && <p className="text-red-500 text-sm mt-1">{errors.tglLahirPria}</p>}
-                        </div>
-                        <div className="mb-4">
-                            <label className="block text-gray-700">
-                                Anak Ke Berapa (Mempelai Pria)
-                                <br />
-                                Ex: Pertama, Kedua, Bungsu, Sulung, dan lain-lain
-                            </label>
-                            <Input
-                                type="text"
-                                name="anakKeberapaPria"
-                                value={formData.anakKeberapaPria}
-                                onChange={handleChange}
-                                className="mt-1 p-2 w-full border border-gray-300 rounded-lg"
-                            />
-                        </div>
-                        <div className="mb-4">
-                            <label className="block text-gray-700">
-                                Alamat (Mempelai Pria)
-                            </label>
-                            <Input
-                                type="text"
-                                name="alamatPria"
-                                value={formData.alamatPria}
-                                onChange={handleChange}
-                                className="mt-1 p-2 w-full border border-gray-300 rounded-lg"
-                            />
-                        </div>
-                        {/* Mempelai Wanita */}
-                        <div className="mb-4">
-                            <label className="block text-gray-700">Nama Lengkap Mempelai Wanita
-                                <span className='text-red-500'>*</span></label>
-                            <Input
-                                type="text"
-                                name="namaLengkapWanita"
-                                value={formData.namaLengkapWanita}
-                                onChange={handleChange}
-                                className="mt-1 p-2 w-full border border-gray-300 rounded-lg"
-                            />
-                            {errors.namaLengkapWanita && <p className="text-red-500 text-sm mt-1">{errors.namaLengkapWanita}</p>}
-                        </div>
-                        <div className="mb-4">
-                            <label className="block text-gray-700">Nama Panggilan Mempelai Wanita
-                                <span className='text-red-500'>*</span></label>
-                            <Input
-                                type="text"
-                                name="namaPanggilanWanita"
-                                value={formData.namaPanggilanWanita}
-                                onChange={handleChange}
-                                className="mt-1 p-2 w-full border border-gray-300 rounded-lg"
-                            />
-                            {errors.namaPanggilanWanita && <p className="text-red-500 text-sm mt-1">{errors.namaPanggilanWanita}</p>}
-                        </div>
-                        <div className="mb-4">
-                            <label className="block text-gray-700">Nama Orang Tua Mempelai Wanita<span className='text-red-500'>*</span>
-                                <br></br>Ex: Bapak Rozan Dan Ibu Marlina
-                            </label>
-                            <Input
-                                type="text"
-                                name="namaOrtuWanita"
-                                value={formData.namaOrtuWanita}
-                                onChange={handleChange}
-                                className="mt-1 p-2 w-full border border-gray-300 rounded-lg"
-                            />
-                            {errors.namaOrtuWanita && <p className="text-red-500 text-sm mt-1">{errors.namaOrtuWanita}</p>}
-                        </div>
-                        <div className="mb-4">
-                            <label className="block text-gray-700">Tempat Lahir Mempelai Wanita
-                            </label>
-                            <Input
-                                type="text"
-                                name="tempatLahirWanita"
-                                value={formData.tempatLahirWanita}
-                                onChange={handleChange}
-                                className="mt-1 p-2 w-full border border-gray-300 rounded-lg"
-                            />
-                            {errors.tempatLahirWanita && <p className="text-red-500 text-sm mt-1">{errors.tempatLahirWanita}</p>}
-                        </div>
-                        <div className="mb-4">
-                            <label className="block text-gray-700">Tanggal Lahir Mempelai Wanita</label>
-                            <input
-                                type="date"
-                                name="tglLahirWanita"
-                                value={formData.tglLahirWanita}
-                                onChange={handleChange}
-                                className="mt-1 p-2 w-full border border-gray-300 rounded-lg"
-                            />
-                            {errors.tglLahirWanita && <p className="text-red-500 text-sm mt-1">{errors.tglLahirWanita}</p>}
-                        </div>
-                        <div className="mb-4">
-                            <label className="block text-gray-700">
-                                Anak Ke Berapa (Mempelai Wanita)
-                                <br />
-                                Ex: Pertama, Kedua, Bungsu, Sulung, dan lain-lain
-                            </label>
-                            <Input
-                                type="text"
-                                name="anakKeberapaWanita"
-                                value={formData.anakKeberapaWanita}
-                                onChange={handleChange}
-                                className="mt-1 p-2 w-full border border-gray-300 rounded-lg"
-                            />
-                        </div>
-                        <div className="mb-4">
-                            <label className="block text-gray-700">
-                                Alamat (Mempelai Wanita)
-                            </label>
-                            <Input
-                                type="text"
-                                name="alamatWanita"
-                                value={formData.alamatWanita}
-                                onChange={handleChange}
-                                className="mt-1 p-2 w-full border border-gray-300 rounded-lg"
-                            />
-                        </div>
-                    </>)}
+                        {/* {errors.alamatResepsi && <p className="text-red-500 text-sm mt-1">{errors.alamatResepsi}</p>} */}
+                    </div>
 
-                    {activeTab === 'Lokasi' && (<>
-                        <div className="mb-4">
-                            <label className="block text-gray-700">
-                                Mauskkan Nama Provinsi
-                                <br></br>
-                                Ex: DKI Jakarta
-                            </label>
-                            <Input
-                                type="text"
-                                name="provinsi"
-                                value={formData.provinsi}
-                                onChange={handleChange}
-                                className="mt-1 p-2 w-full border border-gray-300 rounded-lg"
-                            />
-                        </div>
-                        <div className="mb-4">
-                            <label className="block text-gray-700">
-                                Mauskkan Nama Kota / Kabupaten
-                                <br></br>
-                                Ex: Jakarta Pusat
-                            </label>
-                            <Input
-                                type="text"
-                                name="kota"
-                                value={formData.kota}
-                                onChange={handleChange}
-                                className="mt-1 p-2 w-full border border-gray-300 rounded-lg"
-                            />
-                        </div>
+                    <div className="mb-4">
+                        <label className="block text-gray-700">
+                            Tempat Acara Resepsi
+                            <span className='text-red-500'>*</span>
+                        </label>
 
-                        <div className="mb-4">
-                            <label className="block text-gray-700">
-                                Link Maps / Sharelok lokasi acara 1 (Akad/Pemberkatan)
-                            </label>
-                            <Input
-                                type="text"
-                                name="linkSherlokAkad"
-                                value={formData.linkSherlokAkad}
-                                onChange={handleChange}
-                                className="mt-1 p-2 w-full border border-gray-300 rounded-lg"
-                            />
-                        </div>
-                        <div className="mb-4">
-                            <label className="block text-gray-700">
-                                Link Maps / Sharelok lokasi acara 2 (Resepsi)
-                            </label>
-                            <Input
-                                type="text"
-                                name="linkSherlokResepsi"
-                                value={formData.linkSherlokResepsi}
-                                onChange={handleChange}
-                                className="mt-1 p-2 w-full border border-gray-300 rounded-lg"
-                            />
-                        </div>
-                    </>
-                    )}
-                    {activeTab === 'Sosial Media' && (<>
+                        <RadioGroup value={formData.opsiResepsi} name="opsiResepsi" onValueChange={(value) => handleChange({ target: { name: 'opsiResepsi', value } })}>
+                            <div className="flex items-center space-x-2">
+                                <RadioGroupItem value="Wanita" id="WanitaResepsi" />
+                                <Label htmlFor="WanitaResepsi">Rumah Mempelai Wanita</Label>
+                            </div>
+                            <div className="flex items-center space-x-2">
+                                <RadioGroupItem value="Pria" id="PriaResepsi" />
+                                <Label htmlFor="PriaResepsi">Rumah Mempelai Pria</Label>
+                            </div>
+                            <div className="flex items-center space-x-2">
+                                <RadioGroupItem value="Lainnya" id="LainnyaResepsi" />
+                                <Label htmlFor="LainnyaResepsi">Lainnya</Label>
+                                <Input
+                                    type="text"
+                                    name="LainnyaInputResepsi"
+                                    value={formData.LainnyaInputResepsi || ''}
+                                    onChange={handleChange}
+                                    className="w-full h-6 border border-gray-300 rounded-lg smaller-input"
+                                    disabled={formData.opsiResepsi !== "Lainnya"}
+                                />
+                            </div>
+                        </RadioGroup>
 
-                        <div className="mb-4">
-                            <label className="block text-gray-700">
-                                Username Instagram (Pria)
-                            </label>
-                            <Input
-                                type="text"
-                                name="usernameIgPria"
-                                value={formData.usernameIgPria}
-                                onChange={handleChange}
-                                className="mt-1 p-2 w-full border border-gray-300 rounded-lg"
-                            />
-                        </div>
-                        <div className="mb-4">
-                            <label className="block text-gray-700">
-                                Username Instagram (Wanita)
-                            </label>
-                            <Input
-                                type="text"
-                                name="usernameIgWanita"
-                                value={formData.usernameIgWanita}
-                                onChange={handleChange}
-                                className="mt-1 p-2 w-full border border-gray-300 rounded-lg"
-                            />
-                        </div>
-                    </>
-                    )}
+                        {/* {errors.alamatResepsi && <p className="text-red-500 text-sm mt-1">{errors.alamatResepsi}</p>} */}
+                    </div>
 
-                    {activeTab === 'Galeri' && (<>
-                        {/* OPTIONAL */}
-                        <div className="mb-4">
-                            <label className="block text-gray-700">
-                                Link Live streaming (YT)
-                            </label>
-                            <Input
-                                type="text"
-                                name="liveYt"
-                                value={formData.liveYt}
-                                onChange={handleChange}
-                                className="mt-1 p-2 w-full border border-gray-300 rounded-lg"
-                            />
+                    <div className="mb-4">
+                        <label className="block text-gray-700">
+                            Mauskkan Nama Provinsi
+                            <br></br>
+                            Ex: DKI Jakarta
+                        </label>
+                        <Input
+                            type="text"
+                            name="provinsi"
+                            value={formData.provinsi}
+                            onChange={handleChange}
+                            className="mt-1 p-2 w-full border border-gray-300 rounded-lg"
+                        />
+                    </div>
+                    <div className="mb-4">
+                        <label className="block text-gray-700">
+                            Mauskkan Nama Kota / Kabupaten
+                            <br></br>
+                            Ex: Jakarta Pusat
+                        </label>
+                        <Input
+                            type="text"
+                            name="kota"
+                            value={formData.kota}
+                            onChange={handleChange}
+                            className="mt-1 p-2 w-full border border-gray-300 rounded-lg"
+                        />
+                    </div>
 
-                        </div>
-                    </>)}
-                    {activeTab === 'Pengaturan' && (<>
-                        <div className="mb-4">
-                            <label className="block text-gray-700">
-                                Pilih Model Rekening
-                            </label>
-                            <Select
-                                value={formData.rekeningStyle}
-                                onValueChange={(value) => setFormData((prevFormData) => ({ ...prevFormData, rekeningStyle: value }))}
-                                className="w-full h-6 border border-gray-300 rounded-lg">
-                                <SelectTrigger>
-                                    <SelectValue placeholder="Pilih Model Rekening" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem value="kartu">Kartu</SelectItem>
-                                    <SelectItem value="dropdown">Dropdown</SelectItem>
-                                </SelectContent>
-                            </Select>
-                        </div>
-                        <div className="mb-4">
-                            {rekeningList.map((rekening, index) => (
-                                <div
-                                    key={index}
-                                    className="mb-4 relative border border-gray-300 rounded-lg p-4"
-                                >
-                                    {/* Show Close Button for Second Input and Beyond */}
-                                    {/* {index > 0 && ( */}
-                                    <button
-                                        type="button"
-                                        onClick={() => handleRemoveRekening(index, rekening.id)}
-                                        className="absolute top-2 right-2 text-red-500 hover:text-red-700"
-                                        title="Hapus Rekening"
-                                    >
-                                        ✖
-                                    </button>
-                                    {/* )} */}
-                                    <label className="block text-gray-700">
-                                        Icon Bank {index + 1}
-                                    </label>
-                                    <BankCombobox
-                                        value={rekening.icon || ''}
-                                        onValueChange={(value) => handleSelectBankChange(value, index)}
-                                        bankList={bankList}
-                                        isLoading={isLoading}
-                                    />
+                    {/* OPTIONAL */}
+                    <div className="mb-4">
+                        <label className="block text-gray-700">
+                            Link Live streaming (YT)
+                        </label>
+                        <Input
+                            type="text"
+                            name="liveYt"
+                            value={formData.liveYt}
+                            onChange={handleChange}
+                            className="mt-1 p-2 w-full border border-gray-300 rounded-lg"
+                        />
 
-                                    <label className="block text-gray-700">
-                                        Nama Rekening {index + 1}
-                                    </label>
-                                    <Input
-                                        type="text"
-                                        name="namaRekening"
-                                        value={rekening.namaRekening}
-                                        onChange={(e) => handleChange(e, index)}
-                                        className="mt-1 p-2 w-full border border-gray-300 rounded-lg"
-                                        placeholder={`Nama Bank a/n Nasabah`}
-                                    />
-                                    <label className="block text-gray-700 mt-2">
-                                        Nomor Rekening {index + 1}
-                                    </label>
-                                    <Input
-                                        type="text"
-                                        name="noRekening"
-                                        value={rekening.noRekening}
-                                        onChange={(e) => handleChange(e, index)}
-                                        className="mt-1 p-2 w-full border border-gray-300 rounded-lg"
-                                        placeholder={`012345xxxx`}
-                                    />
-                                </div>
-                            ))}
-                            <Button
-                                type="button"
-                                onClick={handleAddRekening}
-                                className="mt-2 px-4 py-2 bg-blue-500 text-white rounded-lg"
+                    </div>
+                    <div className="mb-4">
+                        <label className="block text-gray-700">
+                            Username Instagram (Pria)
+                        </label>
+                        <Input
+                            type="text"
+                            name="usernameIgPria"
+                            value={formData.usernameIgPria}
+                            onChange={handleChange}
+                            className="mt-1 p-2 w-full border border-gray-300 rounded-lg"
+                        />
+                    </div>
+                    <div className="mb-4">
+                        <label className="block text-gray-700">
+                            Username Instagram (Wanita)
+                        </label>
+                        <Input
+                            type="text"
+                            name="usernameIgWanita"
+                            value={formData.usernameIgWanita}
+                            onChange={handleChange}
+                            className="mt-1 p-2 w-full border border-gray-300 rounded-lg"
+                        />
+                    </div>
+                    <div className="mb-4">
+                        <label className="block text-gray-700">
+                            Pilih Model Rekening
+                        </label>
+                        <Select
+                            value={formData.rekeningStyle}
+                            onValueChange={(value) => setFormData((prevFormData) => ({ ...prevFormData, rekeningStyle: value }))}
+                            className="w-full h-6 border border-gray-300 rounded-lg">
+                            <SelectTrigger>
+                                <SelectValue placeholder="Pilih Model Rekening" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="kartu">Kartu</SelectItem>
+                                <SelectItem value="dropdown">Dropdown</SelectItem>
+                            </SelectContent>
+                        </Select>
+                    </div>
+                    <div className="mb-4">
+                        {rekeningList.map((rekening, index) => (
+                            <div
+                                key={index}
+                                className="mb-4 relative border border-gray-300 rounded-lg p-4"
                             >
-                                + Tambah Rekening
-                            </Button>
-                        </div>
-
-                        <div className="mb-4">
-                            <label className="block text-gray-700">
-                                Alamat Rumah Jika ada Pengiriman Hadiah Dari tamu Undangan
-                            </label>
-                            <Input
-                                type="text"
-                                name="alamatHadiah"
-                                value={formData.alamatHadiah}
-                                onChange={handleChange}
-                                className="mt-1 p-2 w-full border border-gray-300 rounded-lg"
-                            />
-                        </div>
-                    </>)}
-                    {activeTab === 'Love Story' && (<>
-                        <div className="mb-4">
-                            <label className="block text-gray-700">Ceritakan awal bertemu</label>
-                            <div className="flex space-x-4">
-                                <Input
-                                    type="text"
-                                    name="judulCeritaAwal"
-                                    value={formData.judulCeritaAwal}
-                                    onChange={handleChange}
-                                    className="flex-1"
-                                    placeholder="Judul Cerita Awal"
-                                />
-                                <Input
-                                    name="dateCeritaAwal"
-                                    type="month"
-                                    value={formData.dateCeritaAwal}
-                                    onChange={handleChange}
-                                    className="flex-1"
-                                />
-                            </div>
-                            <Textarea
-                                name="ceritaAwal"
-                                value={formData.ceritaAwal}
-                                onChange={handleChange}
-                                className="mt-1 p-2 w-full border border-gray-300 rounded-lg"
-                            />
-                        </div>
-                        <div className="mb-4">
-                            <label className="block text-gray-700">Ceritakan awal jadian</label>
-                            <div className="flex space-x-4">
-                                <Input
-                                    type="text"
-                                    name="judulCeritaJadian"
-                                    value={formData.judulCeritaJadian}
-                                    onChange={handleChange}
-                                    className="flex-1"
-                                    placeholder="Judul Cerita Komitmen"
-                                />
-                                <Input
-                                    name="dateCeritaJadian"
-                                    type="month"
-                                    value={formData.dateCeritaJadian}
-                                    onChange={handleChange}
-                                    className="flex-1"
-                                />
-                            </div>
-                            <Textarea
-                                name="ceritaJadian"
-                                value={formData.ceritaJadian}
-                                onChange={handleChange}
-                                className="mt-1 p-2 w-full border border-gray-300 rounded-lg"
-                            />
-                        </div>
-                        <div className="mb-4">
-                            <label className="block text-gray-700">Ceritakan awal lamaran</label>
-                            <div className="flex space-x-4">
-                                <Input
-                                    type="text"
-                                    name="judulCeritaLamaran"
-                                    value={formData.judulCeritaLamaran}
-                                    onChange={handleChange}
-                                    className="flex-1"
-                                    placeholder="Judul Cerita Lamaran"
-                                />
-                                <Input
-                                    name="dateCeritaLamaran"
-                                    type="month"
-                                    value={formData.dateCeritaLamaran}
-                                    onChange={handleChange}
-                                    className="flex-1"
-                                />
-                            </div>
-                            <Textarea
-                                name="ceritaLamaran"
-                                value={formData.ceritaLamaran}
-                                onChange={handleChange}
-                                className="mt-1 p-2 w-full border border-gray-300 rounded-lg"
-                            />
-                        </div>
-                    </>)}
-                    {activeTab === 'Acara' && (<>
-                        {/* Acara */}
-                        <div className="mb-4">
-                            <label className="block text-gray-700">
-                                Judul Acara 1
-                                <br></br>
-                                Ex: Akad Nikah / Pemberkatan
-                            </label>
-                            <input
-                                type="text"
-                                name="judulAcara1"
-                                value={formData.judulAcara1}
-                                onChange={handleChange}
-                                className="mt-1 p-2 w-full border border-gray-300 rounded-lg"
-                                disabled={lockEvents}
-                            />
-                        </div>
-                        <div className="mb-4">
-                            <label className="block text-gray-700">
-                                Tanggal dan Jam Acara (Akad / Pemberkatan )
-                                <span className='text-red-500'>*</span>
-                            </label>
-                            <input
-                                type="date"
-                                name="datetimeAkad"
-                                value={formData.datetimeAkad}
-                                onChange={handleChange}
-                                className="mt-1 p-2 w-full border border-gray-300 rounded-lg"
-                                disabled={lockEvents}
-                            />
-                        </div>
-                        <div className="mb-4">
-                            <label className="block text-gray-700">
-                                Jam Acara (Akad / Pemberkatan )
-                                <span className='text-red-500'>*</span>
-                                <br></br>
-                                Ex: 12.00 WIB - Selesai
-                            </label>
-                            <input
-                                type="text"
-                                name="timeAkad"
-                                value={formData.timeAkad}
-                                onChange={handleChange}
-                                className="mt-1 p-2 w-full border border-gray-300 rounded-lg"
-                                disabled={lockEvents}
-                            />
-                        </div>
-                        <div className="mb-4">
-                            <label className="block text-gray-700">
-                                Tempat Acara Akad/Pemberkatan
-                                <span className='text-red-500'>*</span>
-                            </label>
-                            <RadioGroup value={formData.opsiAkad} name="opsiAkad" onValueChange={(value) => handleChange({ target: { name: 'opsiAkad', value } })}>
-                                <div className="flex items-center space-x-2">
-                                    <RadioGroupItem value="Wanita" id="WanitaAkad" />
-                                    <Label htmlFor="WanitaAkad">Rumah Mempelai Wanita</Label>
-                                </div>
-                                <div className="flex items-center space-x-2">
-                                    <RadioGroupItem value="Pria" id="PriaAkad" />
-                                    <Label htmlFor="PriaAkad">Rumah Mempelai Pria</Label>
-                                </div>
-                                <div className="flex items-center space-x-2">
-                                    <RadioGroupItem value="Lainnya" id="LainnyaAkad" />
-                                    <Label htmlFor="LainnyaAkad">Lainnya</Label>
-                                    <Input
-                                        type="text"
-                                        name="LainnyaInputAkad"
-                                        value={formData.LainnyaInputAkad || ''}
-                                        onChange={handleChange}
-                                        className="w-full h-6 border border-gray-300 rounded-lg smaller-input"
-                                        disabled={formData.opsiAkad !== "Lainnya"}
-                                    />
-                                </div>
-                            </RadioGroup>
-
-                            {/* {errors.alamatResepsi && <p className="text-red-500 text-sm mt-1">{errors.alamatResepsi}</p>} */}
-                        </div>
-
-                        <div className="mb-4">
-                            <label className="block text-gray-700">
-                                Judul Acara 2
-                                <br></br>
-                                Ex: Resepsi / Pesta
-                            </label>
-                            <input
-                                type="text"
-                                name="judulAcara2"
-                                value={formData.judulAcara2}
-                                onChange={handleChange}
-                                className="mt-1 p-2 w-full border border-gray-300 rounded-lg"
-                                disabled={lockEvents}
-                            />
-                        </div>
-                        <div className="mb-4">
-                            <label className="block text-gray-700">
-                                Tanggal dan Jam Acara Resepsi
-                                <span className='text-red-500'>*</span>
-                            </label>
-                            <input
-                                type="date"
-                                name="datetimeResepsi"
-                                value={formData.datetimeResepsi}
-                                onChange={handleChange}
-                                className="mt-1 p-2 w-full border border-gray-300 rounded-lg"
-                                disabled={lockEvents}
-                            />
-                        </div>
-                        <div className="mb-4">
-                            <label className="block text-gray-700">
-                                Jam Acara Resepsi
-                                <span className='text-red-500'>*</span>
-                                <br></br>
-                                Ex: 12.00 WIB - Selesai
-                            </label>
-                            <input
-                                type="text"
-                                name="timeResepsi"
-                                value={formData.timeResepsi}
-                                onChange={handleChange}
-                                className="mt-1 p-2 w-full border border-gray-300 rounded-lg"
-                                disabled={lockEvents}
-                            />
-                        </div>
-                        <div className="mb-4">
-                            <label className="block text-gray-700">
-                                Alamat Acara Akad/Pemberkatan (Alamat)<span className='text-red-500'>*</span>
-                                <br></br>
-                                Ex: Jl Jambu  Selatan No 123
-                            </label>
-                            <Input
-                                type="text"
-                                name="alamatAkad"
-                                value={formData.alamatAkad}
-                                onChange={handleChange}
-                                className="mt-1 p-2 w-full border border-gray-300 rounded-lg"
-                            />
-                            {errors.alamatAkad && <p className="text-red-500 text-sm mt-1">{errors.alamatAkad}</p>}
-                        </div>
-                        <div className="mb-4">
-                            <label className="block text-gray-700">
-                                Alamat Acara Resepsi (Alamat)<span className='text-red-500'>*</span>
-                                <br></br>
-                                Ex: Jl Jambu  Selatan No 123
-                            </label>
-                            <Input
-                                type="text"
-                                name="alamatResepsi"
-                                value={formData.alamatResepsi}
-                                onChange={handleChange}
-                                className="mt-1 p-2 w-full border border-gray-300 rounded-lg"
-                            />
-                            {errors.alamatResepsi && <p className="text-red-500 text-sm mt-1">{errors.alamatResepsi}</p>}
-                        </div>
-
-                        <div className="mb-4">
-                            <label className="block text-gray-700">
-                                Tempat Acara Resepsi
-                                <span className='text-red-500'>*</span>
-                            </label>
-
-                            <RadioGroup value={formData.opsiResepsi} name="opsiResepsi" onValueChange={(value) => handleChange({ target: { name: 'opsiResepsi', value } })}>
-                                <div className="flex items-center space-x-2">
-                                    <RadioGroupItem value="Wanita" id="WanitaResepsi" />
-                                    <Label htmlFor="WanitaResepsi">Rumah Mempelai Wanita</Label>
-                                </div>
-                                <div className="flex items-center space-x-2">
-                                    <RadioGroupItem value="Pria" id="PriaResepsi" />
-                                    <Label htmlFor="PriaResepsi">Rumah Mempelai Pria</Label>
-                                </div>
-                                <div className="flex items-center space-x-2">
-                                    <RadioGroupItem value="Lainnya" id="LainnyaResepsi" />
-                                    <Label htmlFor="LainnyaResepsi">Lainnya</Label>
-                                    <Input
-                                        type="text"
-                                        name="LainnyaInputResepsi"
-                                        value={formData.LainnyaInputResepsi || ''}
-                                        onChange={handleChange}
-                                        className="w-full h-6 border border-gray-300 rounded-lg smaller-input"
-                                        disabled={formData.opsiResepsi !== "Lainnya"}
-                                    />
-                                </div>
-                            </RadioGroup>
-
-                            {/* {errors.alamatResepsi && <p className="text-red-500 text-sm mt-1">{errors.alamatResepsi}</p>} */}
-                        </div>
-
-                        <div className="mb-6 p-4 border-2 border-dashed border-blue-200 rounded-xl bg-blue-50/30">
-                            <div className="flex items-center justify-between gap-4">
-                                <div>
-                                    <h4 className="font-bold text-blue-900">Acara Tambahan</h4>
-                                    <p className="text-xs text-blue-700">Pengajian, Siraman, Unduh Mantu, dll.</p>
-                                </div>
-                                <Button
+                                {/* Show Close Button for Second Input and Beyond */}
+                                {/* {index > 0 && ( */}
+                                <button
                                     type="button"
-                                    variant="outline"
-                                    className="bg-white border-blue-500 text-blue-600 hover:bg-blue-50 shadow-sm"
-                                    onClick={() => setIsEventsModalOpen(true)}
+                                    onClick={() => handleRemoveRekening(index, rekening.id)}
+                                    className="absolute top-2 right-2 text-red-500 hover:text-red-700"
+                                    title="Hapus Rekening"
                                 >
-                                    {weddingEvents.length > 0 && weddingEvents[0].nama ? 'Edit Acara' : '+ Atur Acara'}
-                                </Button>
+                                    ✖
+                                </button>
+                                {/* )} */}
+                                <label className="block text-gray-700">
+                                    Icon Bank {index + 1}
+                                </label>
+                                <BankCombobox
+                                    value={rekening.icon || ''}
+                                    onValueChange={(value) => handleSelectBankChange(value, index)}
+                                    bankList={bankList}
+                                    isLoading={isLoading}
+                                />
+
+                                <label className="block text-gray-700">
+                                    Nama Rekening {index + 1}
+                                </label>
+                                <Input
+                                    type="text"
+                                    name="namaRekening"
+                                    value={rekening.namaRekening}
+                                    onChange={(e) => handleChange(e, index)}
+                                    className="mt-1 p-2 w-full border border-gray-300 rounded-lg"
+                                    placeholder={`Nama Bank a/n Nasabah`}
+                                />
+                                <label className="block text-gray-700 mt-2">
+                                    Nomor Rekening {index + 1}
+                                </label>
+                                <Input
+                                    type="text"
+                                    name="noRekening"
+                                    value={rekening.noRekening}
+                                    onChange={(e) => handleChange(e, index)}
+                                    className="mt-1 p-2 w-full border border-gray-300 rounded-lg"
+                                    placeholder={`012345xxxx`}
+                                />
                             </div>
-                            {weddingEvents.length > 0 && weddingEvents[0].nama && (
-                                <div className="mt-3 flex flex-wrap gap-2">
-                                    {weddingEvents.map((ev, i) => ev.nama && (
-                                        <span key={i} className="text-[10px] bg-blue-100 text-blue-700 px-2 py-1 rounded-full font-medium">
-                                            {ev.nama}
-                                        </span>
-                                    ))}
-                                </div>
-                            )}
-                        </div>
-                    </>)}
-                    {activeTab === 'Galeri' && (<>
-                        <div className="mb-4">
-                            <label className="block text-gray-700">
-                                Link Video Youtube (Gallery)
-                            </label>
+                        ))}
+                        <Button
+                            type="button"
+                            onClick={handleAddRekening}
+                            className="mt-2 px-4 py-2 bg-blue-500 text-white rounded-lg"
+                        >
+                            + Tambah Rekening
+                        </Button>
+                    </div>
+
+                    <div className="mb-4">
+                        <label className="block text-gray-700">
+                            Alamat Rumah Jika ada Pengiriman Hadiah Dari tamu Undangan
+                        </label>
+                        <Input
+                            type="text"
+                            name="alamatHadiah"
+                            value={formData.alamatHadiah}
+                            onChange={handleChange}
+                            className="mt-1 p-2 w-full border border-gray-300 rounded-lg"
+                        />
+                    </div>
+                    <div className="mb-4">
+                        <label className="block text-gray-700">Ceritakan awal bertemu</label>
+                        <div className="flex space-x-4">
                             <Input
                                 type="text"
-                                name="linkVideo"
-                                value={formData.linkVideo}
+                                name="judulCeritaAwal"
+                                value={formData.judulCeritaAwal}
                                 onChange={handleChange}
-                                className="mt-1 p-2 w-full border border-gray-300 rounded-lg"
+                                className="flex-1"
+                                placeholder="Judul Cerita Awal"
+                            />
+                            <Input
+                                name="dateCeritaAwal"
+                                type="month"
+                                value={formData.dateCeritaAwal}
+                                onChange={handleChange}
+                                className="flex-1"
                             />
                         </div>
-                    </>)}
-                    {activeTab === 'Pengaturan' && (<>
-                        <div className="mb-4">
-                            <label className="block text-gray-700">
-                                Posisi Nama Penempatan Tulisan Untuk Mempelai
-                                <span className='text-red-500'>*</span>
-                            </label>
-
-                            <RadioGroup value={formData.penempatanTulisan} name="penempatanTulisan" onValueChange={(value) => handleChange({ target: { name: 'penempatanTulisan', value } })}>
-                                <div className="flex items-center space-x-2">
-                                    <RadioGroupItem value="Wanita" id="WanitaDulu" />
-                                    <Label htmlFor="WanitaDulu"> Wanita Dulu</Label>
-                                </div>
-                                <div className="flex items-center space-x-2">
-                                    <RadioGroupItem value="Pria" id="PriaDulu" />
-                                    <Label htmlFor="PriaDulu">Pria Dulu</Label>
-                                </div>
-                            </RadioGroup>
+                        <Textarea
+                            name="ceritaAwal"
+                            value={formData.ceritaAwal}
+                            onChange={handleChange}
+                            className="mt-1 p-2 w-full border border-gray-300 rounded-lg"
+                        />
+                    </div>
+                    <div className="mb-4">
+                        <label className="block text-gray-700">Ceritakan awal jadian</label>
+                        <div className="flex space-x-4">
+                            <Input
+                                type="text"
+                                name="judulCeritaJadian"
+                                value={formData.judulCeritaJadian}
+                                onChange={handleChange}
+                                className="flex-1"
+                                placeholder="Judul Cerita Komitmen"
+                            />
+                            <Input
+                                name="dateCeritaJadian"
+                                type="month"
+                                value={formData.dateCeritaJadian}
+                                onChange={handleChange}
+                                className="flex-1"
+                            />
                         </div>
-                        {/* <div className="mb-4">
+                        <Textarea
+                            name="ceritaJadian"
+                            value={formData.ceritaJadian}
+                            onChange={handleChange}
+                            className="mt-1 p-2 w-full border border-gray-300 rounded-lg"
+                        />
+                    </div>
+                    <div className="mb-4">
+                        <label className="block text-gray-700">Ceritakan awal lamaran</label>
+                        <div className="flex space-x-4">
+                            <Input
+                                type="text"
+                                name="judulCeritaLamaran"
+                                value={formData.judulCeritaLamaran}
+                                onChange={handleChange}
+                                className="flex-1"
+                                placeholder="Judul Cerita Lamaran"
+                            />
+                            <Input
+                                name="dateCeritaLamaran"
+                                type="month"
+                                value={formData.dateCeritaLamaran}
+                                onChange={handleChange}
+                                className="flex-1"
+                            />
+                        </div>
+                        <Textarea
+                            name="ceritaLamaran"
+                            value={formData.ceritaLamaran}
+                            onChange={handleChange}
+                            className="mt-1 p-2 w-full border border-gray-300 rounded-lg"
+                        />
+                    </div>
+                    <div className="mb-4">
+                        <label className="block text-gray-700">
+                            Link Maps / Sharelok lokasi acara (Akad/Pemberkatan)
+                        </label>
+                        <Input
+                            type="text"
+                            name="linkSherlokAkad"
+                            value={formData.linkSherlokAkad}
+                            onChange={handleChange}
+                            className="mt-1 p-2 w-full border border-gray-300 rounded-lg"
+                        />
+                    </div>
+                    <div className="mb-4">
+                        <label className="block text-gray-700">
+                            Link Maps / Sharelok lokasi acara Resepsi
+                        </label>
+                        <Input
+                            type="text"
+                            name="linkSherlokResepsi"
+                            value={formData.linkSherlokResepsi}
+                            onChange={handleChange}
+                            className="mt-1 p-2 w-full border border-gray-300 rounded-lg"
+                        />
+                    </div>
+                    <div className="mb-4">
+                        <label className="block text-gray-700">
+                            Link Video Youtube (Gallery)
+                        </label>
+                        <Input
+                            type="text"
+                            name="linkVideo"
+                            value={formData.linkVideo}
+                            onChange={handleChange}
+                            className="mt-1 p-2 w-full border border-gray-300 rounded-lg"
+                        />
+                    </div>
+                    <div className="mb-4">
+                        <label className="block text-gray-700">
+                            Posisi Nama Penempatan Tulisan Untuk Mempelai
+                            <span className='text-red-500'>*</span>
+                        </label>
+
+                        <RadioGroup value={formData.penempatanTulisan} name="penempatanTulisan" onValueChange={(value) => handleChange({ target: { name: 'penempatanTulisan', value } })}>
+                            <div className="flex items-center space-x-2">
+                                <RadioGroupItem value="Wanita" id="WanitaDulu" />
+                                <Label htmlFor="WanitaDulu"> Wanita Dulu</Label>
+                            </div>
+                            <div className="flex items-center space-x-2">
+                                <RadioGroupItem value="Pria" id="PriaDulu" />
+                                <Label htmlFor="PriaDulu">Pria Dulu</Label>
+                            </div>
+                        </RadioGroup>
+                    </div>
+                    {/* <div className="mb-4">
                         <label className="block text-gray-700">Turut Mengundang</label>
                         <Textarea
                             name="turutMengundang"
@@ -1111,30 +1003,45 @@ const Edit = ({ params }) => {
                             className="mt-1 p-2 w-full border border-gray-300 rounded-lg"
                         />
                     </div> */}
-                    </>)}
-                    {activeTab === 'Pengaturan' && (<>
-                        <div className="mb-4">
-                            {/* Kolom‑1: Label (3/5) */}
-                            <label className="col-span-3 block text-gray-700">
-                                Sumber Quote
-                                <p>Contoh: QS. Ar‑Rum 21, Matius dan lain2</p>
-                            </label>
+                    <div className="mb-4 w-full max-w-full">
+                        <label className="block text-gray-700">Pilih Musik</label>
+                        {/* <MusicCombobox
+                            value={formData.idMusic || ''}
+                            onValueChange={(value) => handleSelectMusicChange(value)}
+                            list={musicList}
+                            isLoading={isLoading}
+                        /> */}
+                        <MusicCombobox
+                            value={formData.idMusic || ""}
+                            onValueChange={(v) => handleSelectMusicChange(v)}
+                            apiUrl={process.env.NEXT_PUBLIC_API_URL}
+                            limit={10}
+                        />
 
-                            <Input
-                                type="text"
-                                name="source"
-                                value={formData.source}
-                                onChange={handleChange}
-                                placeholder="Sumber Quote..."
-                            />
+                    </div>
 
-                            {errors.source && (
-                                <p className="text-red-500 text-sm mb-1">
-                                    {errors.source}
-                                </p>
-                            )}
+                    <div className="mb-4">
+                        {/* Kolom‑1: Label (3/5) */}
+                        <label className="col-span-3 block text-gray-700">
+                            Sumber Quote
+                            <p>Contoh: QS. Ar‑Rum 21, Matius dan lain2</p>
+                        </label>
 
-                            {/* <label className="block text-gray-700 mb-1">Quote</label>
+                        <Input
+                            type="text"
+                            name="source"
+                            value={formData.source}
+                            onChange={handleChange}
+                            placeholder="Sumber Quote..."
+                        />
+
+                        {errors.source && (
+                            <p className="text-red-500 text-sm mb-1">
+                                {errors.source}
+                            </p>
+                        )}
+
+                        {/* <label className="block text-gray-700 mb-1">Quote</label>
                         <Textarea
                             name="quote"
                             value={formData.quote}
@@ -1142,139 +1049,112 @@ const Edit = ({ params }) => {
                             className="w-full border border-gray-300 rounded-lg"
                             placeholder="Masukkan Quote..."
                         /> */}
-                        </div>
+                    </div>
 
-                        <div className="mb-4">
-                            <label className="block text-gray-700 mb-1">Quote</label>
-                            <Textarea
-                                name="quote"
-                                value={formData.quote}
-                                onChange={handleChange}
-                                className="w-full border border-gray-300 rounded-lg"
-                                placeholder="Masukkan Quote..."
-                            />
-                        </div>
-
-                        <div className="mb-4 w-full max-w-full">
-                            <label className="block text-gray-700">Pilih Musik</label>
-                            {/* <MusicCombobox
-                            value={formData.idMusic || ''}
-                            onValueChange={(value) => handleSelectMusicChange(value)}
-                            list={musicList}
-                            isLoading={isLoading}
-                        /> */}
-                            <MusicCombobox
-                                value={formData.idMusic || ""}
-                                onValueChange={(v) => handleSelectMusicChange(v)}
-                                apiUrl={process.env.NEXT_PUBLIC_API_URL}
-                                limit={10}
-                            />
-
-                        </div>
+                    <div className="mb-4">
+                        <label className="block text-gray-700 mb-1">Quote</label>
+                        <Textarea
+                            name="quote"
+                            value={formData.quote}
+                            onChange={handleChange}
+                            className="w-full border border-gray-300 rounded-lg"
+                            placeholder="Masukkan Quote..."
+                        />
+                    </div>
 
 
-                        <div className="mb-4">
-                            <label className="block text-gray-700">
-                                Pilihan Thema Ceknya di{' '}
-                                <a
-                                    href="https://sewaundangan.com/#chat_me"
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="text-blue-500 hover:underline"
-                                >
-                                    Sewaundangan.com
-                                </a>
-                                <span className="text-red-500">*</span>
-                            </label>
-
-                            <RadioGroup
-                                value={formData.pilihanTema}
-                                name="pilihanTema"
-                                onValueChange={(value) => {
-                                    setFormData((prev) => ({
-                                        ...prev,
-                                        pilihanTema: value,
-                                        ...(value !== "Lainnya" && { idTema: "", LainnyaPilihanTema: "" }), // Clear idTema and LainnyaPilihanTema if not "Lainnya"
-                                    }));
-                                }}
+                    <div className="mb-4">
+                        <label className="block text-gray-700">
+                            Pilihan Thema Ceknya di{' '}
+                            <a
+                                href="https://sewaundangan.com/#chat_me"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-blue-500 hover:underline"
                             >
-                                {/* Admin Option */}
-                                {/* <div className="flex items-center space-x-2">
+                                Sewaundangan.com
+                            </a>
+                            <span className="text-red-500">*</span>
+                        </label>
+
+                        <RadioGroup
+                            value={formData.pilihanTema}
+                            name="pilihanTema"
+                            onValueChange={(value) => {
+                                setFormData((prev) => ({
+                                    ...prev,
+                                    pilihanTema: value,
+                                    ...(value !== "Lainnya" && { idTema: "", LainnyaPilihanTema: "" }), // Clear idTema and LainnyaPilihanTema if not "Lainnya"
+                                }));
+                            }}
+                        >
+                            {/* Admin Option */}
+                            {/* <div className="flex items-center space-x-2">
                                 <RadioGroupItem value="Admin" id="PilihanAdmin" />
                                 <Label htmlFor="PilihanAdmin">Admin Pilihkan</Label>
                             </div> */}
 
-                                {/* Lainnya Option */}
-                                <div className="flex items-center space-x-2">
-                                    <RadioGroupItem value="Lainnya" id="LainnyaPilihanTema" />
-                                    <Label htmlFor="LainnyaPilihanTema">Lainnya</Label>
+                            {/* Lainnya Option */}
+                            <div className="flex items-center space-x-2">
+                                <RadioGroupItem value="Lainnya" id="LainnyaPilihanTema" />
+                                <Label htmlFor="LainnyaPilihanTema">Lainnya</Label>
 
-                                    {/* Select Box */}
-                                    <Select
-                                        value={formData.idTema || ''}
-                                        onValueChange={(value) => {
-                                            const selectedOption = options.find((option) => option.id === value);
-                                            if (selectedOption) {
-                                                handleSelectChange(selectedOption.id, selectedOption.name);
-                                            }
-                                        }}
-                                        className="w-full h-6 border border-gray-300 rounded-lg"
-                                    >
-                                        <SelectTrigger>
-                                            <SelectValue placeholder="Pilih Tema" />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            {isLoadingOptions ? (
-                                                <SelectItem value="loading" disabled>
-                                                    Loading...
-                                                </SelectItem>
-                                            ) : options.length > 0 ? (
-                                                options.map((option) => (
-                                                    <SelectItem key={option.id} value={option.id} className="flex justify-between">
-                                                        <span>{option.name}</span>
-                                                        {/* {option.price && (
+                                {/* Select Box */}
+                                <Select
+                                    value={formData.idTema || ''}
+                                    onValueChange={(value) => {
+                                        const selectedOption = options.find((option) => option.id === value);
+                                        if (selectedOption) {
+                                            handleSelectChange(selectedOption.id, selectedOption.name);
+                                        }
+                                    }}
+                                    className="w-full h-6 border border-gray-300 rounded-lg"
+                                >
+                                    <SelectTrigger>
+                                        <SelectValue placeholder="Pilih Tema" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        {isLoadingOptions ? (
+                                            <SelectItem value="loading" disabled>
+                                                Loading...
+                                            </SelectItem>
+                                        ) : options.length > 0 ? (
+                                            options.map((option) => (
+                                                <SelectItem key={option.id} value={option.id} className="flex justify-between">
+                                                    <span>{option.name}</span>
+                                                    {/* {option.price && (
                                                         <span className="text-red-500 ml-2">
                                                             (Rp. {option.price.toLocaleString("id-ID")})
                                                         </span>
                                                     )} */}
-                                                    </SelectItem>
-                                                ))
-                                            ) : (
-                                                <SelectItem value="no-options" disabled>
-                                                    No options available
                                                 </SelectItem>
-                                            )}
-                                        </SelectContent>
-                                    </Select>
+                                            ))
+                                        ) : (
+                                            <SelectItem value="no-options" disabled>
+                                                No options available
+                                            </SelectItem>
+                                        )}
+                                    </SelectContent>
+                                </Select>
 
-                                </div>
-                            </RadioGroup>
+                            </div>
+                        </RadioGroup>
 
-                        </div>
+                    </div>
 
-                    </>)}
-
-                    <Button type="submit" className="w-full bg-black hover:bg-gray-800 py-6 text-lg font-bold shadow-md text-white border border-black mt-8 mb-4" disabled={isLoading}>
+                    <Button type="submit" className="bg-blue-500 text-white px-4 py-2 rounded-lg" disabled={isLoading}>
                         {isLoading ? (
                             <>
-                                <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                                Memperbarui...
+                                {/* <ClipLoader size={20} color="#fff" className="inline-block mr-2" /> */}
+                                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                Submit
                             </>
                         ) : (
-                            'Simpan Perubahan'
+                            'Submit'
                         )}
                     </Button>
                     {Object.keys(errors).length > 0 && <p className="text-red-500 text-sm mt-1">Semua Form bertanda (<span className="text-lg">*</span>) harus diisi</p>}
                 </form>
-
-                <AdditionalEventsModal
-                    isOpen={isEventsModalOpen}
-                    onClose={setIsEventsModalOpen}
-                    weddingEvents={weddingEvents}
-                    handleAddEvent={handleAddEvent}
-                    handleRemoveEvent={handleRemoveEvent}
-                    handleEventChange={handleEventChange}
-                />
 
             </div>
 

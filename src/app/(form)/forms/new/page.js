@@ -1092,7 +1092,7 @@ const Home = () => {
                 </RadioGroup>
               </div>
 
-              <div className="mb-4">
+              {/* <div className="mb-4">
                 <Button
                   type="button"
                   variant="outline"
@@ -1106,7 +1106,7 @@ const Home = () => {
                     ✓ {weddingEvents.filter(e => e.nama).length} acara tambahan ditambahkan
                   </p>
                 )}
-              </div>
+              </div> */}
 
             </>
           )}
@@ -1695,14 +1695,14 @@ const Home = () => {
         </form>
 
 
-        <AdditionalEventsModal
+        {/* <AdditionalEventsModal
           isOpen={isEventsModalOpen}
           onClose={setIsEventsModalOpen}
           weddingEvents={weddingEvents}
           handleAddEvent={handleAddEvent}
           handleRemoveEvent={handleRemoveEvent}
           handleEventChange={handleEventChange}
-        />
+        /> */}
 
       </div >
     </div >
