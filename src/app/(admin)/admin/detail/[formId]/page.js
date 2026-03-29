@@ -997,7 +997,7 @@ const Detail = ({ params }) => {
               Tanggal tampilan undangan
             </label>
             <input
-              type="date"
+              type="text"
               name="tglTampilanUndangan"
               value={formData.tglTampilanUndangan}
               className="mt-1 p-2 w-full border border-gray-300 rounded-lg"

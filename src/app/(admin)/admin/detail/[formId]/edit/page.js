@@ -1285,7 +1285,7 @@ const EditDetail = ({ params }) => {
                                 Tanggal tampilan undangan
                             </label>
                             <input
-                                type="date"
+                                type="text"
                                 name="tglTampilanUndangan"
                                 value={formData.tglTampilanUndangan}
                                 onChange={handleChange}
