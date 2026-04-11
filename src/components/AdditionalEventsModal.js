@@ -108,6 +108,19 @@ const AdditionalEventsModal = ({
                                                 disabled={readOnly}
                                             />
                                         </div>
+
+                                        
+                                        <div>
+                                            <Label className="text-xs font-semibold uppercase text-gray-500">Link Maps</Label>
+                                            <Input
+                                                placeholder="Masukkan link maps lokasi acara..."
+                                                value={event.linkMaps}
+                                                onChange={(e) => !readOnly && handleEventChange(index, 'linkMaps', e.target.value)}
+                                                className="bg-white"
+                                                disabled={readOnly}
+                                                type="url"
+                                            />
+                                        </div>
                                     </div>
                                 </div>
                             );
