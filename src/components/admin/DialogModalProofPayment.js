@@ -16,6 +16,7 @@ export default function DialogModalProofPayment({ formId, phoneNumber }) {
         isFont: false,
         revisi: false,
         total: 0,
+        isFloatingBar: false,
         totalPayment: 0,
     });
     const [errors, setErrors] = useState({});
@@ -94,6 +95,14 @@ export default function DialogModalProofPayment({ formId, phoneNumber }) {
                                 <p className="flex items-center">
                                     <BiCheck className="mr-2 text-green-600" />
                                     Thema
+                                </p>
+                                <p className="flex items-center">
+                                    {formData.isFloatingBar ? (
+                                        <BiCheck className="mr-2 text-green-600" />
+                                    ) : (
+                                        <BiX className="mr-2 text-red-600" />
+                                    )}{' '}
+                                    Tambahkan Menu AutoScroll
                                 </p>
                                 <p className="flex items-center">
                                     <BiCheck className="mr-2 text-green-600" />

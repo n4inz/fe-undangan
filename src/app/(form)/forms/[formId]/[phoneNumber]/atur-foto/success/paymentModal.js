@@ -27,6 +27,7 @@ export default function PaymentModal({ formId, phoneNumber, buttonClassName }) {
     isMusic: false,
     isFont: false,
     revisi: true,
+    isFloatingBar: false,
   });
   const [errors, setErrors] = useState({});
   const [isLoading, setIsLoading] = useState(false);
@@ -35,6 +36,7 @@ export default function PaymentModal({ formId, phoneNumber, buttonClassName }) {
   const [company, setCompany] = useState(null);
   const [price, setPrice] = useState(0);
   const [isMusicDisabled, setIsMusicDisabled] = useState(false);
+  const [isFloatingBarDisabled, setIsFloatingBarDisabled] = useState(false);
 
   // accordion open index for bank accounts
   const [openIndex, setOpenIndex] = useState(null);
@@ -157,6 +159,7 @@ export default function PaymentModal({ formId, phoneNumber, buttonClassName }) {
       if (data.paket === "express") total += 30000;
       if (data.isMusic) total += 5000;
       if (data.isFont) total += 20000;
+      if (data.isFloatingBar) total += 5000;
       return total;
     },
     [formData, price]
@@ -225,6 +228,7 @@ export default function PaymentModal({ formId, phoneNumber, buttonClassName }) {
         isMusic: updatedFormData.isMusic,
         isFont: updatedFormData.isFont,
         totalPayment: currentTotal,
+        isFloatingBar: updatedFormData.isFloatingBar,
       };
       formDataToSend.append("data", JSON.stringify(jsonData));
 
@@ -251,6 +255,7 @@ export default function PaymentModal({ formId, phoneNumber, buttonClassName }) {
         isMusic: false,
         isFont: false,
         revisi: true,
+        isFloatingBar: false,
       });
 
       // cleanup preview object url if any
@@ -457,6 +462,10 @@ export default function PaymentModal({ formId, phoneNumber, buttonClassName }) {
                     Custom Font
                   </p>
                   <p className="flex items-center">
+                    {formData.isFloatingBar ? <BiCheck className="mr-2 text-green-600" /> : <BiX className="mr-2 text-red-600" />}
+                    Tambahkan Menu Autoscroll
+                  </p>
+                  <p className="flex items-center">
                     <BiCheck className="mr-2 text-green-600" /> Thema
                   </p>
                   <p className="flex items-center">
@@ -581,6 +590,14 @@ export default function PaymentModal({ formId, phoneNumber, buttonClassName }) {
                         onCheckedChange={(checked) => setFormData({ ...formData, isFont: checked })}
                       />
                       <span>Custom Font/Thema = 20rb</span>
+                    </label>
+                    <label className="flex items-center space-x-2">
+                      <Checkbox
+                        name="isFloatingBar"
+                        checked={formData.isFloatingBar}
+                        onCheckedChange={(checked) => setFormData({ ...formData, isFloatingBar: checked })}
+                      />
+                      <span>Tambahkan Menu AutoScroll = 5rb</span>
                     </label>
                     <label className="flex items-center space-x-2">
                       <Checkbox name="revisi" disabled checked={formData.revisi} />

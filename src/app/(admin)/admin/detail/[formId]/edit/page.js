@@ -23,6 +23,7 @@ import BankCombobox from '@/components/admin/BankComboBox';
 import MusicCombobox from '@/components/admin/MusicComboBox';
 import QuoteEditor from '@/components/QuoteEditor.client';
 import AdditionalEventsModal from '@/components/AdditionalEventsModal';
+import { Checkbox } from '@/components/ui/checkbox';
 
 const formatDateTime = (datetime) => {
     if (!datetime) return '';
@@ -58,6 +59,7 @@ const EditDetail = ({ params }) => {
     const [quoteHtml, setQuoteHtml] = useState("");
     const [isEventsModalOpen, setIsEventsModalOpen] = useState(false);
     const [weddingEvents, setWeddingEvents] = useState([{ nama: "", tanggal: "", waktu: "", tempat: "", alamat: "" }]);
+    const [isFloatingBar, setIsFloatingBar] = useState(false);
 
     const handleFileChange = async (event) => {
         const file = event.target.files[0]; // Get only the first file
@@ -286,51 +288,64 @@ const EditDetail = ({ params }) => {
 
     const fetchData = async () => {
         try {
-            const response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/forms/${params.formId}`, {
-                withCredentials: true
-            });
-            const fetchedFormData = response.data.form || {};
+            const response = await axios.get(
+                `${process.env.NEXT_PUBLIC_API_URL}/forms/${params.formId}`,
+                { withCredentials: true }
+            );
 
-            // Initialize new formData based on fetched data
+            const fetchedFormData = response.data.form || {};
             let updatedFormData = { ...fetchedFormData };
 
-            // Update opsiAkad if it's not 'Pria' or 'Wanita'
             if (fetchedFormData.opsiAkad !== 'Pria' && fetchedFormData.opsiAkad !== 'Wanita') {
                 updatedFormData = {
                     ...updatedFormData,
                     opsiAkad: 'Lainnya',
-                    LainnyaInputAkad: fetchedFormData.opsiAkad
+                    LainnyaInputAkad: fetchedFormData.opsiAkad,
                 };
             }
 
-            // Update opsiResepsi if it's not 'Pria' or 'Wanita'
             if (fetchedFormData.opsiResepsi !== 'Pria' && fetchedFormData.opsiResepsi !== 'Wanita') {
                 updatedFormData = {
                     ...updatedFormData,
                     opsiResepsi: 'Lainnya',
-                    LainnyaInputResepsi: fetchedFormData.opsiResepsi
+                    LainnyaInputResepsi: fetchedFormData.opsiResepsi,
                 };
             }
 
-            // Update pilihanTema if it's not 'Admin'
             if (fetchedFormData.pilihanTema !== 'Admin') {
                 updatedFormData = {
                     ...updatedFormData,
                     pilihanTema: 'Lainnya',
-                    LainnyaPilihanTema: fetchedFormData.pilihanTema
+                    LainnyaPilihanTema: fetchedFormData.pilihanTema,
                 };
             }
 
-            // Set the updated form data in a single setFormData call
             if (fetchedFormData.fileZip != null) {
                 setSelectedFile(fetchedFormData.fileZip);
                 setFileName(fetchedFormData.fileZip);
                 setUploadComplete(true);
                 setProgress(100);
             }
+
             if (!updatedFormData.rekening) {
                 updatedFormData.rekening = [];
             }
+
+            const paymentData = Array.isArray(fetchedFormData.payment)
+                ? fetchedFormData.payment[0] ?? null
+                : fetchedFormData.payment ?? null;
+
+            updatedFormData.payment = paymentData;
+
+            const isFloatingBarValue =
+                paymentData?.isFloatingBar ?? fetchedFormData.isFloatingBar ?? false;
+
+            setIsFloatingBar(isFloatingBarValue);
+
+            console.log("Payment from backend:", fetchedFormData.payment);
+            console.log("Normalized payment:", paymentData);
+            console.log("Final payment in state:", updatedFormData.payment);
+
             setFormData(updatedFormData);
             setRekeningList(updatedFormData.rekening || []);
 
@@ -342,7 +357,7 @@ const EditDetail = ({ params }) => {
         } catch (error) {
             console.error('Error fetching data:', error);
         } finally {
-            setIsLoading(false); // Ensure loading is stopped
+            setIsLoading(false);
         }
     };
 
@@ -1314,6 +1329,33 @@ const EditDetail = ({ params }) => {
                                 onChange={handleChange}
                                 className="mt-1 p-2 w-full border border-gray-300 rounded-lg"
                             />
+                        </div>
+
+                        <div className="mb-4">
+                            <label className="block text-gray-700">Tampilkan Menu Autoscroll ?</label>
+                            <div className="flex items-center space-x-2">
+                                <Checkbox
+                                    id="isFloatingBar"
+                                    checked={
+                                        formData.payment?.isFloatingBar ??
+                                        formData.isFloatingBar ??
+                                        false
+                                    }
+                                    onCheckedChange={(checked) => {
+                                        setFormData((prev) => ({
+                                            ...prev,
+                                            payment: {
+                                                ...(prev.payment || {}),
+                                                isFloatingBar: checked === true,
+                                            },
+                                            isFloatingBar: checked === true, // sync juga ke form
+                                        }));
+                                    }}
+                                />
+                                <Label htmlFor="isFloatingBar" className="text-gray-700">
+                                    Ya
+                                </Label>
+                            </div>
                         </div>
 
                         <div className="mb-4">
