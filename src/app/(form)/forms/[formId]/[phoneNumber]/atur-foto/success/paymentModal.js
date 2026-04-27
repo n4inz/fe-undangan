@@ -11,11 +11,16 @@ import { BiCheck, BiCopy, BiMoney, BiX, BiChevronDown, BiDownload } from "react-
 import { toast } from "@/components/ui/use-toast";
 import { z } from "zod";
 import { paymentSchema } from "@/lib/validation";
-import { Loader2 } from "lucide-react";
+import { Info, Loader2, SaveIcon } from "lucide-react";
 import axios from "axios";
 import Image from "next/image";
 import placeholder from "/public/images/placeholder.webp";
 import { getBankAccounts, getCompanyProfile } from "@/lib/company";
+import {
+  Popover,
+  PopoverTrigger,
+  PopoverContent,
+} from "@/components/ui/popover"
 
 export default function PaymentModal({ formId, phoneNumber, buttonClassName }) {
   // Main form state
@@ -281,15 +286,15 @@ export default function PaymentModal({ formId, phoneNumber, buttonClassName }) {
         });
         setErrors(fieldErrors);
         toast({
-          title: "Validation Error",
-          description: "Please check the form for errors.",
+          title: "Kesalahan Validasi",
+          description: "Mohon periksa kembali isian formulir Anda.",
           variant: "destructive",
         });
       } else {
         console.error("Submission error:", error);
         toast({
-          title: "Submission Error",
-          description: error.message || "Failed to submit payment. Please try again.",
+          title: "Gagal Mengirim",
+          description: error.message || "Gagal memproses pembayaran. Silakan coba lagi nanti.",
           variant: "destructive",
         });
       }
@@ -587,18 +592,48 @@ export default function PaymentModal({ formId, phoneNumber, buttonClassName }) {
                       <Checkbox
                         name="isFont"
                         checked={formData.isFont}
-                        onCheckedChange={(checked) => setFormData({ ...formData, isFont: checked })}
+                        onCheckedChange={(checked) =>
+                          setFormData({ ...formData, isFont: checked })
+                        }
                       />
                       <span>Custom Font/Thema = 20rb</span>
                     </label>
-                    <label className="flex items-center space-x-2">
-                      <Checkbox
-                        name="isFloatingBar"
-                        checked={formData.isFloatingBar}
-                        onCheckedChange={(checked) => setFormData({ ...formData, isFloatingBar: checked })}
-                      />
-                      <span>Tambahkan Menu AutoScroll = 5rb</span>
-                    </label>
+
+                    <div className="flex items-center space-x-2">
+                      <label className="flex items-center space-x-2">
+                        <Checkbox
+                          name="isFloatingBar"
+                          checked={formData.isFloatingBar}
+                          onCheckedChange={(checked) =>
+                            setFormData({ ...formData, isFloatingBar: checked })
+                          }
+                        />
+                        <span>Tambahkan Menu AutoScroll = 5rb</span>
+                      </label>
+
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <div className="cursor-pointer inline-flex items-center justify-center w-6 h-6 rounded-full border hover:bg-gray-100">
+                            <Info className="w-4 h-4 animate-info-blink" />
+                          </div>
+                        </PopoverTrigger>
+
+                        <PopoverContent className="w-64">
+                          <div className="space-y-2">
+                            <Image
+                              src="/images/menu-autoscroll.PNG"
+                              alt="Preview AutoScroll"
+                              width={256}
+                              height={160}
+                              className="rounded object-cover"
+                            />
+                            <p className="text-xs text-gray-500">
+                              Contoh tampilan menu AutoScroll
+                            </p>
+                          </div>
+                        </PopoverContent>
+                      </Popover>
+                    </div>
                     <label className="flex items-center space-x-2">
                       <Checkbox name="revisi" disabled checked={formData.revisi} />
                       <span>Revisi 5x = 0</span>

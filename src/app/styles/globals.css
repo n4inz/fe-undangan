@@ -162,3 +162,13 @@
     @apply bg-background text-foreground;
   }
 }
+
+@keyframes blink-custom {
+  0%, 100% { color: #eab308; } /* Kuning (yellow-500) */
+  33% { color: #ef4444; }      /* Merah (red-500) */
+  66% { color: #000000; }      /* Hitam */
+}
+
+.animate-info-blink {
+  animation: blink-custom 1.5s infinite;
+}

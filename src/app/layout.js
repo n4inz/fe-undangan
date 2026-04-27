@@ -5,6 +5,7 @@ import Providers from './providers';
 import './styles/globals.css';
 import GoogleAnalytics from '@/components/GoogleAnalytics';
 import * as Sentry from '@sentry/nextjs';
+import { TooltipProvider } from '@/components/ui/tooltip';
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -23,7 +24,9 @@ export default async function AppLayout({ children }) {
       <body className={inter.className}>
         <GoogleAnalytics />
         <Providers session={session}>
-          {children}
+          <TooltipProvider>
+            {children}
+          </TooltipProvider>
         </Providers>
       </body>
     </html>
