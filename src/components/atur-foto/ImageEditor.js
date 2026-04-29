@@ -1,10 +1,50 @@
-'use client'
+'use client';
+
 import { useState, useCallback, useRef, useEffect } from 'react';
-import ReactCrop from 'react-image-crop';
+import ReactCrop, { centerCrop, makeAspectCrop } from 'react-image-crop';
 import 'react-image-crop/dist/ReactCrop.css';
-import { FaTimes, FaCheck, FaUndoAlt, FaRedoAlt, FaCrop, FaArrowLeft } from 'react-icons/fa';
-import { set } from 'date-fns';
+import { FaTimes, FaCheck, FaUndoAlt, FaRedoAlt, FaArrowLeft } from 'react-icons/fa';
 import { Button } from '../ui/button';
+
+const ASPECT_PRESETS = [
+  { value: null, label: 'Free' },
+  { value: 0.5, label: '9:16' },
+  { value: 0.75, label: '3:4' },
+  { value: 1, label: '1:1' },
+  { value: 1.33, label: '4:3' },
+  { value: 1.5, label: '3:2' },
+  { value: 1.77, label: '16:9' },
+];
+
+function createCenteredCrop(mediaWidth, mediaHeight, aspect) {
+  if (!mediaWidth || !mediaHeight) return undefined;
+
+  // Free-form crop: start smaller and centered so mobile handles stay visible.
+  if (!aspect) {
+    return {
+      unit: '%',
+      x: 10,
+      y: 10,
+      width: 80,
+      height: 80,
+    };
+  }
+
+  // Aspect crop: use the official helper approach.
+  return centerCrop(
+    makeAspectCrop(
+      {
+        unit: '%',
+        width: 90,
+      },
+      aspect,
+      mediaWidth,
+      mediaHeight
+    ),
+    mediaWidth,
+    mediaHeight
+  );
+}
 
 const ImageEditor = ({ image, onSave, onCancel, idImage = null }) => {
   const [step, setStep] = useState('rotate');
@@ -13,88 +53,47 @@ const ImageEditor = ({ image, onSave, onCancel, idImage = null }) => {
   const [crop, setCrop] = useState();
   const [completedCrop, setCompletedCrop] = useState(null);
   const [aspectRatio, setAspectRatio] = useState(null);
-  const [containerSize, setContainerSize] = useState({ width: 0, height: 0 });
   const [btnDone, setBtnDone] = useState(false);
-  
-  const containerRef = useRef(null);
+
   const imgRef = useRef(null);
   const canvasRef = useRef(null);
-
-  useEffect(() => {
-    const updateSize = () => {
-      if (containerRef.current) {
-        setContainerSize({
-          width: containerRef.current.clientWidth,
-          height: containerRef.current.clientHeight
-        });
-      }
-    };
-
-    updateSize();
-    window.addEventListener('resize', updateSize);
-    return () => window.removeEventListener('resize', updateSize);
-  }, []);
-
-  useEffect(() => {
-    if (step === 'crop' && rotatedImage) {
-      setCrop({
-        unit: '%',
-        width: 100,
-        height: 100,
-        aspect: aspectRatio
-      });
-    }
-  }, [step, rotatedImage, aspectRatio]);
-
-  const aspectRatioPresets = [
-    { value: null, label: 'Free' },
-    { value: 0.5, label: '9:16' },
-    { value: 0.75, label: '3:4' },
-    { value: 1, label: '1:1' },
-    { value: 1.33, label: '4:3' },
-    { value: 1.5, label: '3:2' },
-    { value: 1.77, label: '16:9' },
-  ];
 
   const rotateLeft = () => setRotation((prev) => prev - 90);
   const rotateRight = () => setRotation((prev) => prev + 90);
 
-  const handlePresetClick = (value) => {
-    setAspectRatio(value);
-    setCrop(prev => ({ ...prev, aspect: value }));
-  };
-
   const applyRotation = async () => {
     return new Promise((resolve, reject) => {
       const imageObj = new Image();
-      // Add crossOrigin attribute to handle CORS
-      imageObj.crossOrigin = 'Anonymous';
+      imageObj.crossOrigin = 'anonymous';
       imageObj.src = image;
-      
+
       imageObj.onload = () => {
         try {
           const canvas = document.createElement('canvas');
           const ctx = canvas.getContext('2d');
-          if (!ctx) return reject('Could not get canvas context');
+          if (!ctx) return reject(new Error('Could not get canvas context'));
 
           const angle = rotation % 360;
           const radians = (angle * Math.PI) / 180;
           const sin = Math.abs(Math.sin(radians));
           const cos = Math.abs(Math.cos(radians));
+
           const newWidth = imageObj.width * cos + imageObj.height * sin;
           const newHeight = imageObj.width * sin + imageObj.height * cos;
 
-          canvas.width = newWidth;
-          canvas.height = newHeight;
+          canvas.width = Math.ceil(newWidth);
+          canvas.height = Math.ceil(newHeight);
 
           ctx.translate(newWidth / 2, newHeight / 2);
           ctx.rotate(radians);
           ctx.drawImage(imageObj, -imageObj.width / 2, -imageObj.height / 2);
+
           resolve(canvas.toDataURL('image/jpeg', 0.9));
         } catch (error) {
           reject(error);
         }
       };
+
       imageObj.onerror = (err) => reject(err);
     });
   };
@@ -106,68 +105,125 @@ const ImageEditor = ({ image, onSave, onCancel, idImage = null }) => {
       setStep('crop');
     } catch (err) {
       console.error('Error applying rotation', err);
-      // Fallback to original image if rotation fails
       setRotatedImage(image);
       setStep('crop');
     }
   };
 
-  const onCropComplete = (crop) => {
-    setCompletedCrop(crop);
+  const initCropFromImage = useCallback(
+    (imgEl, nextAspect) => {
+      if (!imgEl) return;
+
+      const { naturalWidth, naturalHeight } = imgEl;
+      const nextCrop = createCenteredCrop(naturalWidth, naturalHeight, nextAspect);
+
+      setCrop(nextCrop);
+      setCompletedCrop(null);
+    },
+    []
+  );
+
+  const onImageLoad = useCallback(
+    (e) => {
+      imgRef.current = e.currentTarget;
+      initCropFromImage(e.currentTarget, aspectRatio ?? undefined);
+    },
+    [aspectRatio, initCropFromImage]
+  );
+
+  const handlePresetClick = (value) => {
+    setAspectRatio(value);
+
+    // Rebuild crop immediately after changing preset so the crop stays centered.
+    const imgEl = imgRef.current;
+    if (imgEl) {
+      const nextCrop = createCenteredCrop(imgEl.naturalWidth, imgEl.naturalHeight, value ?? undefined);
+      setCrop(nextCrop);
+      setCompletedCrop(null);
+    }
+  };
+
+  const onCropComplete = (c) => {
+    setCompletedCrop(c);
   };
 
   const getCroppedImg = async () => {
     setBtnDone(true);
+
     try {
       if (!completedCrop || !imgRef.current || !canvasRef.current) {
+        setBtnDone(false);
         return;
       }
 
-      const image = imgRef.current;
+      const imageEl = imgRef.current;
       const canvas = canvasRef.current;
-      const crop = completedCrop;
+      const cropData = completedCrop;
 
-      const scaleX = image.naturalWidth / image.width;
-      const scaleY = image.naturalHeight / image.height;
-      
-      canvas.width = crop.width * scaleX;
-      canvas.height = crop.height * scaleY;
+      const scaleX = imageEl.naturalWidth / imageEl.width;
+      const scaleY = imageEl.naturalHeight / imageEl.height;
+
+      const outputWidth = Math.max(1, Math.round(cropData.width * scaleX));
+      const outputHeight = Math.max(1, Math.round(cropData.height * scaleY));
+
+      canvas.width = outputWidth;
+      canvas.height = outputHeight;
 
       const ctx = canvas.getContext('2d');
-      if (!ctx) return;
+      if (!ctx) {
+        setBtnDone(false);
+        return;
+      }
+
+      ctx.imageSmoothingEnabled = true;
+      ctx.imageSmoothingQuality = 'high';
 
       ctx.drawImage(
-        image,
-        crop.x * scaleX,
-        crop.y * scaleY,
-        crop.width * scaleX,
-        crop.height * scaleY,
+        imageEl,
+        Math.round(cropData.x * scaleX),
+        Math.round(cropData.y * scaleY),
+        Math.round(cropData.width * scaleX),
+        Math.round(cropData.height * scaleY),
         0,
         0,
-        crop.width * scaleX,
-        crop.height * scaleY
+        outputWidth,
+        outputHeight
       );
 
-      // Convert canvas to blob and then to data URL
-      canvas.toBlob((blob) => {
-        if (blob) {
+      canvas.toBlob(
+        (blob) => {
+          if (!blob) {
+            setBtnDone(false);
+            return;
+          }
+
           const reader = new FileReader();
           reader.onload = () => {
             onSave(reader.result);
           };
+          reader.onerror = () => setBtnDone(false);
           reader.readAsDataURL(blob);
-        }
-      }, 'image/jpeg', 0.9);
+        },
+        'image/jpeg',
+        0.9
+      );
     } catch (e) {
       console.error('Error cropping image', e);
-      // Fallback to original image if cropping fails
       onSave(rotatedImage || image);
       setBtnDone(false);
     }
   };
 
+  useEffect(() => {
+    // When entering crop mode, reset crop so it is recalculated from the loaded image.
+    if (step === 'crop') {
+      setCrop(undefined);
+      setCompletedCrop(null);
+    }
+  }, [step]);
+
   return (
-    <div className="fixed inset-0 bg-gray-900 z-50 flex flex-col" ref={containerRef}>
+    <div className="fixed inset-0 bg-gray-900 z-50 flex flex-col">
       {/* Header */}
       <div className="flex justify-between items-center p-4 bg-gray-800/80 backdrop-blur-sm z-10">
         <button
@@ -177,6 +233,7 @@ const ImageEditor = ({ image, onSave, onCancel, idImage = null }) => {
         >
           <FaTimes className="w-6 h-6 lg:w-4 lg:h-4" />
         </button>
+
         {step === 'rotate' ? (
           <Button
             onClick={handleNext}
@@ -194,6 +251,7 @@ const ImageEditor = ({ image, onSave, onCancel, idImage = null }) => {
             >
               <FaArrowLeft className="w-6 h-6 lg:w-4 lg:h-4" />
             </Button>
+
             <Button
               onClick={getCroppedImg}
               className="px-4 py-2 bg-blue-500 text-white rounded-full hover:bg-blue-600 transition-colors flex items-center gap-2"
@@ -214,9 +272,10 @@ const ImageEditor = ({ image, onSave, onCancel, idImage = null }) => {
               alt="To rotate"
               style={{ transform: `rotate(${rotation}deg)` }}
               className="max-w-full max-h-[60vh] object-contain"
-              crossOrigin="anonymous" // Add crossOrigin attribute
+              crossOrigin="anonymous"
             />
           </div>
+
           <div className="absolute bottom-4 flex gap-6">
             <button
               onClick={rotateLeft}
@@ -225,9 +284,11 @@ const ImageEditor = ({ image, onSave, onCancel, idImage = null }) => {
             >
               <FaUndoAlt className="w-6 h-6 lg:w-4 lg:h-4" />
             </button>
+
             <div className="w-12 h-12 flex items-center justify-center bg-gray-700 rounded-full text-white font-medium">
               {Math.abs(rotation % 360)}°
             </div>
+
             <button
               onClick={rotateRight}
               className="p-3 bg-gray-700 text-white rounded-full hover:bg-gray-600 transition-colors"
@@ -241,46 +302,55 @@ const ImageEditor = ({ image, onSave, onCancel, idImage = null }) => {
 
       {step === 'crop' && rotatedImage && (
         <>
-          <div className="relative flex-1 w-full flex items-center justify-center overflow-hidden">
-            <ReactCrop
-              crop={crop}
-              onChange={c => setCrop(c)}
-              onComplete={onCropComplete}
-              aspect={aspectRatio}
-              className="max-h-full"
-              style={{ maxHeight: 'calc(100vh - 200px)' }}
-            >
-              <img
-                ref={imgRef}
-                src={rotatedImage}
-                alt="To crop"
-                style={{ 
+          <div className="relative flex-1 w-full overflow-auto p-4 flex items-center justify-center">
+            <div className="max-w-full max-h-full">
+              <ReactCrop
+                crop={crop}
+                onChange={(c) => setCrop(c)}
+                onComplete={onCropComplete}
+                aspect={aspectRatio ?? undefined}
+                className="max-w-full"
+                style={{
                   maxWidth: '100%',
-                  maxHeight: 'calc(100vh - 200px)',
-                  objectFit: 'contain' 
+                  maxHeight: 'calc(100dvh - 200px)',
                 }}
-                crossOrigin="anonymous" // Add crossOrigin attribute
-              />
-            </ReactCrop>
-          </div>
-
-          <div className="bg-gray-800/80 backdrop-blur-sm p-4">
-            <div className="flex justify-center gap-2 mb-4">
-              {aspectRatioPresets.map((preset) => (
-                <button
-                  key={preset.label}
-                  onClick={() => handlePresetClick(preset.value)}
-                  className={`px-3 py-1 rounded-full text-sm ${
-                    (aspectRatio === preset.value) 
-                      ? 'bg-blue-500 text-white' 
-                      : 'bg-gray-700 text-gray-300'
-                  }`}
-                >
-                  {preset.label}
-                </button>
-              ))}
+              >
+                <img
+                  ref={imgRef}
+                  src={rotatedImage}
+                  alt="To crop"
+                  onLoad={onImageLoad}
+                  style={{
+                    display: 'block',
+                    maxWidth: '100%',
+                    maxHeight: 'calc(100dvh - 200px)',
+                    objectFit: 'contain',
+                  }}
+                  crossOrigin="anonymous"
+                />
+              </ReactCrop>
             </div>
           </div>
+
+<div className="bg-gray-800/80 backdrop-blur-sm p-4">
+  <div className="w-full overflow-x-auto">
+    <div className="flex w-max gap-2 px-2">
+      {ASPECT_PRESETS.map((preset) => (
+        <button
+          key={preset.label}
+          onClick={() => handlePresetClick(preset.value)}
+          className={`shrink-0 px-3 py-1 rounded-full text-sm ${
+            aspectRatio === preset.value
+              ? 'bg-blue-500 text-white'
+              : 'bg-gray-700 text-gray-300'
+          }`}
+        >
+          {preset.label}
+        </button>
+      ))}
+    </div>
+  </div>
+</div>
         </>
       )}
 
