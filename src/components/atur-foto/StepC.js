@@ -48,7 +48,7 @@ const StepC = ({ number, nextStep, formData, setFormData, onFormChange, partName
       reader.addEventListener('load', () => {
         setSelectedImage(reader.result);
         setFile(selectedFile);
-        setIsEditing(true);
+        // setIsEditing(true);
         console.log('Selected file:', selectedFile);
         console.log('Selected file type:', selectedFile.type);
       });
