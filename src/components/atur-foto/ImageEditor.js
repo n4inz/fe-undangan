@@ -147,72 +147,82 @@ const ImageEditor = ({ image, onSave, onCancel, idImage = null }) => {
     setCompletedCrop(c);
   };
 
-  const getCroppedImg = async () => {
-    setBtnDone(true);
+const getCroppedImg = async () => {
+  setBtnDone(true);
 
-    try {
-      if (!completedCrop || !imgRef.current || !canvasRef.current) {
-        setBtnDone(false);
-        return;
-      }
-
-      const imageEl = imgRef.current;
-      const canvas = canvasRef.current;
-      const cropData = completedCrop;
-
-      const scaleX = imageEl.naturalWidth / imageEl.width;
-      const scaleY = imageEl.naturalHeight / imageEl.height;
-
-      const outputWidth = Math.max(1, Math.round(cropData.width * scaleX));
-      const outputHeight = Math.max(1, Math.round(cropData.height * scaleY));
-
-      canvas.width = outputWidth;
-      canvas.height = outputHeight;
-
-      const ctx = canvas.getContext('2d');
-      if (!ctx) {
-        setBtnDone(false);
-        return;
-      }
-
-      ctx.imageSmoothingEnabled = true;
-      ctx.imageSmoothingQuality = 'high';
-
-      ctx.drawImage(
-        imageEl,
-        Math.round(cropData.x * scaleX),
-        Math.round(cropData.y * scaleY),
-        Math.round(cropData.width * scaleX),
-        Math.round(cropData.height * scaleY),
-        0,
-        0,
-        outputWidth,
-        outputHeight
-      );
-
-      canvas.toBlob(
-        (blob) => {
-          if (!blob) {
-            setBtnDone(false);
-            return;
-          }
-
-          const reader = new FileReader();
-          reader.onload = () => {
-            onSave(reader.result);
-          };
-          reader.onerror = () => setBtnDone(false);
-          reader.readAsDataURL(blob);
-        },
-        'image/jpeg',
-        0.9
-      );
-    } catch (e) {
-      console.error('Error cropping image', e);
+  try {
+    if (!imgRef.current) {
       onSave(rotatedImage || image);
-      setBtnDone(false);
+      return;
     }
-  };
+
+    const imageEl = imgRef.current;
+
+    // Kalau user tidak crop, simpan gambar full
+    if (!completedCrop || !canvasRef.current) {
+      onSave(rotatedImage || image);
+      return;
+    }
+
+    const canvas = canvasRef.current;
+    const cropData = completedCrop;
+
+    const scaleX = imageEl.naturalWidth / imageEl.width;
+    const scaleY = imageEl.naturalHeight / imageEl.height;
+
+    const outputWidth = Math.max(1, Math.round(cropData.width * scaleX));
+    const outputHeight = Math.max(1, Math.round(cropData.height * scaleY));
+
+    canvas.width = outputWidth;
+    canvas.height = outputHeight;
+
+    const ctx = canvas.getContext('2d');
+    if (!ctx) {
+      onSave(rotatedImage || image);
+      return;
+    }
+
+    ctx.imageSmoothingEnabled = true;
+    ctx.imageSmoothingQuality = 'high';
+
+    ctx.drawImage(
+      imageEl,
+      Math.round(cropData.x * scaleX),
+      Math.round(cropData.y * scaleY),
+      Math.round(cropData.width * scaleX),
+      Math.round(cropData.height * scaleY),
+      0,
+      0,
+      outputWidth,
+      outputHeight
+    );
+
+    canvas.toBlob(
+      (blob) => {
+        if (!blob) {
+          onSave(rotatedImage || image);
+          return;
+        }
+
+        const reader = new FileReader();
+        reader.onload = () => {
+          onSave(reader.result);
+        };
+        reader.onerror = () => {
+          onSave(rotatedImage || image);
+        };
+        reader.readAsDataURL(blob);
+      },
+      'image/jpeg',
+      0.9
+    );
+  } catch (e) {
+    console.error('Error cropping image', e);
+    onSave(rotatedImage || image);
+  } finally {
+    setBtnDone(false);
+  }
+};
 
   useEffect(() => {
     // When entering crop mode, reset crop so it is recalculated from the loaded image.
