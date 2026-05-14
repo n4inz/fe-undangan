@@ -1,5 +1,6 @@
-// Helper function to convert data URL to Blob
+// Helper function to convert data URL to Blob (tidak diubah)
 import axios from 'axios';
+import { getRandomMessage } from './messageTemplates'; // <-- sesuaikan path
 
 export function dataURLtoBlob(dataURL) {
   const arr = dataURL.split(',');
@@ -43,9 +44,8 @@ export const sendNotification = async (id, phoneNumber, customMessage = null) =>
       ? `${cleanMainBase}/forms/${id}/${phoneNumber}/atur-foto/success/result/edit`
       : `${id}/${phoneNumber}`;
 
-    const payloadMessage =
-      customMessage ??
-      `Terima kasih telah mengisi form undangan digital di sewaundangan. Silakan mengatur foto Anda di link ini:\n*Edit Foto:*\n${linkFoto}\n\n*Edit Data:*\n${linkEdit}\n\n_⚠️ Jangan bagikan link ini kepada orang lain untuk menjaga privasi Anda._`;
+    // 🔁 Gunakan customMessage jika ada, jika tidak pilih satu variasi pesan secara acak
+    const payloadMessage = customMessage ?? getRandomMessage(linkFoto, linkEdit);
 
     const response = await axios.post(
       apiUrl,
