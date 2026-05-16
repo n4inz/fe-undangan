@@ -2,7 +2,7 @@
 import { useEffect, useState } from 'react';
 // import Image from 'next/image';
 import Link from 'next/link';
-import { BiEnvelope, BiPhone, BiArrowBack, BiEdit, BiMessageAltDetail } from "react-icons/bi";
+import { BiEnvelope, BiPhone, BiArrowBack, BiEdit, BiMessageAltDetail, BiShare } from "react-icons/bi";
 import { useRouter } from 'next/navigation';
 import axios from 'axios';
 // import DataTable from 'react-data-table-component';
@@ -28,6 +28,14 @@ const Result = ({ params }) => {
 
     const handleBackButtonClick = () => {
         router.push(`/forms/${params.formId}/${params.phoneNumber}/atur-foto/success`);
+    };
+
+    const handleShare = (slug) => {
+        // Encode slug untuk menghindari karakter khusus
+        // Buat URL dengan parameter yang diencode
+        const shareUrl = `/share?uri=${slug}`;
+        // Buka di tab baru
+        window.open(shareUrl, '_blank');
     };
 
     const fetchData = async () => {
@@ -99,6 +107,16 @@ const Result = ({ params }) => {
                         <BiPhone className="h-5 w-5 mr-2 inline" />
                         Hubungi Admin
                     </Link>
+
+                    {form.slug && (
+                        <button
+                            onClick={() => handleShare(form.slug)}
+                            className="bottom-4 rounded-full shadow-lg bg-blue-600 text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 p-3 my-2 text-sm"
+                        >
+                            <BiShare className="h-5 w-5 mr-2 inline" />
+                            Bagikan Undangan
+                        </button>
+                    )}
 
                     <Link
                         href="result/edit"
