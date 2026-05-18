@@ -268,7 +268,11 @@ const Home = () => {
 
 
   const handleChange = (e, index = null) => {
-    const { name, value } = e.target;
+    let { name, value } = e.target;
+
+    if (name === "nomorWa") {
+      value = value.replace(/[^\d\+\-]/g, "");
+    }
 
     if (index !== null) {
       // If index is provided, update the corresponding dynamic field in rekeningList
@@ -349,8 +353,13 @@ const Home = () => {
     const { name, email, image: avatar } = session?.user || {};
 
     try {
+      const dataToSubmit = { ...formData };
+      if (dataToSubmit.nomorWa) {
+        dataToSubmit.nomorWa = dataToSubmit.nomorWa.replace(/[^\d\+\-]/g, "");
+      }
+
       // Validate form with zod
-      schema.parse(formData);
+      schema.parse(dataToSubmit);
       setErrors({});
 
       // 1) Request one-time token from backend
@@ -369,7 +378,7 @@ const Home = () => {
 
       // 2) Build FormData & include token
       const fd = new FormData();
-      fd.append("data", JSON.stringify(formData));
+      fd.append("data", JSON.stringify(dataToSubmit));
       fd.append("rekeningList", JSON.stringify(rekeningList || []));
       fd.append("weddingEvents", JSON.stringify(weddingEvents || []));
       fd.append("session", JSON.stringify({ name, email, avatar }));
