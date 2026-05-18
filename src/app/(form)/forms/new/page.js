@@ -9,7 +9,7 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
 import axios from 'axios';
 import { Button } from '@/components/ui/button';
-import { ClipLoader } from 'react-spinners'; // Import the spinner`
+import { ClipLoader } from 'react-spinners'; // Import the spinner
 import { useRouter, useSearchParams } from 'next/navigation';
 // import { XMarkIcon } from '@heroicons/react/24/solid';
 import { BiArrowBack, BiX } from "react-icons/bi";
@@ -268,11 +268,7 @@ const Home = () => {
 
 
   const handleChange = (e, index = null) => {
-    let { name, value } = e.target;
-
-    if (name === "nomorWa") {
-      value = value.replace(/\s+/g, '');
-    }
+    const { name, value } = e.target;
 
     if (index !== null) {
       // If index is provided, update the corresponding dynamic field in rekeningList
@@ -424,6 +420,17 @@ const Home = () => {
       }
     }
   };
+
+
+  const handleSelectQuoteTemplate = (template) => {
+    setFormData({
+      ...formData,
+      source: template.source,
+      quote: template.quote,
+    });
+    setIsQuoteModalOpen(false);
+  };
+
 
   const getStepFromFieldName = (fieldName) => {
     // Map field names to their corresponding steps.  Adjust this mapping to match your form structure.
