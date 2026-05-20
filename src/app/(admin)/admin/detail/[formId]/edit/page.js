@@ -110,23 +110,38 @@ const EditDetail = ({ params }) => {
         }
     };
 
+    // Ubah <br> kembali jadi newline saat ditampilkan di textarea
+    const toTextareaValue = (value) => {
+        if (!value) return '';
+        return value.replace(/<br\s*\/?>/gi, '\n');
+    };
 
     // Handle input changes
     const handleChange = (e, index = null) => {
         const { name, value } = e.target;
 
+        // hanya textarea yang diubah newline -> <br>
+        const isTextarea = e.target.tagName === 'TEXTAREA';
+        const formattedValue = isTextarea ? value.replace(/\n/g, '<br>') : value;
+
         if (index !== null) {
-            // Handle changes for rekening fields
-            const updatedRekening = [...formData.rekening];
-            updatedRekening[index] = { ...updatedRekening[index], [name]: value };
-            setFormData({ ...formData, rekening: updatedRekening });
-            setRekeningList(updatedRekening); // Update rekeningList state
+            const updatedRekening = [...(formData.rekening || [])];
+            updatedRekening[index] = {
+                ...updatedRekening[index],
+                [name]: formattedValue,
+            };
+
+            setFormData((prev) => ({
+                ...prev,
+                rekening: updatedRekening,
+            }));
+
+            setRekeningList(updatedRekening);
         } else {
-            // Handle changes for other fields
-            setFormData({
-                ...formData,
-                [name]: value,
-            });
+            setFormData((prev) => ({
+                ...prev,
+                [name]: formattedValue,
+            }));
         }
     };
 
@@ -1028,7 +1043,7 @@ const EditDetail = ({ params }) => {
                             </div>
                             <Textarea
                                 name="ceritaAwal"
-                                value={formData.ceritaAwal}
+                                value={toTextareaValue(formData.ceritaAwal)}
                                 onChange={handleChange}
                                 className="mt-1 p-2 w-full border border-gray-300 rounded-lg"
                             />
@@ -1054,7 +1069,7 @@ const EditDetail = ({ params }) => {
                             </div>
                             <Textarea
                                 name="ceritaJadian"
-                                value={formData.ceritaJadian}
+                                value={toTextareaValue(formData.ceritaJadian)}
                                 onChange={handleChange}
                                 className="mt-1 p-2 w-full border border-gray-300 rounded-lg"
                             />
@@ -1080,7 +1095,7 @@ const EditDetail = ({ params }) => {
                             </div>
                             <Textarea
                                 name="ceritaLamaran"
-                                value={formData.ceritaLamaran}
+                                value={toTextareaValue(formData.ceritaLamaran)}
                                 onChange={handleChange}
                                 className="mt-1 p-2 w-full border border-gray-300 rounded-lg"
                             />
