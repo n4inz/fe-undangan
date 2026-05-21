@@ -266,44 +266,27 @@ const Home = () => {
     });
   }, [mounted, dateFromUrl]);
 
-  // Ubah <br> kembali jadi newline saat ditampilkan di textarea
-  const toTextareaValue = (value) => {
-    if (!value) return '';
-    return value.replace(/<br\s*\/?>/gi, '\n');
-  };
 
   const handleChange = (e, index = null) => {
     let { name, value } = e.target;
 
-    // Khusus nomor WhatsApp: hanya boleh angka, +, dan -
     if (name === "nomorWa") {
-      value = value.replace(/[^\d+\-]/g, "");
-    }
-
-    // Khusus textarea: newline disimpan sebagai <br>
-    const isTextarea = e.target.tagName === "TEXTAREA";
-    if (isTextarea) {
-      value = value.replace(/\n/g, "<br>");
+      value = value.replace(/[^\d\+\-]/g, "");
     }
 
     if (index !== null) {
-      const updatedRekening = [...(formData.rekening || rekeningList || [])];
-
-      updatedRekening[index] = {
-        ...updatedRekening[index],
-        [name]: value,
-      };
-
-      setRekeningList(updatedRekening);
-      setFormData((prev) => ({
-        ...prev,
-        rekening: updatedRekening,
-      }));
+      // If index is provided, update the corresponding dynamic field in rekeningList
+      setRekeningList((prevRekeningList) =>
+        prevRekeningList.map((item, i) =>
+          i === index ? { ...item, [name]: value } : item
+        )
+      );
     } else {
-      setFormData((prev) => ({
-        ...prev,
+      // If index is not provided, update the static fields in formData
+      setFormData({
+        ...formData,
         [name]: value,
-      }));
+      });
     }
   };
 
@@ -1360,7 +1343,7 @@ const Home = () => {
                   </div>
                   <Textarea
                     name="ceritaAwal"
-                    value={toTextareaValue(formData.ceritaAwal)}
+                    value={formData.ceritaAwal}
                     onChange={handleChange}
                     className="mt-1 p-2 w-full border border-gray-300 rounded-lg"
                     placeholder="Ceritakan awal pertemuan kalian..."
@@ -1394,7 +1377,7 @@ const Home = () => {
                   </div>
                   <Textarea
                     name="ceritaJadian"
-                    value={toTextareaValue(formData.ceritaJadian)}
+                    value={formData.ceritaJadian}
                     onChange={handleChange}
                     className="mt-1 p-2 w-full border border-gray-300 rounded-lg"
                     placeholder="Ceritakan awal komitmen kalian..."
@@ -1428,7 +1411,7 @@ const Home = () => {
                   </div>
                   <Textarea
                     name="ceritaLamaran"
-                    value={toTextareaValue(formData.ceritaLamaran)}
+                    value={formData.ceritaLamaran}
                     onChange={handleChange}
                     className="mt-1 p-2 w-full border border-gray-300 rounded-lg"
                     placeholder="Ceritakan lamaran kalian..."
