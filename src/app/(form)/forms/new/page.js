@@ -266,27 +266,35 @@ const Home = () => {
     });
   }, [mounted, dateFromUrl]);
 
+  // Ubah <br> kembali jadi newline saat ditampilkan di textarea
+  const toTextareaValue = (value) => {
+    if (!value) return '';
+    return value.replace(/<br\s*\/?>/gi, '\n');
+  };
 
   const handleChange = (e, index = null) => {
     let { name, value } = e.target;
 
     if (name === "nomorWa") {
-      value = value.replace(/[^\d\+\-]/g, "");
+      value = value.replace(/[^\d+\-]/g, "");
+    }
+
+    const isTextarea = e.target.tagName === "TEXTAREA";
+    if (isTextarea) {
+      value = value.replace(/\n/g, "<br>");
     }
 
     if (index !== null) {
-      // If index is provided, update the corresponding dynamic field in rekeningList
       setRekeningList((prevRekeningList) =>
         prevRekeningList.map((item, i) =>
           i === index ? { ...item, [name]: value } : item
         )
       );
     } else {
-      // If index is not provided, update the static fields in formData
-      setFormData({
-        ...formData,
+      setFormData((prev) => ({
+        ...prev,
         [name]: value,
-      });
+      }));
     }
   };
 
@@ -354,19 +362,21 @@ const Home = () => {
 
     try {
       const dataToSubmit = { ...formData };
+
+      // Hapus field yang tidak boleh langsung dikirim ke Prisma
+      delete dataToSubmit.rekening;
+
       if (dataToSubmit.nomorWa) {
-        dataToSubmit.nomorWa = dataToSubmit.nomorWa.replace(/[^\d\+\-]/g, "");
+        dataToSubmit.nomorWa = dataToSubmit.nomorWa.replace(/[^\d+\-]/g, "");
       }
 
-      // Validate form with zod
       schema.parse(dataToSubmit);
       setErrors({});
 
-      // 1) Request one-time token from backend
       let token;
       try {
         const tokenRes = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/form/token`, {
-          withCredentials: true, // if you rely on cookies
+          withCredentials: true,
         });
         token = tokenRes.data.token;
       } catch (err) {
@@ -376,23 +386,19 @@ const Home = () => {
         return;
       }
 
-      // 2) Build FormData & include token
       const fd = new FormData();
       fd.append("data", JSON.stringify(dataToSubmit));
       fd.append("rekeningList", JSON.stringify(rekeningList || []));
       fd.append("weddingEvents", JSON.stringify(weddingEvents || []));
       fd.append("session", JSON.stringify({ name, email, avatar }));
 
-      // 3) Submit protected form
       const response = await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/forms`, fd, {
         withCredentials: true,
         headers: {
-          Authorization: `Bearer ${token}`
-          // jangan set Content-Type, biarkan axios atur boundary otomatis
+          Authorization: `Bearer ${token}`,
         },
       });
 
-      // success handling
       if (isLocalStorageAccessibleState) {
         try {
           window.localStorage.removeItem(FORM_DATA_KEY);
@@ -401,11 +407,9 @@ const Home = () => {
         }
       }
 
-      sendNotification(response.data.uuid, response.data.nomorWa)
-        .catch(err => {
-          console.error("Send notification failed:", err);
-          // optional: kirim ke Sentry / log server
-        });
+      sendNotification(response.data.uuid, response.data.nomorWa).catch((err) => {
+        console.error("Send notification failed:", err);
+      });
 
       router.push(`/forms/${response.data.uuid}/${response.data.nomorWa}/atur-foto`);
     } catch (error) {
@@ -414,13 +418,16 @@ const Home = () => {
       if (error instanceof z.ZodError) {
         const fieldErrors = {};
         let lowestErrorStep = Infinity;
+
         error.errors.forEach((err) => {
           fieldErrors[err.path[0]] = err.message;
           const step = getStepFromFieldName(err.path[0]);
           lowestErrorStep = Math.min(lowestErrorStep, step);
         });
+
         setErrors(fieldErrors);
         setCurrentStep(lowestErrorStep);
+
         const firstErrorField = document.querySelector(`[name="${error.errors[0].path[0]}"]`);
         if (firstErrorField) firstErrorField.scrollIntoView({ behavior: "smooth", block: "center" });
       } else {
@@ -1343,7 +1350,7 @@ const Home = () => {
                   </div>
                   <Textarea
                     name="ceritaAwal"
-                    value={formData.ceritaAwal}
+                    value={toTextareaValue(formData.ceritaAwal)}
                     onChange={handleChange}
                     className="mt-1 p-2 w-full border border-gray-300 rounded-lg"
                     placeholder="Ceritakan awal pertemuan kalian..."
@@ -1377,7 +1384,7 @@ const Home = () => {
                   </div>
                   <Textarea
                     name="ceritaJadian"
-                    value={formData.ceritaJadian}
+                    value={toTextareaValue(formData.ceritaJadian)}
                     onChange={handleChange}
                     className="mt-1 p-2 w-full border border-gray-300 rounded-lg"
                     placeholder="Ceritakan awal komitmen kalian..."
@@ -1411,7 +1418,7 @@ const Home = () => {
                   </div>
                   <Textarea
                     name="ceritaLamaran"
-                    value={formData.ceritaLamaran}
+                    value={toTextareaValue(formData.ceritaLamaran)}
                     onChange={handleChange}
                     className="mt-1 p-2 w-full border border-gray-300 rounded-lg"
                     placeholder="Ceritakan lamaran kalian..."

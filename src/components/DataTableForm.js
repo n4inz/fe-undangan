@@ -11,7 +11,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { BiArrowToRight, BiDotsVertical, BiLink, BiMoneyWithdraw, BiPlusCircle, BiRightArrow, BiTime } from 'react-icons/bi';
+import { BiArrowToRight, BiCopy, BiDotsVertical, BiLink, BiMoneyWithdraw, BiPlusCircle, BiRightArrow, BiTime } from 'react-icons/bi';
 import StatusSelect from './StatusSelect';
 // import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from './ui/tooltip';
 import { Popover, PopoverContent, PopoverTrigger } from './ui/popover';
@@ -162,9 +162,26 @@ const DataTableForm = ({ initialStatus, onDataUpdate }) => {
 
     ...(isAdmin === 1 ? [
       {
-        name: 'Staff',
-        selector: row => row.user?.name ?? '-',
-        sortable: true,
+        name: 'Copy Link Edit',
+        cell: row => (
+          <span
+            className="flex items-center gap-1 cursor-pointer hover:underline"
+            onClick={() => {
+              const origin = window.location.origin;
+              const formId = row.uuid || row.id;
+
+              const textToCopy = `Edit Foto:\n${origin}/forms/${formId}/${row.nomorWa}/atur-foto/\n\nEdit Data:\n${origin}/forms/${formId}/${row.nomorWa}/atur-foto/success/result/edit`;
+
+              navigator.clipboard.writeText(textToCopy);
+
+              toast({ title: "Copied to clipboard!" });
+            }}
+          >
+            <BiCopy size={16} />
+            <span>Copy Link Edit</span>
+          </span>
+        ),
+        wrap: true,
       },
       {
         name: 'Status',
@@ -321,40 +338,40 @@ const DataTableForm = ({ initialStatus, onDataUpdate }) => {
   //   }
   // };
 
-const handlePayment = async (row) => {
-  setSelectedRow({
-    id: row.id,
-    isPaid: row.isPaid,
-    paymentAmount: row.paymentAmount,
-  });
+  const handlePayment = async (row) => {
+    setSelectedRow({
+      id: row.id,
+      isPaid: row.isPaid,
+      paymentAmount: row.paymentAmount,
+    });
 
-  // Jika belum bayar → buka modal
-  if (row.isPaid === 0) {
-    setOpen(true);
-    console.log(row);
-  } else {
-    
-    // Ambil datetime device
-    const paidAt = new Date()
-      .toISOString()
-      .slice(0, 19)
-      .replace("T", " ");
+    // Jika belum bayar → buka modal
+    if (row.isPaid === 0) {
+      setOpen(true);
+      console.log(row);
+    } else {
 
-    const response = await axios.post(
-      `${process.env.NEXT_PUBLIC_API_URL}/update-payment/${row.id}`,
-      {
-        isPaid: row.isPaid,
-        paymentAmount: 0,
-        paidAt: paidAt, // ← FORMAT READY
-      },
-      {
-        withCredentials: true
-      }
-    );
+      // Ambil datetime device
+      const paidAt = new Date()
+        .toISOString()
+        .slice(0, 19)
+        .replace("T", " ");
 
-    handleDataUpdate(response.data.message);
-  }
-};
+      const response = await axios.post(
+        `${process.env.NEXT_PUBLIC_API_URL}/update-payment/${row.id}`,
+        {
+          isPaid: row.isPaid,
+          paymentAmount: 0,
+          paidAt: paidAt, // ← FORMAT READY
+        },
+        {
+          withCredentials: true
+        }
+      );
+
+      handleDataUpdate(response.data.message);
+    }
+  };
 
 
   const handleLinkUndangan = async (row) => {
