@@ -168,7 +168,7 @@ const DataTableForm = ({ initialStatus, onDataUpdate }) => {
             className="flex items-center gap-1 cursor-pointer hover:underline"
             onClick={() => {
               const origin = window.location.origin;
-              const formId = row.uuid || row.id;
+              const formId = (row.uuid && row.uuid !== 'null' && row.uuid !== '') ? row.uuid : row.id;
 
               const textToCopy = `Edit Foto:\n${origin}/forms/${formId}/${row.nomorWa}/atur-foto/\n\nEdit Data:\n${origin}/forms/${formId}/${row.nomorWa}/atur-foto/success/result/edit`;
 
