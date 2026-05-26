@@ -16,6 +16,24 @@ const ASPECT_PRESETS = [
   { value: 1.77, label: '16:9' },
 ];
 
+function getEditableImageSrc(src) {
+  if (!src || src.startsWith('data:') || src.startsWith('blob:')) return src;
+
+  try {
+    const appOrigin = typeof window !== 'undefined' ? window.location.origin : 'https://app.sewaundangan.com';
+    const imageUrl = new URL(src, appOrigin);
+    const apiUrl = new URL(process.env.NEXT_PUBLIC_API_URL || 'https://api.sewaundangan.com');
+
+    if (imageUrl.origin === apiUrl.origin) {
+      return `/image-proxy${imageUrl.pathname}${imageUrl.search}`;
+    }
+  } catch (error) {
+    console.warn('Unable to normalize image URL for editor', error);
+  }
+
+  return src;
+}
+
 function createCenteredCrop(mediaWidth, mediaHeight, aspect) {
   if (!mediaWidth || !mediaHeight) return undefined;
 
@@ -47,6 +65,7 @@ function createCenteredCrop(mediaWidth, mediaHeight, aspect) {
 }
 
 const ImageEditor = ({ image, onSave, onCancel, idImage = null }) => {
+  const editableImage = getEditableImageSrc(image);
   const [step, setStep] = useState('rotate');
   const [rotation, setRotation] = useState(0);
   const [rotatedImage, setRotatedImage] = useState(null);
@@ -65,7 +84,7 @@ const ImageEditor = ({ image, onSave, onCancel, idImage = null }) => {
     return new Promise((resolve, reject) => {
       const imageObj = new Image();
       imageObj.crossOrigin = 'anonymous';
-      imageObj.src = image;
+      imageObj.src = editableImage;
 
       imageObj.onload = () => {
         try {
@@ -105,7 +124,7 @@ const ImageEditor = ({ image, onSave, onCancel, idImage = null }) => {
       setStep('crop');
     } catch (err) {
       console.error('Error applying rotation', err);
-      setRotatedImage(image);
+      setRotatedImage(editableImage);
       setStep('crop');
     }
   };
@@ -147,82 +166,86 @@ const ImageEditor = ({ image, onSave, onCancel, idImage = null }) => {
     setCompletedCrop(c);
   };
 
-const getCroppedImg = async () => {
-  setBtnDone(true);
+  const getCroppedImg = async () => {
+    setBtnDone(true);
 
-  try {
-    if (!imgRef.current) {
-      onSave(rotatedImage || image);
-      return;
+    try {
+      if (!imgRef.current) {
+        onSave(rotatedImage || editableImage || image);
+        return;
+      }
+
+      const imageEl = imgRef.current;
+      const canvas = canvasRef.current;
+
+      if (!canvas) {
+        onSave(rotatedImage || editableImage || image);
+        return;
+      }
+
+      const cropData = completedCrop || {
+        x: 0,
+        y: 0,
+        width: imageEl.width,
+        height: imageEl.height,
+      };
+
+      const scaleX = imageEl.naturalWidth / imageEl.width;
+      const scaleY = imageEl.naturalHeight / imageEl.height;
+
+      const outputWidth = Math.max(1, Math.round(cropData.width * scaleX));
+      const outputHeight = Math.max(1, Math.round(cropData.height * scaleY));
+
+      canvas.width = outputWidth;
+      canvas.height = outputHeight;
+
+      const ctx = canvas.getContext('2d');
+      if (!ctx) {
+        onSave(rotatedImage || editableImage || image);
+        return;
+      }
+
+      ctx.imageSmoothingEnabled = true;
+      ctx.imageSmoothingQuality = 'high';
+
+      ctx.drawImage(
+        imageEl,
+        Math.round(cropData.x * scaleX),
+        Math.round(cropData.y * scaleY),
+        Math.round(cropData.width * scaleX),
+        Math.round(cropData.height * scaleY),
+        0,
+        0,
+        outputWidth,
+        outputHeight
+      );
+
+      canvas.toBlob(
+        (blob) => {
+          if (!blob) {
+            onSave(rotatedImage || editableImage || image);
+            return;
+          }
+
+          const reader = new FileReader();
+          reader.onload = () => {
+            onSave(reader.result);
+          };
+          reader.onerror = () => {
+            onSave(rotatedImage || editableImage || image);
+          };
+          reader.readAsDataURL(blob);
+        },
+        'image/jpeg',
+        0.9
+      );
+    } catch (e) {
+      console.error('Error cropping image', e);
+      onSave(rotatedImage || editableImage || image);
+    } finally {
+      setBtnDone(false);
     }
-
-    const imageEl = imgRef.current;
-
-    // Kalau user tidak crop, simpan gambar full
-    if (!completedCrop || !canvasRef.current) {
-      onSave(rotatedImage || image);
-      return;
-    }
-
-    const canvas = canvasRef.current;
-    const cropData = completedCrop;
-
-    const scaleX = imageEl.naturalWidth / imageEl.width;
-    const scaleY = imageEl.naturalHeight / imageEl.height;
-
-    const outputWidth = Math.max(1, Math.round(cropData.width * scaleX));
-    const outputHeight = Math.max(1, Math.round(cropData.height * scaleY));
-
-    canvas.width = outputWidth;
-    canvas.height = outputHeight;
-
-    const ctx = canvas.getContext('2d');
-    if (!ctx) {
-      onSave(rotatedImage || image);
-      return;
-    }
-
-    ctx.imageSmoothingEnabled = true;
-    ctx.imageSmoothingQuality = 'high';
-
-    ctx.drawImage(
-      imageEl,
-      Math.round(cropData.x * scaleX),
-      Math.round(cropData.y * scaleY),
-      Math.round(cropData.width * scaleX),
-      Math.round(cropData.height * scaleY),
-      0,
-      0,
-      outputWidth,
-      outputHeight
-    );
-
-    canvas.toBlob(
-      (blob) => {
-        if (!blob) {
-          onSave(rotatedImage || image);
-          return;
-        }
-
-        const reader = new FileReader();
-        reader.onload = () => {
-          onSave(reader.result);
-        };
-        reader.onerror = () => {
-          onSave(rotatedImage || image);
-        };
-        reader.readAsDataURL(blob);
-      },
-      'image/jpeg',
-      0.9
-    );
-  } catch (e) {
-    console.error('Error cropping image', e);
-    onSave(rotatedImage || image);
-  } finally {
-    setBtnDone(false);
-  }
-};
+  };
 
   useEffect(() => {
     // When entering crop mode, reset crop so it is recalculated from the loaded image.
@@ -278,7 +301,7 @@ const getCroppedImg = async () => {
         <div className="relative flex-1 w-full flex flex-col items-center justify-center p-4">
           <div className="mb-24">
             <img
-              src={image}
+              src={editableImage}
               alt="To rotate"
               style={{ transform: `rotate(${rotation}deg)` }}
               className="max-w-full max-h-[60vh] object-contain"

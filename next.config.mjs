@@ -12,10 +12,16 @@ const nextConfig = {
   },
 
   async rewrites() {
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL || "https://api.sewaundangan.com";
+
     return [
       {
         source: "/",
         destination: "/",
+      },
+      {
+        source: "/image-proxy/:path*",
+        destination: `${apiUrl}/:path*`,
       },
     ];
   },
