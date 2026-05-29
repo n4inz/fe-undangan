@@ -108,7 +108,7 @@ const Result = ({ params }) => {
                         Hubungi Admin
                     </Link>
 
-                    {form.slug && (
+                    {form.isPaid == 1 && (
                         <button
                             onClick={() => handleShare(form.slug)}
                             className="bottom-4 rounded-full shadow-lg bg-blue-600 text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 p-3 my-2 text-sm"
