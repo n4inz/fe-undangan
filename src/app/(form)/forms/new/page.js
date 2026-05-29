@@ -420,15 +420,28 @@ const Home = () => {
         let lowestErrorStep = Infinity;
 
         error.errors.forEach((err) => {
-          fieldErrors[err.path[0]] = err.message;
-          const step = getStepFromFieldName(err.path[0]);
+          const fieldName = err.path[0];
+          if (!fieldName) return;
+
+          fieldErrors[fieldName] = err.message;
+          const step = getStepFromFieldName(fieldName);
           lowestErrorStep = Math.min(lowestErrorStep, step);
         });
 
         setErrors(fieldErrors);
-        setCurrentStep(lowestErrorStep);
+        if (Number.isFinite(lowestErrorStep)) {
+          setCurrentStep(Math.min(lowestErrorStep, maxStep));
+        }
 
-        const firstErrorField = document.querySelector(`[name="${error.errors[0].path[0]}"]`);
+        const firstErrorFieldName = error.errors[0]?.path?.[0];
+        const escapedFieldName = firstErrorFieldName
+          ? (typeof CSS !== "undefined" && CSS.escape
+            ? CSS.escape(String(firstErrorFieldName))
+            : String(firstErrorFieldName))
+          : null;
+        const firstErrorField = escapedFieldName
+          ? document.querySelector(`[name="${escapedFieldName}"]`)
+          : null;
         if (firstErrorField) firstErrorField.scrollIntoView({ behavior: "smooth", block: "center" });
       } else {
         console.error("An unexpected error occurred:", error);
@@ -487,13 +500,32 @@ const Home = () => {
       case "usernameIgPria":
       case "usernameIgWanita":
         return 6;
-
+      case "rekeningStyle":
+      case "namaRekening":
+      case "noRekening":
+      case "alamatHadiah":
+        return 7;
       case "linkSherlokAkad":
       case "linkSherlokResepsi":
       case "linkVideo":
         return 8;
-      // case "turutMengundang":
-      //   return 13;
+      case "judulCeritaAwal":
+      case "dateCeritaAwal":
+      case "ceritaAwal":
+        return 9;
+      case "judulCeritaJadian":
+      case "dateCeritaJadian":
+      case "ceritaJadian":
+        return 10;
+      case "judulCeritaLamaran":
+      case "dateCeritaLamaran":
+      case "ceritaLamaran":
+        return 11;
+      case "penempatanTulisan":
+        return 12;
+      case "idMusic":
+      case "turutMengundang":
+        return 13;
       case "source":
       case "quote":
         return 14;
@@ -502,7 +534,7 @@ const Home = () => {
       case "idTema":
         return 15;
       default:
-        return 1; // Default to step 1 if field name is not found
+        return currentStep;
     }
   };
 

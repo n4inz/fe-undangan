@@ -78,29 +78,39 @@ const MusicList = ({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentPage]);
 
+  const stopCurrentAudio = useCallback(() => {
+    if (audioRef?.current) {
+      audioRef.current.pause();
+      audioRef.current.removeAttribute('src');
+      audioRef.current.load();
+    }
+  }, [audioRef]);
+
   // cleanup audio on unmount
   useEffect(() => {
     return () => {
-      if (audioRef?.current) {
-        audioRef.current.pause();
-      }
+      stopCurrentAudio();
     };
-  }, [audioRef]);
+  }, [stopCurrentAudio]);
 
   const handlePlay = (id, file) => {
     if (currentlyPlaying === id) {
-      if (audioRef.current) audioRef.current.pause();
+      stopCurrentAudio();
       setCurrentlyPlaying(null);
       setCurrentTime(0);
       setDuration(0);
     } else {
-      if (audioRef.current) audioRef.current.pause();
+      stopCurrentAudio();
       setCurrentlyPlaying(id);
       setCurrentTime(0);
       setDuration(0);
 
       audioRef.current = new Audio(`${process.env.NEXT_PUBLIC_API_URL}/music/${file}`);
-      audioRef.current.play();
+      audioRef.current.play().catch((error) => {
+        if (error?.name !== 'AbortError') {
+          console.error('Error playing audio:', error);
+        }
+      });
 
       audioRef.current.addEventListener('loadedmetadata', () => {
         setDuration(audioRef.current.duration);
