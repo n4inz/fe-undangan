@@ -975,7 +975,6 @@ const Home = () => {
               <div className="mb-4">
                 <label className="block text-gray-700">
                   Jam Acara (Akad / Pemberkatan )
-                  <span className='text-red-500'>*</span>
                   <br></br>
                   Ex: 12.00 WIB - Selesai
                 </label>
@@ -1007,7 +1006,6 @@ const Home = () => {
               <div className="mb-4">
                 <label className="block text-gray-700">
                   Tempat Acara Akad/Pemberkatan
-                  <span className='text-red-500'>*</span>
                 </label>
                 <RadioGroup value={formData.opsiAkad} name="opsiAkad" onValueChange={(value) => handleChange({ target: { name: 'opsiAkad', value } })}>
                   <div className="flex items-center space-x-2">
