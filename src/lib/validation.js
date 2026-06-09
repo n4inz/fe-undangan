@@ -24,18 +24,18 @@ export const mainSchema = z.object({
   namaLengkapWanita: requeiredInput,
   namaPanggilanWanita: requeiredInput,
   namaOrtuWanita: requeiredInput,
-  // alamatAkad: requeiredInput,
-  alamatResepsi: requeiredInput,
+  alamatAkad: requeiredInput,
+  // alamatResepsi: requeiredInput,
 nomorWa: z
   .string()
   .min(7, { message: "Nomor telepon minimal 7 karakter" })
   .regex(/^[A-Za-z0-9+\-\s@.]+$/, { message: "Nomor telepon salah" })
   .refine((val) => val.trim() !== "", { message: "Nomor telepon harus diisi" }),
 
-  // datetimeAkad: requeiredDate,
-  datetimeResepsi: requeiredDate,
-  // timeAkad: requeiredInput,
-  timeResepsi: requeiredInput,
+  datetimeAkad: requeiredDate,
+  // datetimeResepsi: requeiredDate,
+  timeAkad: requeiredInput,
+  // timeResepsi: requeiredInput,
   pilihanTema: z.string().min(1, { message: "Pilihan tema harus dipilih" }),
   idTema: z.coerce.number({
     required_error: "ID tema harus diisi",
