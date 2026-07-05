@@ -1,5 +1,5 @@
 'use client'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { Bar, BarChart, CartesianGrid, XAxis, YAxis } from "recharts"
 import {
   Card,
@@ -10,10 +10,13 @@ import {
 } from "@/components/ui/card"
 import {
   ChartContainer,
+  ChartLegend,
+  ChartLegendContent,
   ChartTooltip,
   ChartTooltipContent,
 } from "@/components/ui/chart"
 import axios from 'axios'
+import { useRouter } from 'next/navigation'
 import GraphExpending from '@/components/graph-chart-js/GraphExpending'
 import GraphPayment from '@/components/graph-chart-js/GraphPayment'
 import GraphAnalysis from '@/components/graph-chart-js/GraphAnalysis'
@@ -28,24 +31,84 @@ const formatRupiah = (val) =>
     minimumFractionDigits: 0
   }).format(val)
 
+const getTooltipTotal = (payload) =>
+  payload.reduce(
+    (total, item) => total + (Number(item.value) || 0),
+    0
+  )
+
 // Chart config
 const chartConfig = {
   form: {
-    label: 'Form Undangan',
+    label: 'Form Wedding',
     color: 'hsl(var(--chart-1))',
     theme: 'primary'
   },
+  aqiqahKhitanForm: {
+    label: 'Form Aqiqah / Khitan',
+    color: '#F59E0B',
+    theme: 'secondary'
+  },
   income: {
-    label: 'Pendapatan',
+    label: 'Pembayaran Wedding',
     color: 'hsl(var(--chart-2))',
+    theme: 'secondary'
+  },
+  aqiqahKhitanIncome: {
+    label: 'Pembayaran Aqiqah / Khitan',
+    color: '#F59E0B',
     theme: 'secondary'
   }
 }
 
+const mergeMonthlyData = (
+  weddingData,
+  aqiqahKhitanData,
+  weddingKey,
+  aqiqahKhitanKey
+) => {
+  const monthlyData = new Map()
+
+  weddingData.forEach((item) => {
+    monthlyData.set(item.month, {
+      ...item,
+      [weddingKey]: Number(item[weddingKey] || 0),
+      [aqiqahKhitanKey]: 0,
+    })
+  })
+
+  aqiqahKhitanData.forEach((item) => {
+    const current = monthlyData.get(item.month) || {
+      month: item.month,
+      monthName: item.monthName,
+      [weddingKey]: 0,
+    }
+
+    monthlyData.set(item.month, {
+      ...current,
+      monthName: current.monthName || item.monthName,
+      [aqiqahKhitanKey]: Number(item[weddingKey] || 0),
+    })
+  })
+
+  return Array.from(monthlyData.values()).sort((first, second) =>
+    first.month.localeCompare(second.month)
+  )
+}
+
 export default function Dashboard() {
+  const router = useRouter()
   const [formData, setFormData] = useState([])
   const [incomeData, setIncomeData] = useState([])
-  const [loading, setLoading] = useState({ form: true, income: true })
+  const [aqiqahKhitanStats, setAqiqahKhitanStats] = useState({
+    formStats: [],
+    incomeStats: [],
+  })
+  const [loading, setLoading] = useState({
+    form: true,
+    income: true,
+    aqiqahKhitan: true,
+  })
   const [totalIncome, setTotalIncome] = useState(null)
 
   // Fetch Form Statistics
@@ -75,6 +138,24 @@ export default function Dashboard() {
       setIncomeData([])
     } finally {
       setLoading(prev => ({ ...prev, income: false }))
+    }
+  }
+
+  const fetchAqiqahKhitanStats = async () => {
+    try {
+      const response = await axios.get(
+        `${process.env.NEXT_PUBLIC_API_URL}/admin/forms/aqiqah-khitan/statistics`,
+        { withCredentials: true }
+      )
+      setAqiqahKhitanStats({
+        formStats: response.data?.formStats || [],
+        incomeStats: response.data?.incomeStats || [],
+      })
+    } catch (err) {
+      console.error("Gagal mengambil statistik Aqiqah/Khitan:", err)
+      setAqiqahKhitanStats({ formStats: [], incomeStats: [] })
+    } finally {
+      setLoading(prev => ({ ...prev, aqiqahKhitan: false }))
     }
   }
 
@@ -115,6 +196,28 @@ export default function Dashboard() {
     return num
   }
 
+  const combinedFormData = useMemo(
+    () =>
+      mergeMonthlyData(
+        formData,
+        aqiqahKhitanStats.formStats,
+        'form',
+        'aqiqahKhitanForm'
+      ),
+    [aqiqahKhitanStats.formStats, formData]
+  )
+
+  const combinedIncomeData = useMemo(
+    () =>
+      mergeMonthlyData(
+        incomeData,
+        aqiqahKhitanStats.incomeStats,
+        'income',
+        'aqiqahKhitanIncome'
+      ),
+    [aqiqahKhitanStats.incomeStats, incomeData]
+  )
+
 
   useEffect(() => {
     const verifyAdmin = async () => {
@@ -130,6 +233,7 @@ export default function Dashboard() {
 
         fetchFormData();
         fetchIncomeData();
+        fetchAqiqahKhitanStats();
         fetchTotalIncome();
       } catch (error) {
         console.error("Error verifying admin status:", error);
@@ -138,7 +242,7 @@ export default function Dashboard() {
     };
 
     verifyAdmin();
-  }, [])
+  }, [router])
 
   return (
     <div className="flex min-h-screen pt-10">
@@ -200,13 +304,28 @@ export default function Dashboard() {
                 <CardHeader>
                   <CardTitle>Statistik Form Undangan</CardTitle>
                   <CardDescription>
-                    {loading.form ? "Memuat data..." : getDateRange(formData)}
+                    {loading.form || loading.aqiqahKhitan
+                      ? "Memuat data..."
+                      : getDateRange(combinedFormData)}
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
                   <ChartContainer config={chartConfig}>
-                    <BarChart data={formData} margin={{ top: 20, bottom: 5 }}>
-                      <ChartTooltip content={<ChartTooltipContent />} />
+                    <BarChart data={combinedFormData} margin={{ top: 20, bottom: 5 }}>
+                      <ChartTooltip
+                        content={
+                          <ChartTooltipContent
+                            footer={(payload) => (
+                              <div className="mt-1 flex items-center justify-between gap-4 border-t pt-2 font-semibold">
+                                <span>Total Form</span>
+                                <span className="font-mono tabular-nums">
+                                  {getTooltipTotal(payload).toLocaleString('id-ID')}
+                                </span>
+                              </div>
+                            )}
+                          />
+                        }
+                      />
                       <CartesianGrid vertical={false} strokeDasharray="3 3" />
                       <XAxis
                         dataKey="monthName"
@@ -216,10 +335,18 @@ export default function Dashboard() {
                       />
                       <Bar
                         dataKey="form"
-                        name="Jumlah Form"
+                        name="Form Wedding"
                         fill="#2A9D90"
+                        stackId="form-total"
+                      />
+                      <Bar
+                        dataKey="aqiqahKhitanForm"
+                        name="Form Aqiqah / Khitan"
+                        fill="#F59E0B"
+                        stackId="form-total"
                         radius={[4, 4, 0, 0]}
                       />
+                      <ChartLegend content={<ChartLegendContent />} />
                     </BarChart>
                   </ChartContainer>
                 </CardContent>
@@ -232,14 +359,37 @@ export default function Dashboard() {
                 <CardHeader>
                   <CardTitle>Statistik Pembayaran Lunas</CardTitle>
                   <CardDescription>
-                    {loading.income ? "Memuat data..." : getDateRange(incomeData)}
+                    {loading.income || loading.aqiqahKhitan
+                      ? "Memuat data..."
+                      : getDateRange(combinedIncomeData)}
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
                   <ChartContainer config={chartConfig}>
-                    <BarChart data={incomeData} margin={{ top: 20, bottom: 5 }}>
+                    <BarChart data={combinedIncomeData} margin={{ top: 20, bottom: 5 }}>
                       <ChartTooltip
-                        content={<ChartTooltipContent formatter={(val) => formatRupiah(val)} />}
+                        content={
+                          <ChartTooltipContent
+                            formatter={(value, name) => (
+                              <div className="flex min-w-48 flex-1 items-center justify-between gap-4">
+                                <span className="text-muted-foreground">
+                                  {name}
+                                </span>
+                                <span className="font-mono font-medium tabular-nums text-foreground">
+                                  {formatRupiah(value)}
+                                </span>
+                              </div>
+                            )}
+                            footer={(payload) => (
+                              <div className="mt-1 flex items-center justify-between gap-4 border-t pt-2 font-semibold">
+                                <span>Total Pembayaran</span>
+                                <span className="font-mono tabular-nums">
+                                  {formatRupiah(getTooltipTotal(payload))}
+                                </span>
+                              </div>
+                            )}
+                          />
+                        }
                       />
                       <CartesianGrid vertical={false} strokeDasharray="3 3" />
                       <XAxis
@@ -251,10 +401,18 @@ export default function Dashboard() {
                       <YAxis tickFormatter={(value) => formatShortNumber(value)} />
                       <Bar
                         dataKey="income"
-                        name="Pendapatan"
+                        name="Pembayaran Wedding"
                         fill="#4C7BF3"
+                        stackId="income-total"
+                      />
+                      <Bar
+                        dataKey="aqiqahKhitanIncome"
+                        name="Pembayaran Aqiqah / Khitan"
+                        fill="#F59E0B"
+                        stackId="income-total"
                         radius={[4, 4, 0, 0]}
                       />
+                      <ChartLegend content={<ChartLegendContent />} />
                     </BarChart>
                   </ChartContainer>
                 </CardContent>

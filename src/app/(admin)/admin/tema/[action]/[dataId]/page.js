@@ -12,6 +12,15 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import Image from "next/image";
 import { Checkbox } from "@/components/ui/checkbox";
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectLabel,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
 
 const FormTema = ({ params }) => {
   const router = useRouter();
@@ -113,6 +122,7 @@ const FormTema = ({ params }) => {
       data.append("isSyari", finalFormData.isSyari);
       data.append("totalWeddingPhoto", finalFormData.totalWeddingPhoto);
       data.append("price", String(finalFormData.price)); // jangan Number()
+      data.append("tipeTema", finalFormData.tipeTema);
 
       if (coverImage) data.append("cover", document.querySelector("input[name='cover']").files[0]);
       if (subcoverImage) data.append("subcover", document.querySelector("input[name='subcover']").files[0]);
@@ -169,6 +179,7 @@ const FormTema = ({ params }) => {
         slug: data.slug || convertToSlug(data.name),
         totalWeddingPhoto: String(data.totalWeddingPhoto),
         loveStory: data.loveStory || false,
+        tipeTema: data.tipeTema || 'wedding',
       });
 
       if (data.ssCover) {
@@ -328,6 +339,30 @@ const FormTema = ({ params }) => {
                 />
                 <label htmlFor="isSyari">Yes</label>
               </div>
+            </div>
+            <div className="mb-4">
+              <label className="block text-gray-700">Tipe Tema</label>
+              <Select
+                value={formData.tipeTema}
+                onValueChange={(value) =>
+                  setFormData((prev) => ({
+                    ...prev,
+                    tipeTema: value,
+                  }))
+                }
+              >
+                <SelectTrigger className="w-full max-w-48">
+                  <SelectValue placeholder="Pilih Tipe Tema" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectGroup>
+                    <SelectLabel>Tipe Tema</SelectLabel>
+                    <SelectItem value="wedding">Pernikahan</SelectItem>
+                    <SelectItem value="aqiqah-khitan">Aqiqah / Khitan</SelectItem>
+                  </SelectGroup>
+                </SelectContent>
+              </Select>
+              {errors.tipeTema && <p className="text-red-500 text-sm mt-1">{errors.tipeTema}</p>}
             </div>
             <div className="flex justify-start">
               <Button

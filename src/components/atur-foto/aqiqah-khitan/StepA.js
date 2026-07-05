@@ -1,0 +1,262 @@
+//COVER
+import { useEffect, useRef, useState } from "react";
+import Image from "next/image";
+import { Button } from "@/components/ui/button";
+import axios from "axios";
+import { useParams } from "next/navigation";
+import placeholder from "/public/images/placeholder.webp";
+import LoadingOverlay from "./LoadingOverlay";
+import { FaImages, FaEdit } from "react-icons/fa";
+import ImageEditor from "./ImageEditor";
+import { dataURLtoBlob } from "@/utils/helpers";
+
+const StepA = ({ number, nextStep, formData, setFormData, onFormChange, partName, title }) => {
+  const params = useParams();
+  const [uploading, setUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const [selectedImage, setSelectedImage] = useState(null);
+  const [file, setFile] = useState(null);
+  const [imageExist, setImageExist] = useState(false);
+  const fileInputRef = useRef(null);
+  const [runTour, setRunTour] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
+
+
+  const handleFileChange = (e) => {
+    const selectedFile = e.target.files[0];
+    if (e.target.files && e.target.files.length > 0) {
+      const reader = new FileReader();
+      reader.addEventListener('load', () => {
+        setSelectedImage(reader.result);
+        setFile(selectedFile);
+        // setIsEditing(true);
+        console.log('Selected file:', selectedFile);
+        console.log('Selected file type:', selectedFile.type);
+      });
+      reader.readAsDataURL(selectedFile);
+    }
+  };
+
+  const handleUploadClick = () => {
+    fileInputRef.current.click();
+  };
+
+  const handleNextClick = async () => {
+    setUploading(true);
+    if (!file) {
+      alert("Please select a file first!");
+      setUploading(false);
+      return;
+    }
+
+    const uploadData = new FormData();
+    uploadData.append('partName', partName);
+
+    if (file === 1) {
+      uploadData.append('dataFile', file);
+      try {
+        const response = await axios.post(
+          `${process.env.NEXT_PUBLIC_API_URL}/upload-photo-v2-ak/${params.formId}`,
+          uploadData,
+          {
+            headers: {
+              "Content-Type": "multipart/form-data",
+            },
+            onUploadProgress: (progressEvent) => {
+              const { loaded, total } = progressEvent;
+              const percent = Math.floor((loaded / total) * 100);
+              setUploadProgress(percent);
+            },
+          }
+        );
+        setImageExist(false);
+        onFormChange();
+        nextStep();
+      } catch (error) {
+        console.error("Error uploading the image", error);
+      } finally {
+        setUploading(false);
+        setUploadProgress(0);
+      }
+    }
+    // Handle regular file upload (including cropped images)
+    else {
+      uploadData.append('file', file);
+      try {
+        const response = await axios.post(
+          `${process.env.NEXT_PUBLIC_API_URL}/upload-photo-v2-ak/${params.formId}`,
+          uploadData,
+          {
+            headers: {
+              "Content-Type": "multipart/form-data",
+            },
+            onUploadProgress: (progressEvent) => {
+              const { loaded, total } = progressEvent;
+              const percent = Math.floor((loaded / total) * 100);
+              setUploadProgress(percent); // Corrected here
+            },
+          }
+        );
+        setSelectedImage(null);
+        setFile(null);
+        onFormChange();
+        nextStep();
+      } catch (error) {
+        console.error("Error uploading the image", error);
+      } finally {
+        setUploading(false);
+        setUploadProgress(0);
+      }
+    }
+  };
+
+  const fetchData = async () => {
+    try {
+      const response = await axios.get(
+        `${process.env.NEXT_PUBLIC_API_URL}/get-selected-photo-ak/${params.formId}`,
+        {
+          params: {
+            partName: partName,
+          },
+        }
+      );
+
+      const imagesData = response.data.data;
+      const imagesDataxx = response.data;
+
+      console.log("Images Data:", imagesDataxx);
+
+      if (imagesData.length > 0) {
+        let imageUrl;
+        if (imagesData[0].ssSubCover) {
+          imageUrl = `${process.env.NEXT_PUBLIC_API_URL}/images/${imagesData[0].ssSubCover}`;
+        } else if (imagesData[0].fileImage) {
+          imageUrl = `${process.env.NEXT_PUBLIC_API_URL}/images/${imagesData[0].fileImage}`;
+          setFile(1);
+        } else if (imagesData[0].file) {
+          const imageType = response.data.type === 'asset' ? 'asset' : response.data.type;
+          imageUrl = `${process.env.NEXT_PUBLIC_API_URL}/${imageType}/${imagesData[0].file}`;
+          setFile(1);
+        } else {
+          console.error('Image data does not contain expected fields');
+          return;
+        }
+
+        console.log("Imageurl:", imageUrl);
+
+        setSelectedImage(imageUrl);
+        setUploading(false);
+        onFormChange();
+      } else {
+        console.error('No images found');
+        setUploading(false);
+      }
+    } catch (error) {
+      console.error('Error fetching data:', error);
+      setUploading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchData();
+    let tourShown = false;
+    try {
+      tourShown = localStorage.getItem('tourShown');
+    } catch (error) {
+      console.warn('LocalStorage is not supported:', error);
+    }
+    if (!tourShown) {
+      setRunTour(true);
+      try {
+        localStorage.setItem('tourShown', 'true');
+      } catch (error) {
+        console.warn('LocalStorage is not supported:', error);
+      }
+    }
+  }, [params.formId, params.phoneNumber, partName]);
+
+
+  useEffect(() => {
+    if (selectedImage) {
+      setFormData((prevData) => ({
+        ...prevData,
+        imageUrl: selectedImage,
+        file: file,
+      }));
+    }
+    console.log("FILE: " + file);
+  }, [selectedImage, file, setFormData]);
+
+  return (
+    <>
+
+      <div className="relative min-h-screen p-4 text-center flex-grow">
+
+        {uploading && <LoadingOverlay progress={uploadProgress} />}
+        <div className="flex justify-between items-center">
+          <h2 className="text-xl font-semibold flex-grow text-center">{number}. {title}</h2>
+        </div>
+
+        <div className="flex items-center justify-center mb-4 relative">
+          <div className="relative">
+            <img
+              src={selectedImage || placeholder?.src}
+              alt="Cover"
+              width={300}
+              height={350}
+              className="mt-4"
+            />
+            {selectedImage && selectedImage !== placeholder?.src && (
+              <button
+                onClick={() => {
+                  if (selectedImage) {
+                    setIsEditing(true);
+                  }
+                }}
+                className="absolute top-4 right-4 bg-white p-2 rounded-full shadow-md hover:bg-gray-100"
+                title="Edit Image"
+              >
+                <FaEdit className="text-blue-500" />
+              </button>
+            )}
+          </div>
+        </div>
+
+        <div className="flex justify-center gap-x-4 pb-4">
+          <input
+            type="file"
+            ref={fileInputRef}
+            onChange={handleFileChange}
+            style={{ display: "none" }}
+            accept="image/*"
+          />
+          <Button onClick={handleUploadClick} disabled={uploading}>
+            {selectedImage ? "Ganti Foto" : "Upload Foto"}
+          </Button>
+
+          <Button onClick={handleNextClick} disabled={!file || uploading}>
+            {uploading ? "Uploading..." : "Selanjutnya"}
+          </Button>
+        </div>
+
+        {isEditing && selectedImage && (
+          <ImageEditor
+            image={selectedImage}
+            onSave={(editedImage) => {
+              setSelectedImage(editedImage);
+              setIsEditing(false);
+              // Create a file object from the edited image
+              const blob = dataURLtoBlob(editedImage);
+              const editedFile = new File([blob], 'edited-image.jpg', { type: 'image/jpeg' });
+              setFile(editedFile);
+            }}
+            onCancel={() => setIsEditing(false)}
+          />
+        )}
+      </div>
+    </>
+  );
+};
+
+export default StepA;

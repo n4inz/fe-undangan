@@ -89,6 +89,7 @@ const ChartTooltipContent = React.forwardRef((
     labelFormatter,
     labelClassName,
     formatter,
+    footer,
     color,
     nameKey,
     labelKey,
@@ -206,6 +207,7 @@ const ChartTooltipContent = React.forwardRef((
             </div>)
           );
         })}
+        {footer ? footer(payload) : null}
       </div>
     </div>)
   );

@@ -1,7 +1,7 @@
 "use client";
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { redirect, useRouter } from "next/navigation";
+import { redirect, usePathname, useRouter } from "next/navigation";
 import { SlHome } from "react-icons/sl";
 import { FaListUl, FaClipboardList } from "react-icons/fa";
 import { BiLogOut, BiUser, BiMenu, BiMoney, BiHeartSquare, BiImages, BiSolidMusic, BiUserPlus, BiUserCircle, BiCog, BiX, BiImage, BiChat, BiFolder } from "react-icons/bi";
@@ -16,12 +16,14 @@ import { ChevronDown } from "lucide-react";
 
 export default function Sidebar({ authenticated }) {
     const router = useRouter();
+    const pathname = usePathname();
     const [isAdmin, setIsAdmin] = useState(0);
     const [isSidebarOpen, setIsSidebarOpen] = useState(false); // State to handle sidebar visibility
     const [company, setCompany] = useState(null);
     const [profileLoading, setProfileLoading] = useState(false);
     const [isFileManagerOpen, setFileManagerOpen] = useState(false);
     const [isAffiliateOpen, setAffiliateOpen] = useState(false);
+    const [isListOpen, setListOpen] = useState(false);
 
     if (!authenticated) {
         redirect("/login");
@@ -60,6 +62,12 @@ export default function Sidebar({ authenticated }) {
         // console.log("CHECK: " + authenticated);
     }, []);
 
+    useEffect(() => {
+        if (pathname?.startsWith("/admin/list")) {
+            setListOpen(true);
+        }
+    }, [pathname]);
+
     const logoUrl = company?.logo
         ? `${process.env.NEXT_PUBLIC_API_URL}/asset/${company.logo}`
         : null;
@@ -72,7 +80,10 @@ export default function Sidebar({ authenticated }) {
 
     // Clickable menu items
     const MenuItem = ({ icon, name, route, onClick }) => {
-        const colorClass = router.pathname === route ? "text-white" : "text-[#0F2542] hover:text-[#A6A6A6]";
+        const isActive = route === "/admin/list"
+            ? pathname === route
+            : pathname?.startsWith(route);
+        const colorClass = isActive ? "font-medium text-blue-700" : "text-[#0F2542] hover:text-[#A6A6A6]";
         return (
             <Link
                 href={route !== "#logout" ? route : "#"}
@@ -149,7 +160,20 @@ export default function Sidebar({ authenticated }) {
                     {isAdmin === 1 && (
                         <MenuItem name="Dashboard" route="/admin/dashboard" icon={<SlHome />} />
                     )}
-                    <MenuItem name="List" route="/admin/list" icon={<FaListUl />} />
+                    <Collapsible open={isListOpen} onOpenChange={setListOpen} className="pl-3">
+                        <CollapsibleTrigger className="w-full flex items-center justify-between px-4 py-2 hover:bg-muted rounded-md">
+                            <div className="flex items-center gap-2">
+                                <FaListUl className="text-lg" />
+                                <span>List</span>
+                            </div>
+                            <ChevronDown className={`transition-transform ${isListOpen ? "rotate-180" : ""}`} size={16} />
+                        </CollapsibleTrigger>
+
+                        <CollapsibleContent className="ml-6 mt-1 space-y-1">
+                            <MenuItem name="Form Wedding" route="/admin/list" icon={<BiHeartSquare />} />
+                            <MenuItem name="Form Aqiqah / Khitan" route="/admin/list/aqiqah-khitan" icon={<FaClipboardList />} />
+                        </CollapsibleContent>
+                    </Collapsible>
                     <MenuItem name="MyList" route="/admin/mylist" icon={<FaClipboardList />} />
 
                     {isAdmin === 1 && (

@@ -11,3 +11,15 @@ export const getTema = async (formId = null) => {
         console.log(error);
     }
 };
+
+export const getTemaAk = async (formId = null) => {
+    try {
+        const endpoint = formId
+            ? `${process.env.NEXT_PUBLIC_API_URL}/get-tema-ak/${formId}`
+            : `${process.env.NEXT_PUBLIC_API_URL}/get-tema-ak`;
+        const { data } = await axios.get(endpoint);
+        return data;
+    } catch (error) {
+        console.log(error);
+    }
+};
