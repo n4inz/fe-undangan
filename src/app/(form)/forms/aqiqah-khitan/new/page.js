@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import axios from "axios";
 import Link from "next/link";
+import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { Loader2, Plus, Save, Trash2 } from "lucide-react";
 
@@ -197,6 +198,7 @@ const normalizePayload = (fields, formData) =>
 
 const FormAqiqahKhitanPage = () => {
   const router = useRouter();
+  const { data: session } = useSession();
   const audioRef = useRef(null);
 
   const [fields, setFields] = useState([]);
@@ -619,7 +621,10 @@ const FormAqiqahKhitanPage = () => {
         withCredentials: true,
       });
 
-      const payload = normalizePayload(fields, formData);
+      const payload = {
+        ...normalizePayload(fields, formData),
+        customerSessionToken: session?.user?.sessionToken || null,
+      };
 
       const response = await axios.post(
         `${apiUrl}/forms/aqiqah-khitan`,

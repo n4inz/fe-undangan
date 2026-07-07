@@ -288,7 +288,7 @@ const MultiStepForm = ({ onFormChange }) => {
     default:
       handleFinalStep();
       return null;
-  }A
+  }
 };
 
 export default MultiStepForm;
