@@ -23,6 +23,7 @@ export default function MusicCombobox({
   apiUrl = process.env.NEXT_PUBLIC_API_URL,
   limit = DEFAULT_LIMIT,
   placeholder = "Pilih Musik",
+  allowClear = false,
 }) {
   const [open, setOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
@@ -191,6 +192,29 @@ export default function MusicCombobox({
 
             {!isLoading && list.length > 0 && (
               <CommandGroup>
+                {allowClear && (
+                  <CommandItem
+                    value="Tidak dipilih"
+                    onSelect={() => {
+                      onValueChange("");
+                      setOpen(false);
+                    }}
+                    className="text-sm text-left"
+                  >
+                    <div className="flex w-full">
+                      <Check
+                        className={cn(
+                          "mr-2 h-4 w-4 flex-shrink-0",
+                          value == null || value === "" ? "opacity-100" : "opacity-0"
+                        )}
+                      />
+                      <span className="overflow-hidden text-ellipsis whitespace-nowrap text-left">
+                        Tidak dipilih
+                      </span>
+                    </div>
+                  </CommandItem>
+                )}
+
                 {list.map((data) => (
                   <CommandItem
                     key={data.id}

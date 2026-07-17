@@ -43,10 +43,12 @@ nomorWa: z
   }),
   // linkVideo: optionalStringWithMax,
   source: optionalStringWithMax,
+  judulTurutMengundang: optionalStringWithMax,
+  judulTurutMengundang2: optionalStringWithMax,
   // linkSherlokResepsi: optionalStringWithMax,
 });
 
-const excludedFields = ['ceritaAwal', 'ceritaJadian', 'ceritaLamaran', 'quote', 'linkSherlokAkad', 'linkSherlokResepsi', 'turutMengundang'];
+const excludedFields = ['ceritaAwal', 'ceritaJadian', 'ceritaLamaran', 'quote', 'linkSherlokAkad', 'linkSherlokResepsi', 'turutMengundang', 'turutMengundang2'];
 
 export const schema = mainSchema
   .merge(z.object({}).passthrough()) // allow unknown fields

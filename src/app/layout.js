@@ -2,6 +2,7 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from './api/auth/[...nextauth]/route';
 import { Inter } from "next/font/google";
 import Providers from './providers';
+import 'quill/dist/quill.snow.css';
 import './styles/globals.css';
 import GoogleAnalytics from '@/components/GoogleAnalytics';
 import * as Sentry from '@sentry/nextjs';

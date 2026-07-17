@@ -903,11 +903,37 @@ const Detail = ({ params }) => {
             />
           </div>
           <div className="mb-4">
-            <label className="block text-gray-700">Turut Mengundang</label>
-            <Textarea
-              name="turutMengundang"
-              value={formData.turutMengundang}
+            <label className="block text-gray-700">Judul Turut Mengundang 1</label>
+            <Input
+              type="text"
+              name="judulTurutMengundang"
+              value={formData.judulTurutMengundang ?? ""}
+              readOnly
               className="mt-1 p-2 w-full border border-gray-300 rounded-lg"
+            />
+          </div>
+          <div className="mb-4">
+            <label className="block text-gray-700">Turut Mengundang 1</label>
+            <div
+              className="quill-rendered-html mt-1 p-2 w-full min-h-[96px] border border-gray-300 rounded-lg bg-gray-50"
+              dangerouslySetInnerHTML={{ __html: formData.turutMengundang || "<i>(Belum ada)</i>" }}
+            />
+          </div>
+          <div className="mb-4">
+            <label className="block text-gray-700">Judul Turut Mengundang 2</label>
+            <Input
+              type="text"
+              name="judulTurutMengundang2"
+              value={formData.judulTurutMengundang2 ?? ""}
+              readOnly
+              className="mt-1 p-2 w-full border border-gray-300 rounded-lg"
+            />
+          </div>
+          <div className="mb-4">
+            <label className="block text-gray-700">Turut Mengundang 2</label>
+            <div
+              className="quill-rendered-html mt-1 p-2 w-full min-h-[96px] border border-gray-300 rounded-lg bg-gray-50"
+              dangerouslySetInnerHTML={{ __html: formData.turutMengundang2 || "<i>(Belum ada)</i>" }}
             />
           </div>
           <div className="mb-4">

@@ -11,6 +11,13 @@ import BankCombobox from "@/components/admin/BankComboBox";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { getBankList } from "@/lib/bank";
 import { getTemaAk } from "@/lib/tema";
@@ -22,12 +29,26 @@ import {
   CommandGroup,
   CommandItem,
 } from "@/components/ui/command";
+import QuillHtmlEditor from "@/components/QuillHtmlEditor.client";
 
 const FORM_DATA_KEY = "formAqiqahKhitanData";
 const MAX_DEFAULT_STRING_LENGTH = 191;
+const NEW_REQUIRED_FIELDS = new Set(["idTema"]);
 
 const apiUrl = process.env.NEXT_PUBLIC_API_URL;
 const REKENING_EMPTY_ITEM = { icon: "", namaRekening: "", nomorRekening: "" };
+
+const getFieldOptions = (field) =>
+  (field.options || [])
+    .map((option) =>
+      typeof option === "string"
+        ? { value: option, label: option }
+        : {
+            value: String(option?.value ?? ""),
+            label: option?.label || String(option?.value ?? ""),
+          }
+    )
+    .filter((option) => option.value);
 
 const isLocalStorageAccessible = () => {
   try {
@@ -76,6 +97,9 @@ const buildInitialFormData = (fields, savedData = {}) =>
 const isEmptyValue = (value) =>
   value === undefined || value === null || (typeof value === "string" && value.trim() === "");
 
+const isFieldRequired = (field) =>
+  field.required || NEW_REQUIRED_FIELDS.has(field.name);
+
 const validateUrl = (value) => {
   try {
     new URL(value);
@@ -96,7 +120,7 @@ const validateFormData = (fields, formData) => {
       const filledRows = rows.filter((row) => !isEmptyRekeningRow(row));
       const partialIndex = rows.findIndex(isPartialRekeningRow);
 
-      if (field.required && filledRows.length === 0) {
+      if (isFieldRequired(field) && filledRows.length === 0) {
         nextErrors[field.name] = `${field.label} wajib diisi`;
         return;
       }
@@ -121,12 +145,21 @@ const validateFormData = (fields, formData) => {
 
     const empty = isEmptyValue(value);
 
-    if (field.required && empty) {
+    if (isFieldRequired(field) && empty) {
       nextErrors[field.name] = `${field.label} wajib diisi`;
       return;
     }
 
     if (empty) return;
+
+    if (field.inputType === "select") {
+      const allowedValues = getFieldOptions(field).map((option) => option.value);
+
+      if (allowedValues.length > 0 && !allowedValues.includes(String(value))) {
+        nextErrors[field.name] = `${field.label} harus dipilih dari daftar`;
+        return;
+      }
+    }
 
     if (field.type === "String") {
       const maxLength = field.maxLength || MAX_DEFAULT_STRING_LENGTH;
@@ -363,6 +396,55 @@ const FormAqiqahKhitanPage = () => {
     const errorMessage = errors[field.name];
     const describedBy = errorMessage ? `${field.name}-error` : undefined;
 
+    if (field.inputType === "select") {
+      const options = getFieldOptions(field);
+
+      return (
+        <div className="space-y-2">
+          <Select
+            value={value ? String(value) : ""}
+            onValueChange={(selectedValue) =>
+              updateField(field.name, selectedValue)
+            }
+          >
+            <SelectTrigger
+              id={field.name}
+              aria-invalid={Boolean(errorMessage)}
+              aria-describedby={describedBy}
+            >
+              <SelectValue
+                placeholder={
+                  field.placeholder ||
+                  (isFieldRequired(field) ? `Pilih ${field.label}` : "Tidak dipilih")
+                }
+              />
+            </SelectTrigger>
+            <SelectContent>
+              {options.map((option) => (
+                <SelectItem key={option.value} value={option.value}>
+                  {option.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+      );
+    }
+
+    if (field.inputType === "rich-text") {
+      return (
+        <QuillHtmlEditor
+          id={field.name}
+          name={field.name}
+          value={value}
+          ariaInvalid={Boolean(errorMessage)}
+          ariaDescribedBy={describedBy}
+          onChange={(html) => updateField(field.name, html)}
+          placeholder={field.placeholder || `Masukkan ${field.label.toLowerCase()}`}
+        />
+      );
+    }
+
     if (field.inputType === "textarea") {
       return (
         <Textarea
@@ -478,7 +560,7 @@ const FormAqiqahKhitanPage = () => {
               selectedSongId={value ? String(value) : ""}
             />
           </div>
-          {!field.required && value ? (
+          {!isFieldRequired(field) && value ? (
             <Button
               type="button"
               variant="outline"
@@ -547,19 +629,6 @@ const FormAqiqahKhitanPage = () => {
           </div>
           {selectedTema ? (
             <p className="text-sm text-gray-600">Tema dipilih: {selectedTema.name}</p>
-          ) : null}
-          {!field.required && value ? (
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={() => {
-                updateField(field.name, "");
-                setTemaCommandInput("");
-              }}
-            >
-              Kosongkan pilihan
-            </Button>
           ) : null}
         </div>
       );
@@ -698,6 +767,7 @@ const FormAqiqahKhitanPage = () => {
           {fields.map((field) => {
             const wideField =
               field.inputType === "textarea" ||
+              field.inputType === "rich-text" ||
               field.inputType === "relation-select" ||
               field.inputType === "rekening-list";
 
@@ -709,7 +779,7 @@ const FormAqiqahKhitanPage = () => {
               >
                 <Label htmlFor={field.name} className="flex items-center gap-1">
                   <span>{field.label}</span>
-                  {field.required ? <span className="text-red-500">*</span> : null}
+                  {isFieldRequired(field) ? <span className="text-red-500">*</span> : null}
                 </Label>
                 {renderInput(field)}
                 {errors[field.name] ? (

@@ -4,11 +4,13 @@ import StepB from "./StepB";
 import StepC from "./StepC";
 import StepD from "./StepD";
 import StepE from "./StepE";
+import StepF from "./StepF";
 import axios from "axios";
 import { useRouter, usePathname, useParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 
-const LAST_STEP = 5;
+const LAST_STEP = 6;
+const SYARI_LAST_STEP = 5;
 
 const MultiStepForm = ({ onFormChange }) => {
   const router = useRouter();
@@ -92,7 +94,7 @@ const MultiStepForm = ({ onFormChange }) => {
 
   useEffect(() => {
     const hasCompletedAllSteps =
-      step > LAST_STEP || (isSyari === true && step === LAST_STEP);
+      step > LAST_STEP || (isSyari === true && step >= SYARI_LAST_STEP);
 
     if (hasCompletedAllSteps) {
       handleFinalStep();
@@ -181,6 +183,18 @@ const MultiStepForm = ({ onFormChange }) => {
           partName="cover-bawah"
           title="Cover Bawah"
           number={5}
+        />
+      );
+    case 6:
+      return (
+        <StepF
+          nextStep={nextStep}
+          formData={formData}
+          setFormData={setFormData}
+          onFormChange={onFormChange}
+          partName="background"
+          title="Background"
+          number={6}
         />
       );
     default:

@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import axios from "axios";
 import Link from "next/link";
-import { ArrowLeft, CheckCircle2, Loader2 } from "lucide-react";
+import { ArrowLeft, CheckCircle2, ExternalLink, Loader2 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 
@@ -40,6 +40,32 @@ const renderFieldValue = (field, value) => {
           </li>
         ))}
       </ul>
+    );
+  }
+
+  if (field.inputType === "url") {
+    const url = String(value);
+
+    return (
+      <a
+        href={url}
+        target="_blank"
+        rel="noreferrer"
+        title={url}
+        className="inline-flex max-w-full min-w-0 items-center gap-1 text-blue-600 hover:underline"
+      >
+        <span className="min-w-0 truncate">{url}</span>
+        <ExternalLink className="h-3.5 w-3.5 shrink-0" />
+      </a>
+    );
+  }
+
+  if (field.inputType === "rich-text") {
+    return (
+      <div
+        className="quill-rendered-html"
+        dangerouslySetInnerHTML={{ __html: String(value) }}
+      />
     );
   }
 
@@ -120,11 +146,11 @@ const AqiqahKhitanSuccessPage = ({ params }) => {
           {!loading && visibleRows.length > 0 ? (
             <dl className="grid gap-4 sm:grid-cols-2">
               {visibleRows.map((row) => (
-                <div key={row.label} className="rounded-md border border-gray-200 p-3">
+                <div key={row.label} className="min-w-0 rounded-md border border-gray-200 p-3">
                   <dt className="text-xs font-medium uppercase tracking-wide text-gray-500">
                     {row.label}
                   </dt>
-                  <dd className="mt-1 break-words text-sm text-gray-950">{row.value}</dd>
+                  <dd className="mt-1 min-w-0 break-words text-sm text-gray-950">{row.value}</dd>
                 </div>
               ))}
             </dl>

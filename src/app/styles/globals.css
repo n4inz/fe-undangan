@@ -172,3 +172,66 @@
 .animate-info-blink {
   animation: blink-custom 1.5s infinite;
 }
+
+.quill-html-editor .ql-toolbar.ql-snow {
+  border-color: hsl(var(--input));
+  border-radius: calc(var(--radius) - 2px) calc(var(--radius) - 2px) 0 0;
+  font-family: inherit;
+}
+
+.quill-html-editor .ql-container.ql-snow {
+  min-height: 144px;
+  border-color: hsl(var(--input));
+  border-radius: 0 0 calc(var(--radius) - 2px) calc(var(--radius) - 2px);
+  font-family: inherit;
+  font-size: 0.875rem;
+}
+
+.quill-html-editor .ql-editor {
+  min-height: 144px;
+  line-height: 1.5;
+}
+
+.quill-html-editor .ql-editor.ql-blank::before {
+  color: #9ca3af;
+  font-style: normal;
+}
+
+.quill-html-editor[data-invalid="true"] .ql-toolbar.ql-snow,
+.quill-html-editor[data-invalid="true"] .ql-container.ql-snow {
+  border-color: #ef4444;
+}
+
+.quill-rendered-html p {
+  margin: 0 0 0.5rem;
+}
+
+.quill-rendered-html p:last-child {
+  margin-bottom: 0;
+}
+
+.quill-rendered-html ul {
+  list-style: disc;
+  padding-left: 1.5rem;
+}
+
+.quill-rendered-html ol {
+  list-style: decimal;
+  padding-left: 1.5rem;
+}
+
+.quill-rendered-html li {
+  margin: 0.125rem 0;
+}
+
+.quill-rendered-html .ql-align-center {
+  text-align: center;
+}
+
+.quill-rendered-html .ql-align-right {
+  text-align: right;
+}
+
+.quill-rendered-html .ql-align-justify {
+  text-align: justify;
+}

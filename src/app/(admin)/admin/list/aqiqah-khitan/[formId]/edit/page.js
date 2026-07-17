@@ -10,9 +10,18 @@ import BankCombobox from "@/components/admin/BankComboBox";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "@/components/ui/use-toast";
 import { getBankList } from "@/lib/bank";
+import QuillHtmlEditor from "@/components/QuillHtmlEditor.client";
+import MusicCombobox from "@/components/admin/MusicComboBox";
 
 const apiUrl = process.env.NEXT_PUBLIC_API_URL;
 const MAX_STRING_LENGTH = 191;
@@ -21,6 +30,18 @@ const EMPTY_REKENING = {
   namaRekening: "",
   nomorRekening: "",
 };
+
+const getFieldOptions = (field) =>
+  (field.options || [])
+    .map((option) =>
+      typeof option === "string"
+        ? { value: option, label: option }
+        : {
+            value: String(option?.value ?? ""),
+            label: option?.label || String(option?.value ?? ""),
+          }
+    )
+    .filter((option) => option.value);
 
 const isEmptyValue = (value) =>
   value === undefined ||
@@ -70,6 +91,15 @@ const validateForm = (fields, formData) => {
     }
 
     if (isEmptyValue(value)) return;
+
+    if (field.inputType === "select") {
+      const allowedValues = getFieldOptions(field).map((option) => option.value);
+
+      if (allowedValues.length > 0 && !allowedValues.includes(String(value))) {
+        errors[field.name] = `${field.label} harus dipilih dari daftar`;
+        return;
+      }
+    }
 
     if (
       field.type === "String" &&
@@ -253,6 +283,50 @@ export default function EditAqiqahKhitanPage({ params }) {
     const value = formData[field.name] ?? "";
     const error = errors[field.name];
 
+    if (field.inputType === "select") {
+      const options = getFieldOptions(field);
+
+      return (
+        <div className="space-y-2">
+          <Select
+            value={value ? String(value) : ""}
+            onValueChange={(selectedValue) =>
+              updateField(field.name, selectedValue)
+            }
+          >
+            <SelectTrigger id={field.name} aria-invalid={Boolean(error)}>
+              <SelectValue
+                placeholder={
+                  field.placeholder ||
+                  (field.required ? `Pilih ${field.label}` : "Tidak dipilih")
+                }
+              />
+            </SelectTrigger>
+            <SelectContent>
+              {options.map((option) => (
+                <SelectItem key={option.value} value={option.value}>
+                  {option.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+      );
+    }
+
+    if (field.inputType === "rich-text") {
+      return (
+        <QuillHtmlEditor
+          id={field.name}
+          name={field.name}
+          value={value}
+          ariaInvalid={Boolean(error)}
+          onChange={(html) => updateField(field.name, html)}
+          placeholder={field.placeholder || `Masukkan ${field.label.toLowerCase()}`}
+        />
+      );
+    }
+
     if (field.inputType === "textarea") {
       return (
         <Textarea
@@ -352,6 +426,23 @@ export default function EditAqiqahKhitanPage({ params }) {
             Tambah Rekening
           </Button>
         </div>
+      );
+    }
+
+    if (
+      field.inputType === "relation-select" &&
+      field.relationModel === "music"
+    ) {
+      return (
+        <MusicCombobox
+          value={value ? String(value) : ""}
+          onValueChange={(selectedValue) =>
+            updateField(field.name, selectedValue)
+          }
+          apiUrl={apiUrl}
+          placeholder="Tidak dipilih"
+          allowClear
+        />
       );
     }
 
@@ -518,6 +609,7 @@ export default function EditAqiqahKhitanPage({ params }) {
                   {fields.map((field) => {
                     const wideField =
                       field.inputType === "textarea" ||
+                      field.inputType === "rich-text" ||
                       field.inputType === "rekening-list";
 
                     return (

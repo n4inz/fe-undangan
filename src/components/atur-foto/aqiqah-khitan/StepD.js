@@ -86,6 +86,8 @@ const SortableItem = ({ item, onRemove, uploading, remove }) => {
 
 const StepD = (props) => {
   const params = useParams();
+  const maxImages = props.maxImages || 15;
+  const uploadLabel = props.partName === "background" ? "background" : "foto";
   const [uploading, setUploading] = useState(false);
   const [compressing, setCompressing] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
@@ -438,9 +440,9 @@ const processFiles = async (files) => {
     }
 
     // Validate max 15 images
-    if (images.length + selectedFiles.length > 15) {
+    if (images.length + selectedFiles.length > maxImages) {
       console.log("❌ Too many images:", images.length + selectedFiles.length);
-      toast({ title: 'Maksimum upload foto adalah 15!', variant: 'destructive' });
+      toast({ title: `Maksimum upload ${uploadLabel} adalah ${maxImages}!`, variant: 'destructive' });
       // Reset file input
       if (fileInputRef.current) fileInputRef.current.value = '';
       return;
@@ -504,7 +506,7 @@ const processFiles = async (files) => {
       const avgSizeKB = (totalSize / compressedFiles.length / 1024).toFixed(0);
 
       toast({
-        title: `${compressedFiles.length} foto berhasil dikompress`,
+        title: `${compressedFiles.length} ${uploadLabel} berhasil dikompress`,
         description: `Rata-rata ${avgSizeKB}KB per file`,
         variant: 'default'
       });
@@ -512,7 +514,7 @@ const processFiles = async (files) => {
       console.log("✅ Files successfully added to state");
     } catch (error) {
       console.error('❌ Compression error:', error);
-      toast({ title: 'Gagal mengkompress foto', variant: 'destructive' });
+      toast({ title: `Gagal mengkompress ${uploadLabel}`, variant: 'destructive' });
     } finally {
       setCompressing(false);
       // Reset file input untuk allow same files to be selected again
@@ -627,7 +629,7 @@ const processFiles = async (files) => {
       props.nextStep();
     } catch (error) {
       console.error("❌ Error uploading files:", error);
-      toast({ title: 'Gagal mengupload foto', variant: 'destructive' });
+      toast({ title: `Gagal mengupload ${uploadLabel}`, variant: 'destructive' });
     } finally {
       await manageOrder(images);
       setUploading(false);
@@ -705,7 +707,9 @@ const processFiles = async (files) => {
           <div className="bg-white p-6 rounded-lg shadow-lg max-w-sm">
             <div className="flex items-center space-x-3 mb-3">
               <div className="w-6 h-6 border-4 border-t-transparent border-purple-500 rounded-full animate-spin"></div>
-              <span className="font-semibold">Memproses Foto...</span>
+              <span className="font-semibold">
+                Memproses {props.partName === "background" ? "Background" : "Foto"}...
+              </span>
             </div>
             {/* <p className="text-sm text-gray-600">Mempertahankan aspect ratio</p>
             <p className="text-xs text-gray-500 mt-1">Target: 500KB-1MB per foto</p> */}
@@ -715,7 +719,7 @@ const processFiles = async (files) => {
 
       <div className="flex justify-between items-center mb-4">
         <h2 className="text-xl font-semibold flex-grow text-center">
-          {props.number}. {props.title} (Max. 15 Foto)
+          {props.number}. {props.title} (Max. {maxImages} Foto)
         </h2>
       </div>
 

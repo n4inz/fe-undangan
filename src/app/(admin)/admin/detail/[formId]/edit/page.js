@@ -22,8 +22,12 @@ import { getBankList } from '@/lib/bank';
 import BankCombobox from '@/components/admin/BankComboBox';
 import MusicCombobox from '@/components/admin/MusicComboBox';
 import QuoteEditor from '@/components/QuoteEditor.client';
+import QuillHtmlEditor from '@/components/QuillHtmlEditor.client';
 import AdditionalEventsModal from '@/components/AdditionalEventsModal';
 import { Checkbox } from '@/components/ui/checkbox';
+
+const TURUT_MENGUNDANG_TOOLBAR_OPTIONS = [["bold", "italic", "underline"]];
+const TURUT_MENGUNDANG_FORMATS = ["bold", "italic", "underline"];
 
 const formatDateTime = (datetime) => {
     if (!datetime) return '';
@@ -1154,13 +1158,74 @@ const EditDetail = ({ params }) => {
                             </RadioGroup>
                         </div>
                         <div className="mb-4">
-                            <label className="block text-gray-700">Turut Mengundang</label>
-                            <Textarea
-                                name="turutMengundang"
-                                value={formData.turutMengundang}
+                            <label className="block text-gray-700">Judul Turut Mengundang 1</label>
+                            <Input
+                                type="text"
+                                name="judulTurutMengundang"
+                                value={formData.judulTurutMengundang ?? ""}
                                 onChange={handleChange}
                                 className="mt-1 p-2 w-full border border-gray-300 rounded-lg"
                             />
+                            {errors.judulTurutMengundang && (
+                                <p className="text-red-500 text-sm mt-1">{errors.judulTurutMengundang}</p>
+                            )}
+                        </div>
+                        <div className="mb-4">
+                            <label className="block text-gray-700">Turut Mengundang 1</label>
+                            <QuillHtmlEditor
+                                id="turutMengundang"
+                                name="turutMengundang"
+                                value={formData.turutMengundang ?? ""}
+                                ariaInvalid={Boolean(errors.turutMengundang)}
+                                onChange={(html) =>
+                                    setFormData((prev) => ({
+                                        ...prev,
+                                        turutMengundang: html,
+                                    }))
+                                }
+                                placeholder="Masukkan turut mengundang"
+                                toolbarOptions={TURUT_MENGUNDANG_TOOLBAR_OPTIONS}
+                                formats={TURUT_MENGUNDANG_FORMATS}
+                                useBrLineBreaks
+                            />
+                            {errors.turutMengundang && (
+                                <p className="text-red-500 text-sm mt-1">{errors.turutMengundang}</p>
+                            )}
+                        </div>
+                        <div className="mb-4">
+                            <label className="block text-gray-700">Judul Turut Mengundang 2</label>
+                            <Input
+                                type="text"
+                                name="judulTurutMengundang2"
+                                value={formData.judulTurutMengundang2 ?? ""}
+                                onChange={handleChange}
+                                className="mt-1 p-2 w-full border border-gray-300 rounded-lg"
+                            />
+                            {errors.judulTurutMengundang2 && (
+                                <p className="text-red-500 text-sm mt-1">{errors.judulTurutMengundang2}</p>
+                            )}
+                        </div>
+                        <div className="mb-4">
+                            <label className="block text-gray-700">Turut Mengundang 2</label>
+                            <QuillHtmlEditor
+                                id="turutMengundang2"
+                                name="turutMengundang2"
+                                value={formData.turutMengundang2 ?? ""}
+                                ariaInvalid={Boolean(errors.turutMengundang2)}
+                                onChange={(html) =>
+                                    setFormData((prev) => ({
+                                        ...prev,
+                                        turutMengundang2: html,
+                                    }))
+                                }
+                                placeholder="Masukkan turut mengundang"
+                                toolbarOptions={TURUT_MENGUNDANG_TOOLBAR_OPTIONS}
+                                formats={TURUT_MENGUNDANG_FORMATS}
+                                useBrLineBreaks
+                            />
+                            {errors.turutMengundang2 && (
+                                <p className="text-red-500 text-sm mt-1">{errors.turutMengundang2}</p>
+                            )}
                         </div>
                         <div className="mb-4">
                             <label className="block text-gray-700">Pilih Musik</label>
