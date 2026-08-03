@@ -5,7 +5,7 @@ import axios from "axios";
 import Link from "next/link";
 import { useSession } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Loader2, Plus, Save, Trash2 } from "lucide-react";
+import { Loader2, Music2, Plus, Save, Trash2 } from "lucide-react";
 
 import BankCombobox from "@/components/admin/BankComboBox";
 import { Button } from "@/components/ui/button";
@@ -234,6 +234,7 @@ const FormAqiqahKhitanPage = () => {
   const searchParams = useSearchParams();
   const { data: session } = useSession();
   const audioRef = useRef(null);
+  const initializationRequestIdRef = useRef(0);
   const temaSlugFromUrl =
     searchParams?.get("tema")?.trim() ||
     searchParams?.get("theme")?.trim() ||
@@ -249,6 +250,7 @@ const FormAqiqahKhitanPage = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [storageReady, setStorageReady] = useState(false);
   const [currentlyPlaying, setCurrentlyPlaying] = useState(null);
+  const [musicListOpen, setMusicListOpen] = useState(false);
   const [bankList, setBankList] = useState([]);
   const [bankListLoading, setBankListLoading] = useState(false);
   const [temaOptions, setTemaOptions] = useState([]);
@@ -269,36 +271,88 @@ const FormAqiqahKhitanPage = () => {
   );
 
   const loadSchema = useCallback(async () => {
+    const requestId = ++initializationRequestIdRef.current;
     setSchemaLoading(true);
+    setTemaLoading(true);
     setSchemaError("");
 
     try {
-      const response = await axios.get(`${apiUrl}/forms/aqiqah-khitan/schema`);
-      const schemaFields = [...(response.data?.fields || [])].sort(
+      const [schemaResponse, temaResponse] = await Promise.all([
+        axios.get(`${apiUrl}/forms/aqiqah-khitan/schema`),
+        getTemaAk().catch((error) => {
+          console.error("Gagal memuat daftar tema:", error);
+          return [];
+        }),
+      ]);
+
+      if (requestId !== initializationRequestIdRef.current) return;
+
+      const schemaFields = [...(schemaResponse.data?.fields || [])].sort(
         (first, second) => first.order - second.order
       );
+      const loadedTemaOptions = Array.isArray(temaResponse) ? temaResponse : [];
 
       let savedData = {};
       const canUseStorage = isLocalStorageAccessible();
       setStorageReady(canUseStorage);
 
       if (canUseStorage) {
-        const rawSavedData = window.localStorage.getItem(FORM_DATA_KEY);
-        savedData = rawSavedData ? JSON.parse(rawSavedData) : {};
+        try {
+          const rawSavedData = window.localStorage.getItem(FORM_DATA_KEY);
+          const parsedSavedData = rawSavedData ? JSON.parse(rawSavedData) : {};
+          savedData =
+            parsedSavedData &&
+            typeof parsedSavedData === "object" &&
+            !Array.isArray(parsedSavedData)
+              ? parsedSavedData
+              : {};
+        } catch (error) {
+          console.warn("Gagal membaca draft form:", error);
+        }
       }
 
+      const normalizedSlug = temaSlugFromUrl.toLowerCase();
+      const temaFromUrl = normalizedSlug
+        ? loadedTemaOptions.find(
+            (option) =>
+              String(option.slug || "").trim().toLowerCase() === normalizedSlug
+          )
+        : null;
+      const initialFormData = buildInitialFormData(schemaFields, {
+        ...savedData,
+        ...(temaFromUrl?.id != null ? { idTema: temaFromUrl.id } : {}),
+      });
+
+      setTemaOptions(loadedTemaOptions);
       setFields(schemaFields);
-      setFormData(buildInitialFormData(schemaFields, savedData));
+      setFormData(initialFormData);
+
+      if (canUseStorage) {
+        try {
+          window.localStorage.setItem(FORM_DATA_KEY, JSON.stringify(initialFormData));
+        } catch (error) {
+          console.warn("Gagal menyimpan tema dari URL ke draft:", error);
+        }
+      }
     } catch (error) {
+      if (requestId !== initializationRequestIdRef.current) return;
+
       console.error("Gagal memuat schema aqiqah khitan:", error);
       setSchemaError("Gagal memuat schema form. Silakan coba refresh halaman.");
     } finally {
-      setSchemaLoading(false);
+      if (requestId === initializationRequestIdRef.current) {
+        setSchemaLoading(false);
+        setTemaLoading(false);
+      }
     }
-  }, []);
+  }, [temaSlugFromUrl]);
 
   useEffect(() => {
     loadSchema();
+
+    return () => {
+      initializationRequestIdRef.current += 1;
+    };
   }, [loadSchema]);
 
   useEffect(() => {
@@ -318,41 +372,6 @@ const FormAqiqahKhitanPage = () => {
 
     loadBankList();
   }, []);
-
-  useEffect(() => {
-    const loadTemaOptions = async () => {
-      setTemaLoading(true);
-
-      try {
-        const response = await getTemaAk();
-        setTemaOptions(Array.isArray(response) ? response : []);
-      } catch (error) {
-        console.error("Gagal memuat daftar tema:", error);
-        setTemaOptions([]);
-      } finally {
-        setTemaLoading(false);
-      }
-    };
-
-    loadTemaOptions();
-  }, []);
-
-  useEffect(() => {
-    if (schemaLoading || !temaSlugFromUrl || temaOptions.length === 0) return;
-
-    const normalizedSlug = temaSlugFromUrl.toLowerCase();
-    const temaFromUrl = temaOptions.find(
-      (option) => String(option.slug || "").trim().toLowerCase() === normalizedSlug
-    );
-
-    if (!temaFromUrl) return;
-
-    setFormData((current) =>
-      String(current.idTema || "") === String(temaFromUrl.id)
-        ? current
-        : { ...current, idTema: temaFromUrl.id }
-    );
-  }, [schemaLoading, temaOptions, temaSlugFromUrl]);
 
   useEffect(() => {
     const selectedTema = temaOptions.find(
@@ -567,22 +586,45 @@ const FormAqiqahKhitanPage = () => {
     }
 
     if (field.inputType === "relation-select" && field.relationModel === "music") {
+      const musicOptionsId = `${field.name}-music-options`;
+
       return (
         <div className="space-y-3">
-          <div
+          <Button
             id={field.name}
-            className="rounded-lg border border-gray-200 p-3"
+            type="button"
+            variant="outline"
+            className="gap-2"
+            aria-expanded={musicListOpen}
+            aria-controls={musicOptionsId}
             aria-invalid={Boolean(errorMessage)}
             aria-describedby={describedBy}
+            onClick={() => {
+              if (musicListOpen) {
+                setCurrentlyPlaying(null);
+              }
+              setMusicListOpen((currentOpen) => !currentOpen);
+            }}
           >
-            <MusicList
-              currentlyPlaying={currentlyPlaying}
-              setCurrentlyPlaying={setCurrentlyPlaying}
-              audioRef={audioRef}
-              onSongSelected={(selectedId) => updateField(field.name, selectedId)}
-              selectedSongId={value ? String(value) : ""}
-            />
-          </div>
+            <Music2 className="h-4 w-4" />
+            {musicListOpen ? "Tutup Pilihan Musik/Lagu" : "Pilih Musik/Lagu"}
+          </Button>
+
+          {musicListOpen ? (
+            <div
+              id={musicOptionsId}
+              className="rounded-lg border border-gray-200 p-3"
+            >
+              <MusicList
+                currentlyPlaying={currentlyPlaying}
+                setCurrentlyPlaying={setCurrentlyPlaying}
+                audioRef={audioRef}
+                onSongSelected={(selectedId) => updateField(field.name, selectedId)}
+                selectedSongId={value ? String(value) : ""}
+              />
+            </div>
+          ) : null}
+
           {!isFieldRequired(field) && value ? (
             <Button
               type="button"
