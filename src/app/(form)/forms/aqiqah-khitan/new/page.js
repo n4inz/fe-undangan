@@ -4,7 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import axios from "axios";
 import Link from "next/link";
 import { useSession } from "next-auth/react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Loader2, Plus, Save, Trash2 } from "lucide-react";
 
 import BankCombobox from "@/components/admin/BankComboBox";
@@ -231,8 +231,14 @@ const normalizePayload = (fields, formData) =>
 
 const FormAqiqahKhitanPage = () => {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { data: session } = useSession();
   const audioRef = useRef(null);
+  const temaSlugFromUrl =
+    searchParams?.get("tema")?.trim() ||
+    searchParams?.get("theme")?.trim() ||
+    searchParams?.get("")?.trim() ||
+    "";
 
   const [fields, setFields] = useState([]);
   const [formData, setFormData] = useState({});
@@ -330,6 +336,23 @@ const FormAqiqahKhitanPage = () => {
 
     loadTemaOptions();
   }, []);
+
+  useEffect(() => {
+    if (schemaLoading || !temaSlugFromUrl || temaOptions.length === 0) return;
+
+    const normalizedSlug = temaSlugFromUrl.toLowerCase();
+    const temaFromUrl = temaOptions.find(
+      (option) => String(option.slug || "").trim().toLowerCase() === normalizedSlug
+    );
+
+    if (!temaFromUrl) return;
+
+    setFormData((current) =>
+      String(current.idTema || "") === String(temaFromUrl.id)
+        ? current
+        : { ...current, idTema: temaFromUrl.id }
+    );
+  }, [schemaLoading, temaOptions, temaSlugFromUrl]);
 
   useEffect(() => {
     const selectedTema = temaOptions.find(
