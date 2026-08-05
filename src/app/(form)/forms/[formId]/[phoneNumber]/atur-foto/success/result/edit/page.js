@@ -1019,22 +1019,23 @@ const Edit = ({ params }) => {
                             className="mt-1 p-2 w-full border border-gray-300 rounded-lg"
                         />
                     </div> */}
-                    <div className="mb-4 w-full max-w-full">
-                        <label className="block text-gray-700">Pilih Musik</label>
-                        {/* <MusicCombobox
-                            value={formData.idMusic || ''}
-                            onValueChange={(value) => handleSelectMusicChange(value)}
-                            list={musicList}
-                            isLoading={isLoading}
-                        /> */}
-                        <MusicCombobox
-                            value={formData.idMusic || ""}
-                            onValueChange={(v) => handleSelectMusicChange(v)}
-                            apiUrl={process.env.NEXT_PUBLIC_API_URL}
-                            limit={10}
-                        />
+                    {!(
+                        Number(formData?.isPaid) === 1 &&
+                        !formData?.payment?.isMusic
+                    ) && (
+                            <div className="mb-4 w-full max-w-full">
+                                <label className="block text-gray-700">
+                                    Pilih Musik
+                                </label>
 
-                    </div>
+                                <MusicCombobox
+                                    value={formData?.idMusic || ""}
+                                    onValueChange={(value) => handleSelectMusicChange(value)}
+                                    apiUrl={process.env.NEXT_PUBLIC_API_URL}
+                                    limit={10}
+                                />
+                            </div>
+                        )}
 
                     <div className="mb-4">
                         {/* Kolom‑1: Label (3/5) */}
