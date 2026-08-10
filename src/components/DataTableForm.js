@@ -11,7 +11,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { BiArrowToRight, BiCopy, BiDotsVertical, BiLink, BiMoneyWithdraw, BiPlusCircle, BiRightArrow, BiTime } from 'react-icons/bi';
+import { BiArrowToRight, BiCopy, BiDotsVertical, BiLink, BiMoneyWithdraw, BiPlusCircle, BiRightArrow, BiTime, BiTrash, BiX } from 'react-icons/bi';
 import StatusSelect from './StatusSelect';
 // import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from './ui/tooltip';
 import { Popover, PopoverContent, PopoverTrigger } from './ui/popover';
@@ -29,7 +29,19 @@ import {
 } from "@/components/ui/select"
 import DialogModalProofPayment from './admin/DialogModalProofPayment';
 import { DialogModalWaktuDemo } from './admin/DialogModalWaktuDemo';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from './ui/alert-dialog';
 // import DialogModalProofPayment from './admin/DialogModalProofPayment';
+
+const isBulkDeleteProtected = (row) => Number(row?.statusForm) === 3;
 
 const DataTableForm = ({ initialStatus, onDataUpdate }) => {
 
@@ -51,10 +63,16 @@ const DataTableForm = ({ initialStatus, onDataUpdate }) => {
   const [openDemo, setOpenDemo] = useState(false);
 
   const [isAdmin, setIsAdmin] = useState(0);
+  const [isBulkDeleteMode, setIsBulkDeleteMode] = useState(false);
+  const [selectedRows, setSelectedRows] = useState([]);
+  const [clearSelectedRows, setClearSelectedRows] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
 
-  useEffect(() => {
-    fetchData(currentPage, perPage, search, filterStatusForm);
-  }, [currentPage, perPage, search, filterStatusForm]);
+  const clearBulkDeleteSelection = useCallback(() => {
+    setSelectedRows([]);
+    setClearSelectedRows((currentValue) => !currentValue);
+  }, []);
 
   const fetchData = useCallback(async (page, limit, searchQuery, statusForm) => {
     try {
@@ -70,6 +88,21 @@ const DataTableForm = ({ initialStatus, onDataUpdate }) => {
       console.error('Error fetching data:', error);
     }
   }, [status]);
+
+  useEffect(() => {
+    fetchData(currentPage, perPage, search, filterStatusForm);
+  }, [currentPage, perPage, search, filterStatusForm, fetchData]);
+
+  useEffect(() => {
+    if (isBulkDeleteMode) clearBulkDeleteSelection();
+  }, [
+    clearBulkDeleteSelection,
+    currentPage,
+    filterStatusForm,
+    isBulkDeleteMode,
+    perPage,
+    search,
+  ]);
 
   const handleSearch = (event) => {
     setSearch(event.target.value);
@@ -390,8 +423,102 @@ const DataTableForm = ({ initialStatus, onDataUpdate }) => {
   }
 
   const handleDataUpdate = (msg) => {
+    if (isBulkDeleteMode) clearBulkDeleteSelection();
     fetchData(currentPage, perPage, search, filterStatusForm); // Re-fetch the data after it has been updated
     onDataUpdate(msg);
+  };
+
+  const handleBulkDeleteMode = () => {
+    if (isDeleting) return;
+
+    if (isBulkDeleteMode) {
+      clearBulkDeleteSelection();
+      setDeleteDialogOpen(false);
+    }
+
+    setIsBulkDeleteMode((currentValue) => !currentValue);
+  };
+
+  const handleBulkDelete = async () => {
+    const ids = selectedRows
+      .filter((row) => !isBulkDeleteProtected(row))
+      .map((row) => row.id);
+
+    if (ids.length === 0 || isDeleting) return;
+
+    setIsDeleting(true);
+
+    try {
+      const response = await axios.delete(
+        `${process.env.NEXT_PUBLIC_API_URL}/forms/bulk-delete`,
+        {
+          data: { ids },
+          withCredentials: true,
+        }
+      );
+
+      const result = response.data;
+      const notices = [`${result.deletedCount} data berhasil dihapus.`];
+
+      if (result.protectedIds?.length > 0) {
+        notices.push(
+          `${result.protectedIds.length} data berstatus Done tidak dapat dihapus.`
+        );
+      }
+
+      if (result.notFoundIds?.length > 0) {
+        notices.push(`${result.notFoundIds.length} ID tidak ditemukan.`);
+      }
+
+      if (result.fileCleanup?.failed?.length > 0) {
+        notices.push(
+          `${result.fileCleanup.failed.length} file gagal dihapus; periksa log server.`
+        );
+      }
+
+      if (result.fileCleanup?.skipped?.length > 0) {
+        notices.push(
+          `${result.fileCleanup.skipped.length} file dilewati demi keamanan.`
+        );
+      }
+
+      toast({
+        title: 'Bulk delete berhasil',
+        description: notices.join(' '),
+      });
+
+      clearBulkDeleteSelection();
+      setIsBulkDeleteMode(false);
+      setDeleteDialogOpen(false);
+      await fetchData(currentPage, perPage, search, filterStatusForm);
+    } catch (error) {
+      const errorData = error.response?.data;
+      const statusCode = error.response?.status;
+      const defaultMessage = statusCode === 401
+        ? 'Sesi Anda sudah berakhir. Silakan login kembali.'
+        : statusCode === 403
+          ? 'Anda tidak memiliki izin untuk menghapus data ini.'
+          : 'Bulk delete gagal dilakukan.';
+      const notices = [errorData?.message || defaultMessage];
+
+      if (errorData?.protectedIds?.length > 0) {
+        notices.push(
+          `${errorData.protectedIds.length} data berstatus Done tidak dapat dihapus.`
+        );
+      }
+
+      if (errorData?.notFoundIds?.length > 0) {
+        notices.push(`${errorData.notFoundIds.length} ID tidak ditemukan.`);
+      }
+
+      toast({
+        title: 'Bulk delete gagal',
+        description: notices.join(' '),
+        variant: 'destructive',
+      });
+    } finally {
+      setIsDeleting(false);
+    }
   };
 
 
@@ -401,7 +528,36 @@ const DataTableForm = ({ initialStatus, onDataUpdate }) => {
       <DialogModalPayment open={open} onOpenChange={setOpen} row={selectedRow} onDataUpdate={handleDataUpdate} />
       <DialogModalLinkUndangan open={openLink} onOpenChange={setOpenLink} row={selectedRow} onDataUpdate={handleDataUpdate} />
       <DialogModalWaktuDemo open={openDemo} onOpenChange={setOpenDemo} row={selectedRow} onDataUpdate={handleDataUpdate} />
-      <div className="flex gap-4"> {/* Add a flex container to arrange elements side by side */}
+      <AlertDialog
+        open={deleteDialogOpen}
+        onOpenChange={(nextOpen) => !isDeleting && setDeleteDialogOpen(nextOpen)}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              Hapus {selectedRows.length} data yang dipilih?
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              Apakah Anda yakin ingin menghapus {selectedRows.length} data yang dipilih?{' '}
+              Data dan foto yang terkait akan dihapus secara permanen.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isDeleting}>Batal</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              disabled={isDeleting || selectedRows.length === 0}
+              onClick={(event) => {
+                event.preventDefault();
+                handleBulkDelete();
+              }}
+            >
+              {isDeleting ? 'Menghapus...' : `Hapus ${selectedRows.length} Data`}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+      <div className="flex flex-wrap items-center gap-4"> {/* Add a flex container to arrange elements side by side */}
         <DebounceInput
           minLength={2}
           debounceTimeout={500}
@@ -430,17 +586,77 @@ const DataTableForm = ({ initialStatus, onDataUpdate }) => {
             </SelectGroup>
           </SelectContent>
         </Select>
+        {isAdmin === 1 && (
+          <div className="ml-auto shrink-0">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="icon"
+                  className="h-10 w-10 shrink-0"
+                  aria-label="Buka menu aksi tabel"
+                  title="Aksi tabel"
+                  disabled={isDeleting}
+                >
+                  <BiDotsVertical className="h-5 w-5" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent
+                align="end"
+                className="w-60 max-w-[calc(100vw-2rem)]"
+              >
+                {!isBulkDeleteMode ? (
+                  <DropdownMenuItem onSelect={handleBulkDeleteMode}>
+                    <BiTrash className="mr-2 h-4 w-4" />
+                    <span>Bulk Delete</span>
+                  </DropdownMenuItem>
+                ) : (
+                  <>
+                    {selectedRows.length > 0 && (
+                      <DropdownMenuItem
+                        className="text-destructive focus:text-destructive"
+                        onSelect={() => setDeleteDialogOpen(true)}
+                      >
+                        <BiTrash className="mr-2 h-4 w-4" />
+                        <span>Hapus {selectedRows.length} data terpilih</span>
+                      </DropdownMenuItem>
+                    )}
+                    <DropdownMenuItem onSelect={handleBulkDeleteMode}>
+                      <BiX className="mr-2 h-4 w-4" />
+                      <span>Batalkan Bulk Select</span>
+                    </DropdownMenuItem>
+                  </>
+                )}
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+        )}
       </div>
-      <DataTable
-        columns={columns}
-        data={data}
-        pagination
-        paginationServer
-        paginationTotalRows={totalRows}
-        onChangePage={handlePageChange}
-        onChangeRowsPerPage={handlePerRowsChange}
-        className="rdt_TableCol" // {{ edit_1 }} Add a custom class
-      />
+      {isBulkDeleteMode && (
+        <p className="mt-2 text-sm text-muted-foreground">
+          Pilih data yang akan dihapus. Data berstatus Done tidak dapat dipilih.
+        </p>
+      )}
+      <div className="w-full min-w-0 max-w-full overflow-x-auto">
+        <DataTable
+          columns={columns}
+          data={data}
+          selectableRows={isBulkDeleteMode}
+          selectableRowDisabled={isBulkDeleteProtected}
+          selectableRowsHighlight
+          clearSelectedRows={clearSelectedRows}
+          onSelectedRowsChange={({ selectedRows: nextSelectedRows }) => {
+            setSelectedRows(nextSelectedRows.filter((row) => !isBulkDeleteProtected(row)));
+          }}
+          pagination
+          paginationServer
+          paginationTotalRows={totalRows}
+          onChangePage={handlePageChange}
+          onChangeRowsPerPage={handlePerRowsChange}
+          className="rdt_TableCol" // {{ edit_1 }} Add a custom class
+        />
+      </div>
     </>
   );
 };

@@ -7,10 +7,13 @@ export default function AqiqahKhitanListPage() {
     <>
       <div className="fixed h-10 w-full border-b bg-white" />
       <div className="flex min-h-screen pt-10">
-        <div className="fixed z-40 hidden h-full w-64 bg-gray-800 md:relative md:block" />
+        <div
+          aria-hidden="true"
+          className="hidden h-full w-[300px] shrink-0 xl:block"
+        />
 
-        <main className="flex min-w-0 w-full flex-grow flex-col xl:pl-24">
-          <div className="p-4">
+        <main className="flex min-w-0 flex-1 flex-col">
+          <div className="min-w-0 p-4">
             <div className="py-4">
               <p className="text-sm text-gray-500">List</p>
               <h1 className="text-xl font-semibold text-gray-950">

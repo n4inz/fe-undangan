@@ -12,6 +12,8 @@ import {
   Link2,
   MoreVertical,
   RotateCcw,
+  Trash2,
+  X,
 } from "lucide-react";
 
 import "@/components/DataTable.css";
@@ -21,6 +23,16 @@ import DialogModalPaymentAk from "@/components/admin/DialogModalPaymentAk";
 import DialogModalProofPaymentAk from "@/components/admin/DialogModalProofPaymentAk";
 import StatusSelectAk from "@/components/admin/StatusSelectAk";
 import { Button } from "@/components/ui/button";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -42,6 +54,7 @@ import {
 import { toast } from "@/components/ui/use-toast";
 
 const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+const isBulkDeleteProtected = (row) => Number(row?.statusForm) === 3;
 
 const formatDate = (value) => {
   if (!value) return "-";
@@ -72,6 +85,16 @@ export default function DataTableFormAk() {
   const [paymentModalOpen, setPaymentModalOpen] = useState(false);
   const [cancelPaymentModalOpen, setCancelPaymentModalOpen] = useState(false);
   const [linkModalOpen, setLinkModalOpen] = useState(false);
+  const [isBulkDeleteMode, setIsBulkDeleteMode] = useState(false);
+  const [selectedRows, setSelectedRows] = useState([]);
+  const [clearSelectedRows, setClearSelectedRows] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  const clearBulkDeleteSelection = useCallback(() => {
+    setSelectedRows([]);
+    setClearSelectedRows((currentValue) => !currentValue);
+  }, []);
 
   const fetchData = useCallback(async (page, limit, searchQuery, selectedStatus) => {
     setLoading(true);
@@ -114,6 +137,17 @@ export default function DataTableFormAk() {
     fetchData(currentPage, perPage, search, statusFilter);
   }, [currentPage, fetchData, perPage, search, statusFilter]);
 
+  useEffect(() => {
+    if (isBulkDeleteMode) clearBulkDeleteSelection();
+  }, [
+    clearBulkDeleteSelection,
+    currentPage,
+    isBulkDeleteMode,
+    perPage,
+    search,
+    statusFilter,
+  ]);
+
   const copyInvitationLink = useCallback(async (link) => {
     try {
       await navigator.clipboard.writeText(link);
@@ -147,9 +181,18 @@ export default function DataTableFormAk() {
         title: "Berhasil",
         description: message || "Status pembayaran berhasil diperbarui.",
       });
+      if (isBulkDeleteMode) clearBulkDeleteSelection();
       fetchData(currentPage, perPage, search, statusFilter);
     },
-    [currentPage, fetchData, perPage, search, statusFilter]
+    [
+      clearBulkDeleteSelection,
+      currentPage,
+      fetchData,
+      isBulkDeleteMode,
+      perPage,
+      search,
+      statusFilter,
+    ]
   );
 
   const handleStatusUpdated = useCallback(
@@ -158,9 +201,18 @@ export default function DataTableFormAk() {
         title: "Berhasil",
         description: message || "Status form berhasil diperbarui.",
       });
+      if (isBulkDeleteMode) clearBulkDeleteSelection();
       fetchData(currentPage, perPage, search, statusFilter);
     },
-    [currentPage, fetchData, perPage, search, statusFilter]
+    [
+      clearBulkDeleteSelection,
+      currentPage,
+      fetchData,
+      isBulkDeleteMode,
+      perPage,
+      search,
+      statusFilter,
+    ]
   );
 
   const handleLinkUpdated = useCallback(
@@ -169,9 +221,18 @@ export default function DataTableFormAk() {
         title: "Berhasil",
         description: message || "Link undangan berhasil diperbarui.",
       });
+      if (isBulkDeleteMode) clearBulkDeleteSelection();
       fetchData(currentPage, perPage, search, statusFilter);
     },
-    [currentPage, fetchData, perPage, search, statusFilter]
+    [
+      clearBulkDeleteSelection,
+      currentPage,
+      fetchData,
+      isBulkDeleteMode,
+      perPage,
+      search,
+      statusFilter,
+    ]
   );
 
   const columns = useMemo(
@@ -351,6 +412,103 @@ export default function DataTableFormAk() {
     setStatusFilter(value);
   };
 
+  const handleBulkDeleteMode = () => {
+    if (isDeleting) return;
+
+    if (isBulkDeleteMode) {
+      clearBulkDeleteSelection();
+      setDeleteDialogOpen(false);
+    }
+
+    setIsBulkDeleteMode((currentValue) => !currentValue);
+  };
+
+  const handleBulkDelete = async () => {
+    const ids = selectedRows
+      .filter((row) => !isBulkDeleteProtected(row))
+      .map((row) => row.id);
+
+    if (ids.length === 0 || isDeleting) return;
+
+    setIsDeleting(true);
+
+    try {
+      const response = await axios.delete(
+        `${apiUrl}/admin/forms/aqiqah-khitan/bulk-delete`,
+        {
+          data: { ids },
+          withCredentials: true,
+        }
+      );
+      const result = response.data;
+      const notices = [
+        `${result.deletedCount} data Aqiqah/Khitan berhasil dihapus.`,
+      ];
+
+      if (result.protectedIds?.length > 0) {
+        notices.push(
+          `${result.protectedIds.length} data berstatus Done tidak dapat dihapus.`
+        );
+      }
+
+      if (result.notFoundIds?.length > 0) {
+        notices.push(`${result.notFoundIds.length} ID tidak ditemukan.`);
+      }
+
+      if (result.fileCleanup?.failed?.length > 0) {
+        notices.push(
+          `${result.fileCleanup.failed.length} file gagal dihapus; periksa log server.`
+        );
+      }
+
+      if (result.fileCleanup?.skipped?.length > 0) {
+        notices.push(
+          `${result.fileCleanup.skipped.length} file dilewati demi keamanan.`
+        );
+      }
+
+      toast({
+        title: "Bulk delete berhasil",
+        description: notices.join(" "),
+      });
+
+      clearBulkDeleteSelection();
+      setIsBulkDeleteMode(false);
+      setDeleteDialogOpen(false);
+      await fetchData(currentPage, perPage, search, statusFilter);
+    } catch (error) {
+      const errorData = error.response?.data;
+      const statusCode = error.response?.status;
+      const defaultMessage =
+        statusCode === 401
+          ? "Sesi Anda sudah berakhir. Silakan login kembali."
+          : statusCode === 403
+            ? "Anda tidak memiliki izin untuk menghapus data ini."
+            : "Bulk delete Aqiqah/Khitan gagal dilakukan.";
+      const notices = [
+        errorData?.message || errorData?.error || defaultMessage,
+      ];
+
+      if (errorData?.protectedIds?.length > 0) {
+        notices.push(
+          `${errorData.protectedIds.length} data berstatus Done tidak dapat dihapus.`
+        );
+      }
+
+      if (errorData?.notFoundIds?.length > 0) {
+        notices.push(`${errorData.notFoundIds.length} ID tidak ditemukan.`);
+      }
+
+      toast({
+        title: "Bulk delete gagal",
+        description: notices.join(" "),
+        variant: "destructive",
+      });
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
   return (
     <div className="space-y-4">
       <DialogModalPaymentAk
@@ -371,6 +529,40 @@ export default function DataTableFormAk() {
         row={selectedRow}
         onDataUpdate={handleLinkUpdated}
       />
+      <AlertDialog
+        open={deleteDialogOpen}
+        onOpenChange={(nextOpen) =>
+          !isDeleting && setDeleteDialogOpen(nextOpen)
+        }
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              Hapus {selectedRows.length} data yang dipilih?
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              Apakah Anda yakin ingin menghapus {selectedRows.length} data
+              Aqiqah/Khitan yang dipilih? Data dan foto yang terkait akan
+              dihapus secara permanen.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isDeleting}>Batal</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              disabled={isDeleting || selectedRows.length === 0}
+              onClick={(event) => {
+                event.preventDefault();
+                handleBulkDelete();
+              }}
+            >
+              {isDeleting
+                ? "Menghapus..."
+                : `Hapus ${selectedRows.length} Data`}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
         <DebounceInput
@@ -397,12 +589,75 @@ export default function DataTableFormAk() {
             <SelectItem value="4">Cancel</SelectItem>
           </SelectContent>
         </Select>
+        {isAdmin === 1 ? (
+          <div className="self-end shrink-0 sm:ml-auto sm:self-auto">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="icon"
+                  className="h-10 w-10 shrink-0"
+                  aria-label="Buka menu aksi tabel Aqiqah/Khitan"
+                  title="Aksi tabel"
+                  disabled={isDeleting}
+                >
+                  <MoreVertical className="h-5 w-5" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent
+                align="end"
+                className="w-60 max-w-[calc(100vw-2rem)]"
+              >
+                {!isBulkDeleteMode ? (
+                  <DropdownMenuItem onSelect={handleBulkDeleteMode}>
+                    <Trash2 className="mr-2 h-4 w-4" />
+                    Bulk Delete
+                  </DropdownMenuItem>
+                ) : (
+                  <>
+                    {selectedRows.length > 0 ? (
+                      <DropdownMenuItem
+                        className="text-destructive focus:text-destructive"
+                        onSelect={() => setDeleteDialogOpen(true)}
+                      >
+                        <Trash2 className="mr-2 h-4 w-4" />
+                        Hapus {selectedRows.length} data terpilih
+                      </DropdownMenuItem>
+                    ) : null}
+                    <DropdownMenuItem onSelect={handleBulkDeleteMode}>
+                      <X className="mr-2 h-4 w-4" />
+                      Batalkan Bulk Select
+                    </DropdownMenuItem>
+                  </>
+                )}
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+        ) : null}
       </div>
+
+      {isBulkDeleteMode ? (
+        <p className="text-sm text-muted-foreground">
+          Pilih data yang akan dihapus. Data berstatus Done tidak dapat dipilih.
+        </p>
+      ) : null}
 
       <div className="min-w-0 overflow-x-auto rounded-lg border bg-white">
         <DataTable
           columns={columns}
           data={data}
+          selectableRows={isAdmin === 1 && isBulkDeleteMode}
+          selectableRowDisabled={isBulkDeleteProtected}
+          selectableRowsHighlight
+          clearSelectedRows={clearSelectedRows}
+          onSelectedRowsChange={({ selectedRows: nextSelectedRows }) => {
+            setSelectedRows(
+              nextSelectedRows.filter(
+                (row) => !isBulkDeleteProtected(row)
+              )
+            );
+          }}
           pagination
           paginationServer
           paginationTotalRows={totalRows}
