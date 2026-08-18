@@ -132,6 +132,13 @@ export default function ResultAk({ params }) {
               </Link>
             </Button>
           )}
+
+          <Button asChild variant="outline">
+            <Link href={`/forms/aqiqah-khitan/${params.formId}/comments`}>
+              <MessageCircle className="mr-2 h-4 w-4" />
+              Lihat Ucapan
+            </Link>
+          </Button>
         </div>
 
         <DataPhotoTableAk

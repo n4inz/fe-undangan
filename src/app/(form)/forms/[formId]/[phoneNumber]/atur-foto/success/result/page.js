@@ -2,7 +2,7 @@
 import { useEffect, useState } from 'react';
 // import Image from 'next/image';
 import Link from 'next/link';
-import { BiEnvelope, BiPhone, BiArrowBack, BiEdit, BiMessageAltDetail, BiShare } from "react-icons/bi";
+import { BiEnvelope, BiPhone, BiArrowBack, BiEdit, BiMessageAltDetail, BiShare, BiUserCheck } from "react-icons/bi";
 import { useRouter } from 'next/navigation';
 import axios from 'axios';
 // import DataTable from 'react-data-table-component';
@@ -125,6 +125,16 @@ const Result = ({ params }) => {
                         <BiEdit className="h-5 w-5 mr-2 inline" />
                         Edit Undangan
                     </Link>
+
+                    {form.hasRsvp && (
+                        <Link
+                            href={`/forms/${params.formId}/${params.phoneNumber || ""}/rsvp`}
+                            className="rounded-full shadow-lg bg-white text-black hover:bg-gray-200 border border-gray-800 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 p-3 my-2 text-sm"
+                        >
+                            <BiUserCheck className="h-5 w-5 mr-2 inline" />
+                            Lihat RSVP
+                        </Link>
+                    )}
 
                     <Link
                         href={`/forms/${params.formId}/${params.phoneNumber || ""}/comments`}
