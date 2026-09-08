@@ -1411,6 +1411,19 @@ const EditDetail = ({ params }) => {
                             />
                         </div>
 
+                        {/* SUBJUDUL UNDANGAN */}
+                        <div className="mb-4">
+                            <label className="block text-gray-700">Subjudul Undangan</label>
+                            Ex: "The Wedding Of"
+                            <Input
+                                type="text"
+                                name="subjudulUndangan"
+                                value={formData.subjudulUndangan}
+                                onChange={handleChange}
+                                className="mt-1 p-2 w-full border border-gray-300 rounded-lg"
+                            />
+                        </div>
+
                         <div className="mb-4">
                             <label className="block text-gray-700">Tampilkan Menu Autoscroll ?</label>
                             <div className="flex items-center space-x-2">
