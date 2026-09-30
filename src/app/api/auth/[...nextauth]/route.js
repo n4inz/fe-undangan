@@ -61,6 +61,8 @@ export const authOptions = {
         user.email = response.data.user.email;
         user.name = response.data.user.name;
         user.image = response.data.user.avatar;
+        user.role = response.data.user.role;
+        user.isUser = response.data.user.isUser;
         return true;
       } catch (error) {
         console.error('SignIn Callback - Error:', {
@@ -78,6 +80,8 @@ export const authOptions = {
         token.name = user.name;
         token.email = user.email;
         token.picture = user.image;
+        token.role = user.role;
+        token.isUser = user.isUser;
       }
       return token;
     },
@@ -87,6 +91,8 @@ export const authOptions = {
       session.user.name = token.name;
       session.user.email = token.email;
       session.user.image = token.picture;
+      session.user.role = token.role;
+      session.user.isUser = token.isUser;
       return session;
     },
 

@@ -2,7 +2,8 @@ import { Inter } from "next/font/google";
 import "@/app/styles/globals.css";
 import Sidebar from "@/layout/sidebar";
 import { Toaster } from "@/components/ui/toaster";
-import { checkAuthClient } from "@/app/api/auth/checkAuth";
+import { requireStaffAccount } from "@/lib/serverAuth";
+import AdminSessionProvider from "@/components/admin/AdminSessionProvider";
 import NextTopLoader from 'nextjs-toploader';
 
 const inter = Inter({ subsets: ["latin"] });
@@ -13,15 +14,17 @@ export const metadata = {
 };
 
 export default async function AdminLayout({ children }) {
-  const authResult = await checkAuthClient();
+  const session = await requireStaffAccount();
   return (
     <html lang="en">
       <body className={inter.className}>
       <NextTopLoader showSpinner={false} />
-      <Sidebar authenticated={authResult.authenticated} />
+      <AdminSessionProvider sessionToken={session.user.sessionToken}>
+      <Sidebar authenticated={true} />
 
         {children}
         <Toaster />
+        </AdminSessionProvider>
         </body>
     </html>
   );

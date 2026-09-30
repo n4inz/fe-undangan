@@ -10,6 +10,7 @@ import { z } from "zod";
 import axios from "axios";
 import { ClipLoader } from "react-spinners";
 import Cookies from "js-cookie";
+import { dashboardFor } from "@/lib/roles";
 
 const Login = () => {
   const [formData, setFormData] = useState({ email: "", password: "" });
@@ -149,11 +150,7 @@ const Login = () => {
       if (response.status === 200) {
         Cookies.set("client_token", response.data.token, { expires: 7 });
 
-        if (response.data.isAdmin == 1) {
-          router.push("/admin/dashboard");
-        } else {
-          router.push("/admin/list");
-        }
+        router.push(dashboardFor(response.data));
       }
     } catch (error) {
       if (error instanceof z.ZodError) {

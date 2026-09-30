@@ -82,22 +82,30 @@ const Detail = ({ params }) => {
   };
 
   const fetchImage = async () => {
-    const response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/image-order/${params.formId}`);
+    const response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/image-order/${params.formId}`, { withCredentials: true });
     setListImages(response.data.images);
     setOrderImageStatus(response.data.order);
     // console.log("TES : ", response.data);
   };
 
-  const downloadImage = () => {
-    // Open the download link in a new tab
-    const downloadUrl = `${process.env.NEXT_PUBLIC_API_URL}/download-images/${params.formId}`;
-    window.open(downloadUrl, '_blank');
+  const downloadFile = async (endpoint, filename) => {
+    try {
+      const response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/${endpoint}/${params.formId}`, {
+        withCredentials: true,
+        responseType: 'blob',
+      });
+      const url = URL.createObjectURL(response.data);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = filename;
+      link.click();
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+    } catch {
+      toast({ title: 'Gagal mengunduh file', description: 'Silakan coba kembali.', variant: 'destructive' });
+    }
   };
-  const downloadZip = () => {
-    // Open the download link in a new tab
-    const downloadUrl = `${process.env.NEXT_PUBLIC_API_URL}/download-zip/${params.formId}`;
-    window.open(downloadUrl, '_blank');
-  };
+  const downloadImage = () => downloadFile('download-images', `foto-${params.formId}.zip`);
+  const downloadZip = () => downloadFile('download-zip', fileName || `undangan-${params.formId}.zip`);
 
   const handleDuplicate = async (formId, phoneNumber) => {
     try {

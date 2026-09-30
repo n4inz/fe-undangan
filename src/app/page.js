@@ -26,10 +26,10 @@ export default function LoginPage() {
 
     // jika sudah login, redirect ke /forms + query jika ada
     useEffect(() => {
-        if (session) {
+        if (session && searchParams.get('error') !== 'SessionExpired') {
             router.push(`/forms${qsWithPrefix}`);
         }
-    }, [session, router, qsWithPrefix]);
+    }, [session, router, qsWithPrefix, searchParams]);
 
     const handleSignIn = async () => {
         setIsLoading(true);

@@ -10,6 +10,7 @@ import Image from "next/image";
 import logo from "../../../public/logo/Sewa.png";
 import axios from "axios";
 import Cookies from "js-cookie";
+import { signOut } from "next-auth/react";
 import { getCompanyProfile } from "@/lib/company";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { ChevronDown } from "lucide-react";
@@ -112,6 +113,7 @@ export default function Sidebar({ authenticated }) {
         try {
             await axios.get(process.env.NEXT_PUBLIC_API_URL + "/logout", { withCredentials: true });
             Cookies.remove('client_token');
+            await signOut({ redirect: false });
             router.push("/login");
         } catch (error) {
             console.error("Logout failed:", error);

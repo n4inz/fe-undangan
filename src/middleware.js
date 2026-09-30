@@ -1,30 +1,50 @@
 import { NextResponse } from 'next/server';
+import { getToken } from 'next-auth/jwt';
+import { canAccessStaffPanel, dashboardFor } from './lib/roles';
 
-export function middleware(request, event) {
-    // const token = request.cookies.get('token')?.value; // Retrieve the token from cookies
+export async function middleware(request) {
+    const pathname = request.nextUrl.pathname;
+    const isAdminPath = pathname.startsWith('/admin');
+    const token = await getToken({
+        req: request,
+        secret: process.env.NEXTAUTH_SECRET,
+        cookieName: 'next-auth.session-token',
+    });
+    const cookieToken = request.cookies.get('client_token')?.value;
+    const customerHeaders = token?.sessionToken
+        ? { Authorization: 'Bearer ' + token.sessionToken }
+        : null;
+    const staffHeaders = cookieToken ? { Cookie: 'token=' + cookieToken } : null;
+    const credentials = isAdminPath ? [staffHeaders, customerHeaders] : [customerHeaders, staffHeaders];
 
-    // // Use waitUntil to handle the token check asynchronously
-    // event.waitUntil(
-    //     fetch(process.env.NEXT_PUBLIC_API_URL + "/auth", { 
-    //         credentials: 'include', 
-    //         headers: { 'Cookie': `token=${token}` } // Send the token as a cookie header
-    //     })
-    //     .then(response => response.json())
-    //     .then(data => {
-    //         if (!data.email) {
-    //             return NextResponse.redirect(new URL('/login', request.url));
-    //         }
-    //     })
-    //     .catch(() => {
-    //         // Handle error and redirect to login if token verification fails
-    //         return NextResponse.redirect(new URL('/login', request.url));
-    //     })
-    // );
+    let user = null;
+    for (const headers of credentials.filter(Boolean)) {
+        try {
+            const response = await fetch(process.env.NEXT_PUBLIC_API_URL + '/auth', {
+                headers,
+                cache: 'no-store',
+            });
+            if (response.ok) {
+                user = await response.json();
+                break;
+            }
+        } catch {
+            // Fail closed if the API cannot validate the current account.
+        }
+    }
 
-    // Proceed with the request for now
+    if (!user) {
+        return NextResponse.redirect(new URL(isAdminPath ? '/login' : '/?error=SessionExpired', request.url));
+    }
+    const home = dashboardFor(user);
+    if ((isAdminPath && !canAccessStaffPanel(user)) ||
+        (pathname.startsWith('/reseller') && user.role !== 'reseller') ||
+        (pathname === '/forms' && home !== '/forms')) {
+        return NextResponse.redirect(new URL(home, request.url));
+    }
     return NextResponse.next();
 }
 
 export const config = {
-    matcher: '/admin/:path*', // Adjust the path as needed
+    matcher: ['/admin/:path*', '/reseller/:path*', '/forms'],
 };
