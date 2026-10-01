@@ -7,11 +7,14 @@ import { usePathname, useRouter } from "next/navigation";
 import { checkForm } from "@/utils/checkForm";
 import PaymentModal from "./paymentModal";
 import { Toaster } from "@/components/ui/toaster";
+import { useOrderBrand } from "@/components/reseller/useResellerBrand";
+import ResellerBrandBanner from "@/components/reseller/ResellerBrandBanner";
 
 const Success = ({ params }) => {
   const { formId, phoneNumber } = params; // Destructure params for cleaner access
   const pathname = usePathname();
   const router = useRouter();
+  const { brand, isReseller, loading: brandLoading, error: brandError } = useOrderBrand({ type: "wedding", formId });
 
   const [loading, setLoading] = useState(true);
   const [form, setForm] = useState(null); // Initialize form as null
@@ -74,8 +77,13 @@ const Success = ({ params }) => {
 
         {/* Success Message */}
         <div className="text-center">
+          <ResellerBrandBanner brand={brand} loading={brandLoading} error={brandError} />
           <p className="text-lg font-semibold">
-            Terima Kasih Telah Mengisi Form SewaUndangan. Pesanan dengan ID {form.id ?? "N/A"} Akan Segera Kami Proses setelah melakukan pembayaran 🙏
+            {isReseller
+              ? `Terima kasih telah mengisi form ${brand?.brandName || "undangan"}. Pesanan dengan ID ${form.id ?? "N/A"} telah kami terima. ${Number(form.isPaid) === 1 ? "Undangan Anda sudah aktif." : "Silakan hubungi admin untuk mengaktifkan undangan Anda."}`
+              : brandLoading || brandError
+                ? `Terima kasih telah mengisi form. Pesanan dengan ID ${form.id ?? "N/A"} telah kami terima.`
+                : `Terima Kasih Telah Mengisi Form SewaUndangan. Pesanan dengan ID ${form.id ?? "N/A"} Akan Segera Kami Proses setelah melakukan pembayaran 🙏`}
           </p>
         </div>
 
@@ -102,6 +110,7 @@ const Success = ({ params }) => {
           <PaymentModal
             formId={formId}
             phoneNumber={phoneNumber}
+            isPaid={form.isPaid}
             // Pass a className to the button within PaymentModal if it renders one
             buttonClassName={paymentButtonClasses}
           />

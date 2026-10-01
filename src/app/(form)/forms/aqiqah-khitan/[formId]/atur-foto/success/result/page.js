@@ -16,6 +16,8 @@ import DataPhotoTableAk from "@/components/DataPhotoTableAk";
 import { Button } from "@/components/ui/button";
 import { Toaster } from "@/components/ui/toaster";
 import PaymentModalAk from "../PaymentModalAk";
+import { useOrderBrand } from "@/components/reseller/useResellerBrand";
+import ResellerBrandBanner from "@/components/reseller/ResellerBrandBanner";
 
 export default function ResultAk({ params }) {
   const router = useRouter();
@@ -23,6 +25,10 @@ export default function ResultAk({ params }) {
   const [form, setForm] = useState(null);
   const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
+  const { brand, isReseller, loading: brandLoading, error: brandError } = useOrderBrand({
+    type: "aqiqah-khitan",
+    formId: params.formId,
+  });
 
   useEffect(() => {
     const fetchForm = async () => {
@@ -88,6 +94,7 @@ export default function ResultAk({ params }) {
           <p className="mt-1 text-sm text-gray-500">
             Pesanan {form.namaAcara} - {form.namaPanggilanAnak}
           </p>
+          <ResellerBrandBanner brand={brand} loading={brandLoading} error={brandError} />
         </div>
 
         <div className="grid gap-2 px-5 py-5 sm:grid-cols-2">
@@ -100,12 +107,14 @@ export default function ResultAk({ params }) {
             </Button>
           )}
 
-          <Button asChild variant="outline">
-            <Link href={contactUrl} target="_blank">
-              <MessageCircle className="mr-2 h-4 w-4" />
-              Hubungi Admin
-            </Link>
-          </Button>
+          {!brandLoading && !brandError && !isReseller && (
+            <Button asChild variant="outline">
+              <Link href={contactUrl} target="_blank">
+                <MessageCircle className="mr-2 h-4 w-4" />
+                Hubungi Admin
+              </Link>
+            </Button>
+          )}
 
           <PaymentModalAk
             formId={params.formId}

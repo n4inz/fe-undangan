@@ -30,6 +30,8 @@ import {
   CommandItem,
 } from "@/components/ui/command";
 import QuillHtmlEditor from "@/components/QuillHtmlEditor.client";
+import { useResellerBrand } from "@/components/reseller/useResellerBrand";
+import ResellerBrandBanner from "@/components/reseller/ResellerBrandBanner";
 
 const FORM_DATA_KEY = "formAqiqahKhitanData";
 const MAX_DEFAULT_STRING_LENGTH = 191;
@@ -233,6 +235,7 @@ const FormAqiqahKhitanPage = () => {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { data: session } = useSession();
+  const { brand, isReseller, loading: brandLoading, error: brandError } = useResellerBrand();
   const audioRef = useRef(null);
   const initializationRequestIdRef = useRef(0);
   const temaSlugFromUrl =
@@ -616,6 +619,7 @@ const FormAqiqahKhitanPage = () => {
               className="rounded-lg border border-gray-200 p-3"
             >
               <MusicList
+                hidePrices={isReseller || brandLoading}
                 currentlyPlaying={currentlyPlaying}
                 setCurrentlyPlaying={setCurrentlyPlaying}
                 audioRef={audioRef}
@@ -736,7 +740,7 @@ const FormAqiqahKhitanPage = () => {
     event.preventDefault();
 
     // Hindari double click
-    if (isSubmitting) return;
+    if (isSubmitting || brandLoading || brandError) return;
 
     setSubmitError("");
 
@@ -758,6 +762,7 @@ const FormAqiqahKhitanPage = () => {
       const payload = {
         ...normalizePayload(fields, formData),
         customerSessionToken: session?.user?.sessionToken || null,
+        ...(isReseller ? { brandSlug: brand.brandSlug } : {}),
       };
 
       const response = await axios.post(
@@ -864,7 +869,7 @@ const FormAqiqahKhitanPage = () => {
         ) : null}
 
         <div className="flex flex-col-reverse gap-3 border-t pt-5 sm:flex-row sm:items-center sm:justify-between">
-          <Button type="submit" disabled={isSubmitting || fields.length === 0} className="gap-2">
+          <Button type="submit" disabled={isSubmitting || brandLoading || Boolean(brandError) || fields.length === 0} className="gap-2">
             {isSubmitting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
             Simpan
           </Button>
@@ -877,6 +882,7 @@ const FormAqiqahKhitanPage = () => {
     <main className="min-h-screen bg-gray-50 px-4 py-8 sm:py-12">
       <section className="mx-auto w-full max-w-4xl rounded-lg border bg-white shadow-sm">
         <div className="border-b p-5 sm:p-6">
+          <ResellerBrandBanner brand={brand} loading={brandLoading} error={brandError} />
           <p className="text-sm font-medium text-blue-700">Form baru</p>
           <h1 className="mt-1 text-2xl font-semibold text-gray-950 sm:text-3xl">
             Aqiqah / Khitan

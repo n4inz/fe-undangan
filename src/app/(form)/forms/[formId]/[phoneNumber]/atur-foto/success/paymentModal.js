@@ -16,13 +16,36 @@ import axios from "axios";
 import Image from "next/image";
 import placeholder from "/public/images/placeholder.webp";
 import { getBankAccounts, getCompanyProfile } from "@/lib/company";
+import { useOrderBrand } from "@/components/reseller/useResellerBrand";
+import ResellerPaymentModal from "@/components/reseller/ResellerPaymentModal";
 import {
   Popover,
   PopoverTrigger,
   PopoverContent,
 } from "@/components/ui/popover"
 
-export default function PaymentModal({ formId, phoneNumber, buttonClassName }) {
+export default function PaymentModal({ formId, phoneNumber, buttonClassName, isPaid }) {
+  const { brand, orderId, isReseller, loading, error, reload } = useOrderBrand({ type: "wedding", formId });
+
+  // Resolve saved attribution before mounting any payment or pricing requests.
+  if (loading) {
+    return <Button disabled className={buttonClassName}><Loader2 className="mr-2 h-4 w-4 animate-spin" />Memuat...</Button>;
+  }
+  if (error) {
+    return (
+      <div role="alert" className="space-y-2 text-center text-sm">
+        <p className="text-red-600">{error}</p>
+        <Button variant="outline" onClick={reload}>Coba lagi</Button>
+      </div>
+    );
+  }
+  if (isReseller) {
+    return <ResellerPaymentModal brand={brand} orderId={orderId} isPaid={isPaid} buttonClassName={buttonClassName} />;
+  }
+  return <NormalPaymentModal formId={formId} phoneNumber={phoneNumber} buttonClassName={buttonClassName} />;
+}
+
+function NormalPaymentModal({ formId, phoneNumber, buttonClassName }) {
   // Main form state
   const [formData, setFormData] = useState({
     name: "",

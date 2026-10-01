@@ -23,6 +23,7 @@ const MusicList = ({
   onSongSelected,
   selectedSongId: initialSelectedSongId,
   role = 'user',
+  hidePrices = false,
 }) => {
   const [data, setData] = useState([]);
   const [totalRows, setTotalRows] = useState(0);
@@ -204,11 +205,11 @@ const MusicList = ({
         <div className="flex items-center gap-2">
           <span>
             {row.name}{' '}
-            {row.isVisible ? (
+            {!hidePrices && (row.isVisible ? (
               <Badge variant="secondary">Gratis</Badge>
             ) : (
               <Badge variant="outline">+Rp 5rb</Badge>
-            )}
+            ))}
           </span>
         </div>
       ),

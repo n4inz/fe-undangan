@@ -88,24 +88,25 @@ const Detail = ({ params }) => {
     // console.log("TES : ", response.data);
   };
 
-  const downloadFile = async (endpoint, filename) => {
+  const downloadFile = async (endpoint) => {
     try {
-      const response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/${endpoint}/${params.formId}`, {
-        withCredentials: true,
-        responseType: 'blob',
-      });
-      const url = URL.createObjectURL(response.data);
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = filename;
-      link.click();
-      setTimeout(() => URL.revokeObjectURL(url), 1000);
-    } catch {
-      toast({ title: 'Gagal mengunduh file', description: 'Silakan coba kembali.', variant: 'destructive' });
+      const url = `${process.env.NEXT_PUBLIC_API_URL}/${endpoint}/${params.formId}`;
+      const downloadTab = window.open('about:blank', '_blank');
+      if (!downloadTab) {
+        toast({ title: 'Tab unduhan diblokir', description: 'Izinkan pop-up untuk halaman ini lalu coba kembali.', variant: 'destructive' });
+        return;
+      }
+
+      downloadTab.opener = null;
+      downloadTab.location.href = url;
+      window.setTimeout(() => downloadTab.close(), 5000);
+    } catch (error) {
+      console.error('Download error:', error);
+      toast({ title: 'Gagal memulai unduhan', description: 'Silakan periksa koneksi lalu coba kembali.', variant: 'destructive' });
     }
   };
-  const downloadImage = () => downloadFile('download-images', `foto-${params.formId}.zip`);
-  const downloadZip = () => downloadFile('download-zip', fileName || `undangan-${params.formId}.zip`);
+  const downloadImage = () => downloadFile('download-images');
+  const downloadZip = () => downloadFile('download-zip');
 
   const handleDuplicate = async (formId, phoneNumber) => {
     try {

@@ -9,8 +9,9 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Skeleton } from '@/components/ui/skeleton';
 import { toast } from '@/components/ui/use-toast';
-import { getResellerError, useResellerRequest, useResellerResource } from '@/components/reseller/api';
+import { getResellerError, useResellerRequest, useResellerBrandSettings } from '@/components/reseller/api';
 import { ResellerError } from '@/components/reseller/ResellerShared';
+import { brandLogoUrl } from '@/lib/resellerBrand';
 
 const emptyBrand = { brandName: '', brandSlug: '', brandLogo: '', contact: '' };
 const allowedLogoTypes = ['image/jpeg', 'image/png', 'image/webp'];
@@ -19,16 +20,12 @@ const normalizeBrand = data => Object.fromEntries(
   Object.keys(emptyBrand).map(key => [key, typeof data?.[key] === 'string' ? data[key] : ''])
 );
 
-function logoUrl(path) {
-  if (!path) return '';
-  if (/^https?:\/\//i.test(path)) return path;
-  return `${process.env.NEXT_PUBLIC_API_URL?.replace(/\/$/, '')}/${path.replace(/^\//, '')}`;
-}
-
 export default function ResellerBrand() {
-  const { data, loading, error, reload } = useResellerResource('/brand');
+  const { data, loading, error, reload, updateBrand } = useResellerBrandSettings();
   const { request } = useResellerRequest();
   const [form, setForm] = useState(emptyBrand);
+  const [savedBrand, setSavedBrand] = useState(emptyBrand);
+  const [origin, setOrigin] = useState('');
   const [logo, setLogo] = useState(null);
   const [preview, setPreview] = useState('');
   const [saving, setSaving] = useState(false);
@@ -36,8 +33,13 @@ export default function ResellerBrand() {
   const fileInput = useRef(null);
 
   useEffect(() => {
-    if (data) setForm(normalizeBrand(data));
+    if (data) {
+      setForm(normalizeBrand(data));
+      setSavedBrand(normalizeBrand(data));
+    }
   }, [data]);
+
+  useEffect(() => { setOrigin(window.location.origin); }, []);
 
   useEffect(() => {
     if (!logo) {
@@ -71,7 +73,9 @@ export default function ResellerBrand() {
       payload.append('contact', form.contact.trim());
       if (logo) payload.append('brandLogo', logo);
       const response = await request('/brand', { method: 'PUT', data: payload });
+      await updateBrand(response.data);
       setForm(normalizeBrand(response.data));
+      setSavedBrand(normalizeBrand(response.data));
       setLogo(null);
       if (fileInput.current) fileInput.current.value = '';
       toast({ title: 'Brand berhasil disimpan', description: 'Pengaturan brand Anda sudah diperbarui.' });
@@ -84,7 +88,20 @@ export default function ResellerBrand() {
     }
   };
 
-  const displayedLogo = preview || logoUrl(form.brandLogo);
+  const displayedLogo = preview || brandLogoUrl(form.brandLogo);
+  const shareLinks = savedBrand.brandSlug && savedBrand.brandName ? [
+    { label: 'Wedding', url: `${origin}/forms/new?brand=${encodeURIComponent(savedBrand.brandSlug)}` },
+    { label: 'Aqiqah / Khitan', url: `${origin}/forms/aqiqah-khitan/new?brand=${encodeURIComponent(savedBrand.brandSlug)}` },
+  ] : [];
+
+  const copyLink = async url => {
+    try {
+      await navigator.clipboard.writeText(url);
+      toast({ title: 'Link berhasil disalin' });
+    } catch {
+      toast({ variant: 'destructive', title: 'Link gagal disalin', description: 'Silakan salin link yang ditampilkan secara manual.' });
+    }
+  };
 
   return (
     <div className="max-w-3xl space-y-6">
@@ -110,15 +127,16 @@ export default function ResellerBrand() {
                   <p id="brand-slug-help" className="text-xs text-muted-foreground">3–63 huruf kecil, angka, atau tanda hubung. Awal dan akhir harus huruf atau angka.</p>
                 </div>
                 <div className="space-y-2"><Label htmlFor="brand-contact">Kontak Reseller</Label><Input id="brand-contact" name="contact" value={form.contact || ''} onChange={event => setForm(current => ({ ...current, contact: event.target.value }))} placeholder="Nomor WhatsApp atau email" maxLength={191} /></div>
-                <div className="space-y-2 rounded-lg border bg-muted/40 p-4 text-sm">
-                  <p className="font-medium">Identifier link reseller</p>
-                  <code className="block break-all text-blue-700">?brand={form.brandSlug || 'weddingku'}</code>
-                  <p className="text-muted-foreground">Link reseller belum dapat menerima form.</p>
-                </div>
                 <Button type="submit">{saving && <Loader2 className="h-4 w-4 animate-spin" />}{saving ? 'Menyimpan...' : 'Simpan Brand'}</Button>
               </fieldset>
             </form>
           )}
+        </CardContent>
+      </Card>
+      <Card>
+        <CardHeader><CardTitle className="text-lg">Link Form Reseller</CardTitle><CardDescription>Bagikan link berikut kepada customer. Link mengikuti pengaturan brand yang sudah disimpan.</CardDescription></CardHeader>
+        <CardContent className="space-y-4">
+          {shareLinks.length ? shareLinks.map(link => <div key={link.label} className="space-y-2 rounded-lg border p-4"><p className="text-sm font-medium">{link.label}</p><a href={link.url} target="_blank" rel="noopener noreferrer" className="block break-all text-sm text-blue-700 hover:underline">{link.url}</a><Button type="button" variant="outline" size="sm" onClick={() => copyLink(link.url)}>Salin Link</Button></div>) : <p className="text-sm text-muted-foreground">Simpan nama dan slug brand untuk mendapatkan link form reseller.</p>}
         </CardContent>
       </Card>
     </div>

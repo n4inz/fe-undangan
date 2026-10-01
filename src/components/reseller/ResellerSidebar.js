@@ -11,6 +11,8 @@ import { Home, Users, Settings, LogOut, Menu, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { toast } from '@/components/ui/use-toast';
 import { useResellerUser } from './ResellerProvider';
+import { useResellerBrandSettings } from './api';
+import { brandLogoUrl } from '@/lib/resellerBrand';
 import logo from '../../../public/logo/Sewa.png';
 
 const menuItems = [
@@ -22,6 +24,10 @@ const menuItems = [
 export default function ResellerSidebar() {
   const pathname = usePathname();
   const user = useResellerUser();
+  const { data: brand } = useResellerBrandSettings();
+  const [failedLogo, setFailedLogo] = useState(null);
+  const uploadedLogo = brandLogoUrl(brand?.brandLogo);
+  const panelLogo = uploadedLogo && uploadedLogo !== failedLogo ? uploadedLogo : null;
   const [open, setOpen] = useState(false);
   const [loggingOut, setLoggingOut] = useState(false);
 
@@ -49,7 +55,9 @@ export default function ResellerSidebar() {
       <aside id="reseller-sidebar" className={`fixed inset-y-0 left-0 z-40 flex w-[300px] flex-col border-r bg-white transition-transform ${open ? 'translate-x-0' : '-translate-x-full'} xl:translate-x-0`}>
         <div className="relative flex flex-col items-center gap-3 px-6 pb-8 pt-10">
           <Button className="absolute right-2 top-2 xl:hidden" variant="ghost" size="icon" onClick={() => setOpen(false)} aria-label="Tutup menu"><X /></Button>
-          <Link href="/reseller/dashboard" onClick={() => setOpen(false)}><Image src={logo} alt="SewaUndangan" width={100} height={100} className="rounded-full" /></Link>
+          <Link href="/reseller/dashboard" onClick={() => setOpen(false)}>
+            <Image src={panelLogo || logo} alt={panelLogo ? `Logo ${brand.brandName || 'brand reseller'}` : 'SewaUndangan'} width={100} height={100} unoptimized={Boolean(panelLogo)} className={`h-[100px] w-[100px] object-contain ${panelLogo ? '' : 'rounded-full'}`} onError={panelLogo ? () => setFailedLogo(panelLogo) : undefined} />
+          </Link>
           <div className="text-center">
             <p className="font-semibold text-[#0F2542]">Panel Reseller</p>
             <p className="mt-1 max-w-[240px] truncate text-sm text-muted-foreground">{user?.name || user?.email}</p>

@@ -138,12 +138,19 @@ const Customer = () => {
     },
     {
       name: 'Aksi',
-      minWidth: '210px',
-      cell: row => row.isAdmin !== 1 && row.role !== 'admin' ? (
-        <Button variant="outline" size="sm" disabled={saving} onClick={() => handleRoleAction(row)}>
-          {row.role === 'reseller' ? 'Kembalikan ke User' : 'Jadikan Reseller'}
-        </Button>
-      ) : null,
+      minWidth: '290px',
+      cell: row => (
+        <div className="flex flex-wrap gap-2 py-2">
+          <Button asChild variant="outline" size="sm">
+            <Link href={`/admin/customer/${row.id}`}>Detail</Link>
+          </Button>
+          {row.isAdmin !== 1 && row.role !== 'admin' && (
+            <Button variant="outline" size="sm" disabled={saving} onClick={() => handleRoleAction(row)}>
+              {row.role === 'reseller' ? 'Kembalikan ke User' : 'Jadikan Reseller'}
+            </Button>
+          )}
+        </div>
+      ),
     },
   ];
 

@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from 'react';
 import axios from 'axios';
+import useSWR from 'swr';
 import { useResellerUser } from './ResellerProvider';
 
 export function getResellerError(error, fallback = 'Data gagal dimuat. Silakan coba kembali.') {
@@ -25,6 +26,24 @@ export function useResellerRequest() {
   }, [token]);
 
   return { request, ready: Boolean(user) };
+}
+
+export function useResellerBrandSettings() {
+  const user = useResellerUser();
+  const { request, ready } = useResellerRequest();
+  const { data, error, isLoading, mutate } = useSWR(
+    ready ? ['/reseller/brand', user.id, user.sessionToken || null] : null,
+    () => request('/brand').then(response => response.data),
+    { revalidateOnFocus: false }
+  );
+
+  return {
+    data,
+    loading: isLoading,
+    error: error ? getResellerError(error) : null,
+    reload: () => mutate(),
+    updateBrand: brand => mutate(brand, { revalidate: false }),
+  };
 }
 
 export function useResellerResource(path, params) {

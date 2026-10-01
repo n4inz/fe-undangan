@@ -8,12 +8,18 @@ import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Toaster } from "@/components/ui/toaster";
 import { checkFormAk } from "@/utils/checkForm";
+import { useOrderBrand } from "@/components/reseller/useResellerBrand";
+import ResellerBrandBanner from "@/components/reseller/ResellerBrandBanner";
 import PaymentModalAk from "./PaymentModalAk";
 
 export default function SuccessAk({ params }) {
   const router = useRouter();
   const [form, setForm] = useState(null);
   const [loading, setLoading] = useState(true);
+  const { brand, isReseller, loading: brandLoading, error: brandError } = useOrderBrand({
+    type: "aqiqah-khitan",
+    formId: params.formId,
+  });
 
   useEffect(() => {
     const fetchForm = async () => {
@@ -69,9 +75,15 @@ export default function SuccessAk({ params }) {
         <h1 className="mt-4 text-2xl font-bold text-gray-900">
           Foto Berhasil Disimpan
         </h1>
+        <ResellerBrandBanner brand={brand} loading={brandLoading} error={brandError} />
         <p className="mt-2 max-w-sm text-sm leading-6 text-gray-600">
-          Terima kasih. Pesanan dengan ID {form.id} akan diproses setelah
-          pembayaran dikirim.
+          {brandLoading || brandError
+            ? `Terima kasih. Pesanan dengan ID ${form.id} berhasil disimpan.`
+            : isReseller
+              ? Number(form.isPaid) === 1
+                ? "Terima kasih. Undangan Anda sudah aktif."
+                : "Silakan hubungi reseller untuk mengaktifkan undangan Anda."
+              : `Terima kasih. Pesanan dengan ID ${form.id} akan diproses setelah pembayaran dikirim.`}
         </p>
 
         <div className="mt-7 grid w-full gap-3">

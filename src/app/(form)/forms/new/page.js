@@ -44,6 +44,9 @@ import { sendNotification } from '@/utils/helpers';
 import { Separator } from '@/components/ui/separator';
 // import QuoteEditor from '@/components/QuoteEditor.client';
 import AdditionalEventsModal from '@/components/AdditionalEventsModal';
+import { getFormTheme } from '@/lib/form-theme';
+import { useResellerBrand } from '@/components/reseller/useResellerBrand';
+import ResellerBrandBanner from '@/components/reseller/ResellerBrandBanner';
 
 const FORM_DATA_KEY = "formData";
 
@@ -63,7 +66,8 @@ const Home = () => {
   const router = useRouter();
 
   const searchParams = useSearchParams();
-  const qs = searchParams?.toString().replace(/=/g, '') ?? '';
+  const qs = getFormTheme(searchParams);
+  const { brand, isReseller, loading: brandLoading, error: brandError } = useResellerBrand();
 
   const [currentStep, setCurrentStep] = useState(1); // Track the current step
   const [mounted, setMounted] = useState(false); // Track if component is mounted
@@ -216,7 +220,7 @@ const Home = () => {
   useEffect(() => {
     const lockThema = async () => {
       try {
-        const res = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/lock-thema/${qs}`);
+        const res = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/lock-thema/${encodeURIComponent(qs)}`);
 
         if (res.status === 200) {
           console.log("✅ Lock thema success:", res.data.data);
@@ -356,6 +360,7 @@ const Home = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (brandLoading || brandError) return;
     setIsLoading(true);
 
     const { name, email, image: avatar } = session?.user || {};
@@ -391,6 +396,7 @@ const Home = () => {
       fd.append("rekeningList", JSON.stringify(rekeningList || []));
       fd.append("weddingEvents", JSON.stringify(weddingEvents || []));
       fd.append("session", JSON.stringify({ name, email, avatar }));
+      if (isReseller) fd.append("brandSlug", brand.brandSlug);
 
       const response = await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/forms`, fd, {
         withCredentials: true,
@@ -445,7 +451,7 @@ const Home = () => {
         if (firstErrorField) firstErrorField.scrollIntoView({ behavior: "smooth", block: "center" });
       } else {
         console.error("An unexpected error occurred:", error);
-        alert("Terjadi kesalahan, coba lagi.");
+        alert(error.response?.data?.error || error.response?.data?.message || "Terjadi kesalahan, coba lagi.");
       }
     }
   };
@@ -651,6 +657,8 @@ const Home = () => {
             {profileLoading ? 'Form Undangan' : company?.name}
           </h1>
         </div>
+
+        <ResellerBrandBanner brand={brand} loading={brandLoading} error={brandError} />
 
         <p className="text-red-500 mb-4">
           Catatan : Harap kosongkan data yang tidak ingin diisi.
@@ -1500,14 +1508,15 @@ const Home = () => {
             currentStep === 13 && (
               <>
                 <div className="mb-4">
-                  <MusicList
+                  {!brandLoading && <MusicList
+                    hidePrices={isReseller}
                     currentlyPlaying={currentlyPlaying}
                     setCurrentlyPlaying={setCurrentlyPlaying}
                     audioRef={audioRef}
                     // Callback untuk menerima nilai
                     onSongSelected={handleSongSelected}
                     selectedSongId={formData.idMusic ? formData.idMusic.toString() : ''} // Nilai yang dipilih
-                  />
+                  />}
                 </div>
               </>
             )
@@ -1727,7 +1736,7 @@ const Home = () => {
                 Selanjutnya
               </button>
             ) : (
-              <Button type="submit" className="bg-blue-500 text-white px-4 py-2 rounded-lg" disabled={isLoading}>
+              <Button type="submit" className="bg-blue-500 text-white px-4 py-2 rounded-lg" disabled={isLoading || brandLoading || Boolean(brandError)}>
                 {isLoading ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />

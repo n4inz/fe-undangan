@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useResellerResource } from '@/components/reseller/api';
 import { ResellerError } from '@/components/reseller/ResellerShared';
+import AddInvitationButton from '@/components/reseller/AddInvitationButton';
 
 const statistics = [
   { key: 'total', label: 'Total Customer / Form Masuk', icon: Users },
@@ -20,7 +21,7 @@ export default function ResellerDashboard() {
 
   return (
     <div className="space-y-6">
-      <div><h1 className="text-2xl font-semibold">Dashboard</h1><p className="mt-2 text-sm text-muted-foreground">Ringkasan form dan undangan customer milik Anda.</p></div>
+      <div className="flex flex-wrap items-start justify-between gap-4"><div><h1 className="text-2xl font-semibold">Dashboard</h1><p className="mt-2 text-sm text-muted-foreground">Ringkasan form dan undangan customer milik Anda.</p></div><AddInvitationButton /></div>
       {error && <ResellerError message={error} onRetry={reload} />}
       <div className="grid gap-4 sm:grid-cols-2 2xl:grid-cols-4">
         {statistics.map(({ key, label, icon: Icon }) => (

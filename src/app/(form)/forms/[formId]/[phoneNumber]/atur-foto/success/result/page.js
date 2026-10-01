@@ -13,9 +13,13 @@ import { Button } from '@/components/ui/button';
 // import { FaTimes, FaWhatsapp } from 'react-icons/fa';
 import DataPhotoTable from '@/components/DataPhotoTable';
 import LoadingOverlay from 'react-loading-overlay-ts'; // Import LoadingOverlay
+import { useOrderBrand } from '@/components/reseller/useResellerBrand';
+import ResellerBrandBanner from '@/components/reseller/ResellerBrandBanner';
+import ResellerPaymentModal from '@/components/reseller/ResellerPaymentModal';
 
 const Result = ({ params }) => {
     const router = useRouter();
+    const { brand, orderId, isReseller, loading: brandLoading, error: brandError } = useOrderBrand({ type: 'wedding', formId: params.formId });
 
     const [data, setData] = useState([]);
     const [form, setForm] = useState({});
@@ -96,6 +100,7 @@ const Result = ({ params }) => {
                     <div className="top-0 p-4 text-center">
                         <h1 className="text-3xl underline">Daftar Foto</h1>
                     </div>
+                    <ResellerBrandBanner brand={brand} loading={brandLoading} error={brandError} />
 
                     {form.slug && (
                         <Link href={form.slug} target='_blank' className="bottom-4 rounded-full shadow-lg bg-blue-600 text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 p-3 my-2 text-sm">
@@ -103,10 +108,14 @@ const Result = ({ params }) => {
                             Link Undangan
                         </Link>
                     )}
-                    <Link type="button" href={contactUrl} target='_blank' className="bottom-4 rounded-full shadow-lg bg-blue-600 text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 p-3 my-2 text-sm">
-                        <BiPhone className="h-5 w-5 mr-2 inline" />
-                        Hubungi Admin
-                    </Link>
+                    {!brandLoading && !brandError && (isReseller ? (
+                        <ResellerPaymentModal brand={brand} orderId={orderId} isPaid={form.isPaid} buttonClassName="rounded-full bg-blue-600 hover:bg-blue-700 my-2" />
+                    ) : (
+                        <Link type="button" href={contactUrl} target='_blank' className="bottom-4 rounded-full shadow-lg bg-blue-600 text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 p-3 my-2 text-sm">
+                            <BiPhone className="h-5 w-5 mr-2 inline" />
+                            Hubungi Admin
+                        </Link>
+                    ))}
 
                     {form.isPaid == 1 && (
                         <button

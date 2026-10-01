@@ -27,6 +27,8 @@ import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { toast } from "@/components/ui/use-toast";
 import { getBankAccounts, getCompanyProfile } from "@/lib/company";
+import { useOrderBrand } from "@/components/reseller/useResellerBrand";
+import ResellerPaymentModal from "@/components/reseller/ResellerPaymentModal";
 
 const createEmptyForm = () => ({
   name: "",
@@ -40,7 +42,47 @@ const createEmptyForm = () => ({
 const formatCurrency = (value) =>
   `Rp ${Number(value || 0).toLocaleString("id-ID")}`;
 
-export default function PaymentModalAk({
+export default function PaymentModalAk(props) {
+  const { brand, orderId, isReseller, loading, error, reload } = useOrderBrand({
+    type: "aqiqah-khitan",
+    formId: props.formId,
+  });
+
+  if (loading) {
+    return (
+      <Button disabled className={`w-full ${props.buttonClassName || ""}`}>
+        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+        Memuat informasi pesanan...
+      </Button>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="space-y-2 text-sm">
+        <p role="alert" className="text-red-600">{error}</p>
+        <Button type="button" variant="outline" className="w-full" onClick={reload}>
+          Coba Lagi
+        </Button>
+      </div>
+    );
+  }
+
+  if (isReseller) {
+    return (
+      <ResellerPaymentModal
+        brand={brand}
+        orderId={orderId}
+        buttonClassName={props.buttonClassName}
+        isPaid={props.isPaid}
+      />
+    );
+  }
+
+  return <StandardPaymentModalAk {...props} />;
+}
+
+function StandardPaymentModalAk({
   formId,
   isPaid = 0,
   buttonClassName = "",

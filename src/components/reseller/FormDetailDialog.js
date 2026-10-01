@@ -1,6 +1,8 @@
 'use client';
 
 import { Loader2 } from 'lucide-react';
+import Link from 'next/link';
+import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { useResellerResource } from './api';
 import { formatResellerDate, InvitationLink, ResellerError, ResellerStatus } from './ResellerShared';
@@ -9,6 +11,7 @@ export default function FormDetailDialog({ form, onClose }) {
   const { data, loading, error, reload } = useResellerResource(form ? `/forms/${encodeURIComponent(form.type)}/${encodeURIComponent(form.id)}` : null);
   const detail = data?.data;
   const fields = detail ? [
+    ['ID Pesanan', detail.id],
     ['Nama customer', detail.customerName || '-'],
     ['Email', detail.customerEmail || '-'],
     ['Kontak', detail.contact || '-'],
@@ -29,6 +32,7 @@ export default function FormDetailDialog({ form, onClose }) {
             <div><dt className="text-muted-foreground">Link undangan</dt><dd className="mt-1"><InvitationLink href={detail.linkUndangan} /></dd></div>
           </dl>
         )}
+        {detail && !loading && !error && <Button asChild><Link href={`/reseller/customer/${encodeURIComponent(detail.type)}/${encodeURIComponent(detail.id)}/edit`}>Edit Data Customer</Link></Button>}
       </DialogContent>
     </Dialog>
   );
