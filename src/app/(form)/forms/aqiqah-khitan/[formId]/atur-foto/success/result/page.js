@@ -73,7 +73,7 @@ export default function ResultAk({ params }) {
         </div>
       )}
 
-      <section className="relative mx-auto min-h-screen w-full max-w-2xl bg-white pb-8 shadow-lg sm:my-6 sm:min-h-0 sm:rounded-lg">
+      <section className="relative mx-auto min-h-screen w-full max-w-6xl bg-white pb-8 shadow-lg sm:my-6 sm:min-h-0 sm:rounded-lg">
         <div className="border-b px-5 py-5 text-center">
           <Button
             type="button"

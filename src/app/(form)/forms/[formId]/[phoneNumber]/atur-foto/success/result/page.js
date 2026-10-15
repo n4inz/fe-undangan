@@ -87,7 +87,7 @@ const Result = ({ params }) => {
             }}
         >
             <div className="flex items-center justify-center bg-gray-100 mb-20 md:mb-0">
-                <div className="h-full min-h-screen bg-white rounded-lg shadow-lg max-w-xl w-full flex items-center flex-col relative">
+                <div className="relative flex min-h-screen w-full max-w-6xl flex-col items-center rounded-lg bg-white shadow-lg">
 
                     {/* Back Button */}
                     <Button

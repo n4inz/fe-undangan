@@ -37,6 +37,7 @@ const WeddingEditForm = ({ params, editorApi, returnPath }) => {
     const [pageError, setPageError] = useState('');
     const [submitError, setSubmitError] = useState('');
     const [editableFields, setEditableFields] = useState([]);
+    const [userPanelPath, setUserPanelPath] = useState('');
     const [quoteHtml, setQuoteHtml] = useState("");
 
     const [isLoading, setIsLoading] = useState(true); // Add loading state
@@ -57,8 +58,6 @@ const WeddingEditForm = ({ params, editorApi, returnPath }) => {
     const [mounted, setMounted] = useState(false);
     // tambahkan di bagian state hooks awal
     const [lockEvents, setLockEvents] = useState(false);
-
-
 
     const handleFileChange = async (event) => {
         const file = event.target.files[0]; // Get only the first file
@@ -245,6 +244,7 @@ const WeddingEditForm = ({ params, editorApi, returnPath }) => {
         try {
             const response = editorApi ? await editorApi.load() : await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/form-data/${params.formId}/${params.phoneNumber}`);
             setEditableFields(response.data.editableFields || []);
+            setUserPanelPath(response.data.userPanelPath || '');
             const fetchedFormData = response.data.form || {};
             const timeNowStr = response.data.timeNow; // ISO string from backend
 
@@ -360,9 +360,9 @@ const WeddingEditForm = ({ params, editorApi, returnPath }) => {
 
 
     return (
-        <div className="flex items-center justify-center bg-gray-100">
-            <div className="h-full min-h-screen bg-white rounded-lg shadow-lg max-w-xl w-full flex items-center flex-col relative">
-                <div className="flex w-full px-4 py-2"> {/* Tambahkan w-full dan padding */}
+        <div className="flex w-full items-start justify-center bg-gray-100 px-2 py-4 sm:px-4">
+            <div className="relative flex min-h-screen w-full max-w-5xl flex-col items-center rounded-lg bg-white shadow-lg">
+                <div className="flex w-full flex-wrap items-center gap-2 border-b px-3 py-3 sm:px-5">
                     <Button
                         onClick={() => {
                             router.push(resultPath);
@@ -371,10 +371,18 @@ const WeddingEditForm = ({ params, editorApi, returnPath }) => {
                     >
                         <BiLeftArrowAlt className='w-6 h-6 text-black' /> {/* Perbesar sedikit ikon */}
                     </Button>
-                    <div className="p-2 ml-2 font-semibold text-lg"> {/* Tambahkan margin kiri */}
+                    <div className="min-w-0 flex-1 p-2 font-semibold text-lg">
                         Edit Data Undangan
                         {editorApi && <p className="mt-1 text-sm font-normal text-gray-500">Pesanan #{params.formId}</p>}
                     </div>
+                    {userPanelPath && <div className="flex w-full gap-2 sm:ml-auto sm:w-auto">
+                        <Button type="button" variant="outline" size="sm" onClick={() => window.open(`${userPanelPath}/result`, '_blank', 'noopener,noreferrer')}>
+                            Edit Foto
+                        </Button>
+                        <Button type="button" variant="outline" size="sm" onClick={() => window.open(userPanelPath, '_blank', 'noopener,noreferrer')}>
+                            Panel User
+                        </Button>
+                    </div>}
                 </div>
 
                 {pageError ? (
@@ -382,7 +390,7 @@ const WeddingEditForm = ({ params, editorApi, returnPath }) => {
                         <p>{pageError}</p>
                         <Button type="button" variant="outline" className="mt-3" onClick={fetchData}>Coba lagi</Button>
                     </div>
-                ) : <form onSubmit={handleSubmit} className='m-4 lg:m-0'>
+                ) : <form onSubmit={handleSubmit} className='m-4 w-full px-4 sm:px-8 lg:px-12'>
                     {editorApi && <div className="mb-6 space-y-4 rounded-md border p-4">
                         <h2 className="font-semibold">Data Customer</h2>
                         <div>

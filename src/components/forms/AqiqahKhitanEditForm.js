@@ -169,6 +169,7 @@ export default function AqiqahKhitanEditForm({ params, editorApi, returnPath }) 
   const audioRef = useRef(null);
   const [fields, setFields] = useState([]);
   const [formData, setFormData] = useState({});
+  const [userPanelPath, setUserPanelPath] = useState('');
   const [errors, setErrors] = useState({});
   const [pageError, setPageError] = useState("");
   const [submitError, setSubmitError] = useState("");
@@ -185,7 +186,6 @@ export default function AqiqahKhitanEditForm({ params, editorApi, returnPath }) 
 
   const resultPath = returnPath ||
     `/forms/aqiqah-khitan/${params.formId}/atur-foto/success/result`;
-
   const updateField = useCallback((fieldName, value) => {
     setFormData((current) => ({ ...current, [fieldName]: value }));
     setErrors((current) => {
@@ -208,6 +208,7 @@ export default function AqiqahKhitanEditForm({ params, editorApi, returnPath }) 
           .filter((field) => !HIDDEN_EDIT_FIELDS.has(field.name) || (editorApi && field.name === 'nomorWhatsapp'))
           .sort((first, second) => first.order - second.order);
         const nextForm = response.data?.form || {};
+        setUserPanelPath(response.data?.userPanelPath || '');
 
         nextFields.forEach((field) => {
           if (field.inputType === "rekening-list") {
@@ -535,7 +536,7 @@ export default function AqiqahKhitanEditForm({ params, editorApi, returnPath }) 
 
   return (
     <main className="min-h-screen bg-gray-100 px-4 py-8">
-      <section className="mx-auto w-full max-w-4xl overflow-hidden rounded-lg border bg-white shadow-sm">
+      <section className="mx-auto w-full max-w-6xl overflow-hidden rounded-lg border bg-white shadow-sm">
         <header className="flex items-start gap-3 border-b p-5 sm:p-6">
           <Button asChild variant="ghost" size="icon" title="Kembali">
             <Link href={resultPath}>
@@ -543,7 +544,7 @@ export default function AqiqahKhitanEditForm({ params, editorApi, returnPath }) 
               <span className="sr-only">Kembali</span>
             </Link>
           </Button>
-          <div>
+          <div className="min-w-0 flex-1">
             <h1 className="text-xl font-bold sm:text-2xl">
               Edit Data Aqiqah / Khitan
             </h1>
@@ -551,6 +552,14 @@ export default function AqiqahKhitanEditForm({ params, editorApi, returnPath }) 
               Pesanan #{formData.id}
             </p>
           </div>
+          {userPanelPath && <div className="flex flex-wrap gap-2">
+            <Button type="button" variant="outline" size="sm" onClick={() => window.open(`${userPanelPath}/result`, '_blank', 'noopener,noreferrer')}>
+              Edit Foto
+            </Button>
+            <Button type="button" variant="outline" size="sm" onClick={() => window.open(userPanelPath, '_blank', 'noopener,noreferrer')}>
+              Panel User
+            </Button>
+          </div>}
         </header>
 
         {pageError ? (

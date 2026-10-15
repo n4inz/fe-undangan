@@ -47,7 +47,7 @@ export default function ResellerCustomer() {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-wrap items-start justify-between gap-4"><div><h1 className="text-2xl font-semibold">Customer / Form Masuk</h1><p className="mt-2 text-sm text-muted-foreground">Semua form yang tercatat atas brand Anda. Aktivasi undangan dilakukan oleh Admin.</p></div><AddInvitationButton /></div>
+      <div className="flex flex-wrap items-start justify-between gap-4"><div><h1 className="text-2xl font-semibold">Customer / Form Masuk</h1><p className="mt-2 text-sm text-muted-foreground">Undangan milik akun Anda dan form atas brand Anda. Aktivasi undangan dilakukan oleh Admin.</p></div><AddInvitationButton /></div>
       {error && <ResellerError message={error} onRetry={reload} />}
       <Card>
         <CardHeader><CardTitle className="text-lg">Daftar Form Masuk</CardTitle></CardHeader>
