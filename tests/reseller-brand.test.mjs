@@ -2,9 +2,145 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import vm from 'node:vm';
+import ts from 'typescript';
 
 const helperSource = await readFile(new URL('../src/lib/resellerBrand.js', import.meta.url), 'utf8');
 const hookSource = await readFile(new URL('../src/components/reseller/useResellerBrand.js', import.meta.url), 'utf8');
+
+function nodes(tree) {
+  if (!tree || typeof tree !== 'object') return [];
+  if (Array.isArray(tree)) return tree.flatMap(nodes);
+  return [tree, ...nodes(tree.props?.children)];
+}
+
+async function brandSettingsHarness({ brand, requestError } = {}) {
+  const requests = [];
+  const updates = [];
+  const notices = [];
+  const states = [];
+  const dependencies = [];
+  let cursor = 0;
+  let effects = [];
+  const context = vm.createContext({
+    process: { env: { NEXT_PUBLIC_API_URL: 'https://api.example.test' } },
+    URL: class extends URL {
+      static createObjectURL() { return 'blob:brand-logo'; }
+      static revokeObjectURL() {}
+    },
+    window: { location: { origin: 'https://invitation.example.test' } },
+    FormData: class {
+      values = [];
+      append(key, value) { this.values.push([key, value]); }
+      entries() { return this.values[Symbol.iterator](); }
+    },
+  });
+  const mock = values => new vm.SyntheticModule(Object.keys(values), function () {
+    for (const [name, value] of Object.entries(values)) this.setExport(name, value);
+  }, { context });
+  const useState = initial => {
+    const index = cursor++;
+    if (!(index in states)) states[index] = initial;
+    return [states[index], value => { states[index] = typeof value === 'function' ? value(states[index]) : value; }];
+  };
+  const jsx = (type, props) => ({ type, props });
+  const helpers = new vm.SourceTextModule(helperSource, { context });
+  const source = await readFile(new URL('../src/app/(reseller)/reseller/brand/page.js', import.meta.url), 'utf8');
+  const { outputText } = ts.transpileModule(source, {
+    fileName: 'component.jsx',
+    compilerOptions: { jsx: ts.JsxEmit.ReactJSX, module: ts.ModuleKind.ESNext, target: ts.ScriptTarget.ES2022 },
+  });
+  const component = new vm.SourceTextModule(outputText, { context });
+  await component.link(specifier => {
+    if (specifier === 'react/jsx-runtime') return mock({ jsx, jsxs: jsx });
+    if (specifier === 'react') return mock({
+      useState,
+      useRef: initial => useState({ current: initial })[0],
+      useEffect: (effect, values) => {
+        const index = cursor++;
+        if (!dependencies[index] || values.some((value, key) => !Object.is(value, dependencies[index][key]))) effects.push(effect);
+        dependencies[index] = values;
+      },
+    });
+    if (specifier === '@/lib/resellerBrand') return helpers;
+    if (specifier.endsWith('/api')) return mock({
+      getResellerError: error => error.message,
+      useResellerBrandSettings: () => ({ data: brand, loading: false, updateBrand: async value => updates.push(value) }),
+      useResellerRequest: () => ({ request: async (path, options) => {
+        requests.push({ path, options });
+        if (requestError) throw requestError;
+        return { data: { ...brand, brandName: 'Brand Baru', brandLogo: '/uploads/new-logo.png' } };
+      } }),
+    });
+    if (specifier.endsWith('/use-toast')) return mock({ toast: value => notices.push(value) });
+    const names = ['default', 'Loader2', 'Card', 'CardContent', 'CardDescription', 'CardHeader', 'CardTitle', 'Button', 'Input', 'Label', 'Skeleton', 'ResellerError'];
+    return mock(Object.fromEntries(names.map(name => [name, name])));
+  });
+  await component.evaluate();
+  const render = () => {
+    cursor = 0;
+    const tree = component.namespace.default();
+    const pending = effects;
+    effects = [];
+    pending.forEach(effect => effect());
+    return tree;
+  };
+  render();
+  return { render, requests, updates, notices };
+}
+
+test('reseller brand settings expose only name and logo editing while preserving assigned slug links', async () => {
+  const app = await brandSettingsHarness({ brand: {
+    brandName: 'Brand Lama', brandSlug: 'slug-permanen', brandLogo: '/uploads/logo.png', contact: '081234567890',
+  } });
+  const tree = nodes(app.render());
+  assert.deepEqual(tree.filter(node => node.type === 'Input').map(node => node.props.name), ['brandName', 'brandLogo']);
+  assert.match(JSON.stringify(tree), /slug-permanen/);
+  assert.deepEqual(tree.filter(node => node.type === 'a').map(node => node.props.href), [
+    'https://invitation.example.test/forms/new?brand=slug-permanen',
+    'https://invitation.example.test/forms/aqiqah-khitan/new?brand=slug-permanen',
+  ]);
+  assert.match(JSON.stringify(tree), /Slug bersifat tetap dan tidak dapat diubah/);
+});
+
+test('saving reseller branding sends only trimmed name and selected logo', async () => {
+  const app = await brandSettingsHarness({ brand: {
+    brandName: 'Brand Lama', brandSlug: 'slug-permanen', brandLogo: '/uploads/logo.png', contact: '081234567890',
+    id: 99, userId: 42, role: 'admin',
+  } });
+  const tree = nodes(app.render());
+  tree.find(node => node.props?.name === 'brandName').props.onChange({ target: { value: '  Brand Baru  ' } });
+  const logo = { type: 'image/png', size: 1024, name: 'new-logo.png' };
+  tree.find(node => node.props?.name === 'brandLogo').props.onChange({ target: { files: [logo] } });
+  await nodes(app.render()).find(node => node.type === 'form').props.onSubmit({ preventDefault() {} });
+  assert.equal(app.requests.length, 1);
+  assert.equal(app.requests[0].path, '/brand');
+  assert.equal(app.requests[0].options.method, 'PUT');
+  const payload = Object.fromEntries(app.requests[0].options.data.entries());
+  assert.deepEqual(Object.keys(payload), ['brandName', 'brandLogo']);
+  assert.equal(payload.brandName, 'Brand Baru');
+  assert.equal(payload.brandLogo, logo);
+  assert.equal(app.updates.length, 1);
+  assert.match(app.notices[0].title, /berhasil/);
+  const savedTree = nodes(app.render());
+  assert.equal(savedTree.find(node => node.props?.name === 'brandName').props.value, 'Brand Baru');
+  assert.equal(savedTree.filter(node => node.type === 'a').every(node => node.props.href.endsWith('brand=slug-permanen')), true);
+});
+
+test('failed brand saves retain the draft and assigned links and display the backend error', async () => {
+  const app = await brandSettingsHarness({
+    brand: { brandName: 'Brand Lama', brandSlug: 'slug-permanen', brandLogo: '' },
+    requestError: new Error('Nama brand tidak valid'),
+  });
+  nodes(app.render()).find(node => node.props?.name === 'brandName').props.onChange({ target: { value: 'Brand Baru' } });
+  await nodes(app.render()).find(node => node.type === 'form').props.onSubmit({ preventDefault() {} });
+  assert.deepEqual(Object.keys(Object.fromEntries(app.requests[0].options.data.entries())), ['brandName']);
+  assert.equal(app.updates.length, 0);
+  const failedTree = nodes(app.render());
+  assert.equal(failedTree.find(node => node.props?.name === 'brandName').props.value, 'Brand Baru');
+  assert.equal(failedTree.find(node => node.type === 'ResellerError').props.message, 'Nama brand tidak valid');
+  assert.equal(failedTree.filter(node => node.type === 'a').every(node => node.props.href.endsWith('brand=slug-permanen')), true);
+  assert.equal(app.notices[0].variant, 'destructive');
+});
 
 async function harness({ query = '', pathname = '/forms/new', swr = {}, session = {}, status = 'unauthenticated' } = {}) {
   const calls = [];

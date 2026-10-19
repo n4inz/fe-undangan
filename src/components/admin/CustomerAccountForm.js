@@ -8,6 +8,7 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from '@/components/ui/use-toast';
+import { BRAND_SLUG_PATTERN, createBrandSlug, hasCustomBrandSlug, sanitizeBrandSlugInput, validateAdminResellerBrand } from '@/lib/adminResellerBrand';
 
 const accountValues = customer => ({
   name: customer.name || '',
@@ -22,16 +23,35 @@ export default function CustomerAccountForm({ customer, onSaved }) {
   const [values, setValues] = useState(() => accountValues(customer));
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
+  const [slugEdited, setSlugEdited] = useState(() => hasCustomBrandSlug(customer));
   const editable = customer.isAdmin === 0 && ['user', 'reseller'].includes(customer.role);
+  const brandError = values.role === 'reseller' ? validateAdminResellerBrand(values) : '';
 
   const changeValue = (field, value) => {
-    setValues(current => ({ ...current, [field]: value }));
+    if (field === 'brandSlug') {
+      value = sanitizeBrandSlugInput(value);
+      if (value === values.brandSlug) return;
+      setSlugEdited(Boolean(value));
+      value = value || createBrandSlug(values.brandName);
+    }
+    setValues(current => ({
+      ...current,
+      [field]: value,
+      ...(field === 'brandName' && !slugEdited ? { brandSlug: createBrandSlug(value) } : {}),
+      ...(field === 'role' && value === 'reseller' && !slugEdited && !current.brandSlug
+        ? { brandSlug: createBrandSlug(current.brandName) }
+        : {}),
+    }));
     setError('');
   };
 
   const handleSave = async event => {
     event.preventDefault();
     if (saving || !editable) return;
+    if (brandError) {
+      setError(brandError);
+      return;
+    }
     setSaving(true);
     setError('');
 
@@ -49,6 +69,7 @@ export default function CustomerAccountForm({ customer, onSaved }) {
         { withCredentials: true }
       );
       setValues(accountValues(response.data.customer));
+      setSlugEdited(hasCustomBrandSlug(response.data.customer));
       onSaved(response.data.customer);
       toast({ title: response.data.message || 'Data customer berhasil disimpan.' });
     } catch (error) {
@@ -98,12 +119,12 @@ export default function CustomerAccountForm({ customer, onSaved }) {
               <>
                 <div className="space-y-2">
                   <Label htmlFor="customer-brand-name">Nama Brand</Label>
-                  <Input id="customer-brand-name" name="brandName" value={values.brandName} onChange={event => changeValue('brandName', event.target.value)} maxLength={100} />
+                  <Input id="customer-brand-name" name="brandName" value={values.brandName} onChange={event => changeValue('brandName', event.target.value)} maxLength={100} required />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="customer-brand-slug">Slug Brand</Label>
-                  <Input id="customer-brand-slug" name="brandSlug" value={values.brandSlug} onChange={event => changeValue('brandSlug', event.target.value.toLowerCase())} minLength={3} maxLength={63} pattern="[a-z0-9]+(-[a-z0-9]+)*" placeholder="contoh-brand" aria-describedby="customer-brand-slug-hint" />
-                  <p id="customer-brand-slug-hint" className="text-xs text-muted-foreground">Slug harus unik, 3–63 karakter berupa huruf kecil, angka, atau tanda hubung di antara kata. Mengubah slug akan mengubah link form brand.</p>
+                  <Input id="customer-brand-slug" name="brandSlug" value={values.brandSlug} onChange={event => changeValue('brandSlug', event.target.value)} minLength={3} maxLength={63} pattern={BRAND_SLUG_PATTERN} autoCapitalize="none" autoCorrect="off" spellCheck={false} required placeholder="contoh-brand" aria-describedby="customer-brand-slug-hint" />
+                  <p id="customer-brand-slug-hint" className="text-xs text-muted-foreground">Digunakan sebagai alamat link brand.</p>
                 </div>
               </>
             )}
@@ -114,8 +135,8 @@ export default function CustomerAccountForm({ customer, onSaved }) {
           {error && <p role="alert" className="text-sm text-red-600">{error}</p>}
           {editable && (
             <div className="flex flex-wrap gap-2">
-              <Button type="submit" disabled={saving}>{saving ? 'Menyimpan...' : 'Simpan Perubahan'}</Button>
-              <Button type="button" variant="outline" disabled={saving} onClick={() => { setValues(accountValues(customer)); setError(''); }}>Batal Perubahan</Button>
+              <Button type="submit" disabled={saving || Boolean(brandError)}>{saving ? 'Menyimpan...' : 'Simpan Perubahan'}</Button>
+              <Button type="button" variant="outline" disabled={saving} onClick={() => { setValues(accountValues(customer)); setSlugEdited(hasCustomBrandSlug(customer)); setError(''); }}>Batal Perubahan</Button>
             </div>
           )}
         </form>

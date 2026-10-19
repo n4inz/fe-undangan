@@ -15,7 +15,7 @@ async function loadComponent(path, resource) {
     for (const [name, value] of Object.entries(values)) this.setExport(name, value);
   }, { context });
   const helpers = new vm.SourceTextModule(await readFile(new URL('../src/lib/resellerBrand.js', import.meta.url), 'utf8'), { context });
-  const uiNames = ['default', 'Button', 'ChevronDown', 'Loader2', 'Plus', 'DebounceInput', 'Card', 'CardContent', 'CardHeader', 'CardTitle', 'Label', 'Select', 'SelectContent', 'SelectItem', 'SelectTrigger', 'SelectValue', 'DropdownMenu', 'DropdownMenuContent', 'DropdownMenuItem', 'DropdownMenuLabel', 'DropdownMenuTrigger', 'Dialog', 'DialogContent', 'DialogDescription', 'DialogHeader', 'DialogTitle'];
+  const uiNames = ['default', 'Button', 'ChevronDown', 'Copy', 'Loader2', 'Plus', 'DebounceInput', 'Card', 'CardContent', 'CardHeader', 'CardTitle', 'Label', 'Select', 'SelectContent', 'SelectItem', 'SelectTrigger', 'SelectValue', 'DropdownMenu', 'DropdownMenuContent', 'DropdownMenuItem', 'DropdownMenuLabel', 'DropdownMenuTrigger', 'Dialog', 'DialogContent', 'DialogDescription', 'DialogHeader', 'DialogTitle'];
   const module = new vm.SourceTextModule(outputText, { context });
   await module.link(specifier => {
     if (specifier === 'react/jsx-runtime') {
@@ -25,6 +25,7 @@ async function loadComponent(path, resource) {
     if (specifier === 'react') return mock({ useState: initial => [initial, () => {}] });
     if (specifier === 'next/link') return mock({ default: 'Link' });
     if (specifier === 'react-data-table-component') return mock({ default: 'DataTable' });
+    if (specifier === '@/components/ui/use-toast') return mock({ toast: () => {} });
     if (specifier === '@/lib/resellerBrand') return helpers;
     if (specifier.endsWith('/api')) return mock({ useResellerResource: () => resource });
     if (specifier.endsWith('/ResellerShared')) return mock({ formatResellerDate: value => value, InvitationLink: 'InvitationLink', resellerStatuses: [], ResellerError: 'ResellerError', ResellerStatus: 'ResellerStatus' });

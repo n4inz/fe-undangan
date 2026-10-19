@@ -6,9 +6,10 @@ import Link from 'next/link';
 import axios from 'axios';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import {
   AlertDialog,
-  AlertDialogAction,
   AlertDialogCancel,
   AlertDialogContent,
   AlertDialogDescription,
@@ -17,6 +18,7 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { toast } from '@/components/ui/use-toast';
+import { BRAND_SLUG_PATTERN, createBrandSlug, hasCustomBrandSlug, sanitizeBrandSlugInput, validateAdminResellerBrand } from '@/lib/adminResellerBrand';
 
 const Customer = () => {
   const [data, setData] = useState([]);
@@ -31,6 +33,10 @@ const Customer = () => {
   const [selectedRow, setSelectedRow] = useState(null);
   const [saving, setSaving] = useState(false);
   const [roleError, setRoleError] = useState('');
+  const [brandValues, setBrandValues] = useState({ brandName: '', brandSlug: '' });
+  const [slugEdited, setSlugEdited] = useState(false);
+  const isPromotion = selectedRow && selectedRow.role !== 'reseller';
+  const brandError = isPromotion ? validateAdminResellerBrand(brandValues) : '';
 
   const fetchData = useCallback(async (page, limit, searchQuery, signal) => {
     setLoading(true);
@@ -66,20 +72,42 @@ const Customer = () => {
 
   const handleRoleAction = (row) => {
     setSelectedRow(row);
+    setBrandValues({ brandName: row.brandName || '', brandSlug: row.brandSlug || createBrandSlug(row.brandName || '') });
+    setSlugEdited(hasCustomBrandSlug(row));
     setRoleError('');
     setOpen(true);
+  };
+
+  const handleBrandNameChange = event => {
+    const brandName = event.target.value;
+    setBrandValues(current => ({ ...current, brandName, brandSlug: slugEdited ? current.brandSlug : createBrandSlug(brandName) }));
+    setRoleError('');
+  };
+
+  const handleBrandSlugChange = event => {
+    const brandSlug = sanitizeBrandSlugInput(event.target.value);
+    if (brandSlug === brandValues.brandSlug) return;
+    setSlugEdited(Boolean(brandSlug));
+    setBrandValues(current => ({ ...current, brandSlug: brandSlug || createBrandSlug(current.brandName) }));
+    setRoleError('');
   };
 
   const handleRoleChange = async (event) => {
     event.preventDefault();
     if (!selectedRow || saving) return;
+    if (brandError) {
+      setRoleError(brandError);
+      return;
+    }
     setSaving(true);
     setRoleError('');
 
     try {
       const response = await axios.put(
         `${process.env.NEXT_PUBLIC_API_URL}/customer/${selectedRow.id}/role`,
-        { role: selectedRow.role === 'reseller' ? 'user' : 'reseller' },
+        isPromotion
+          ? { role: 'reseller', brandName: brandValues.brandName.trim(), brandSlug: brandValues.brandSlug.trim().toLowerCase() }
+          : { role: 'user' },
         { withCredentials: true }
       );
       toast({ title: response.data.message });
@@ -162,24 +190,39 @@ const Customer = () => {
         <div className="flex flex-col flex-grow w-full md:pl-24">
           <AlertDialog open={open} onOpenChange={value => { if (!saving) setOpen(value); }}>
             <AlertDialogContent>
-              <AlertDialogHeader>
-                <AlertDialogTitle>
-                  {selectedRow?.role === 'reseller' ? 'Kembalikan menjadi User?' : 'Jadikan Reseller?'}
-                </AlertDialogTitle>
-                <AlertDialogDescription>
-                  {selectedRow?.name} ({selectedRow?.email})
-                  {selectedRow?.role === 'reseller'
-                    ? ' akan kehilangan akses Panel Reseller. Data brand dan relasi undangan tetap tersimpan.'
-                    : ' akan mendapatkan akses Panel Reseller untuk melihat form miliknya dan mengatur brand. Aktivasi undangan tetap dilakukan oleh Admin.'}
-                </AlertDialogDescription>
-              </AlertDialogHeader>
-              {roleError && <p role="alert" className="text-sm text-red-600">{roleError}</p>}
-              <AlertDialogFooter>
-                <AlertDialogCancel disabled={saving}>Batal</AlertDialogCancel>
-                <AlertDialogAction disabled={saving} onClick={handleRoleChange}>
-                  {saving ? 'Menyimpan...' : 'Ubah Role'}
-                </AlertDialogAction>
-              </AlertDialogFooter>
+              <form onSubmit={handleRoleChange} className="space-y-4">
+                <AlertDialogHeader>
+                  <AlertDialogTitle>
+                    {selectedRow?.role === 'reseller' ? 'Kembalikan menjadi User?' : 'Jadikan Reseller?'}
+                  </AlertDialogTitle>
+                  <AlertDialogDescription>
+                    {selectedRow?.name} ({selectedRow?.email})
+                    {selectedRow?.role === 'reseller'
+                      ? ' akan dikembalikan menjadi user.'
+                      : ' akan dijadikan reseller.'}
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                {isPromotion && (
+                  <fieldset disabled={saving} className="space-y-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="reseller-brand-name">Nama Brand</Label>
+                      <Input id="reseller-brand-name" name="brandName" value={brandValues.brandName} onChange={handleBrandNameChange} maxLength={100} required placeholder="Toko Bunga" autoFocus />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="reseller-brand-slug">Slug Brand</Label>
+                      <Input id="reseller-brand-slug" name="brandSlug" value={brandValues.brandSlug} onChange={handleBrandSlugChange} minLength={3} maxLength={63} pattern={BRAND_SLUG_PATTERN} autoCapitalize="none" autoCorrect="off" spellCheck={false} required placeholder="toko-bunga" aria-describedby="reseller-brand-slug-hint" />
+                      <p id="reseller-brand-slug-hint" className="text-xs text-muted-foreground">Digunakan sebagai alamat link brand.</p>
+                    </div>
+                  </fieldset>
+                )}
+                {roleError && <p role="alert" className="text-sm text-red-600">{roleError}</p>}
+                <AlertDialogFooter>
+                  <AlertDialogCancel type="button" disabled={saving}>Batal</AlertDialogCancel>
+                  <Button type="submit" disabled={saving || Boolean(brandError)}>
+                    {saving ? 'Menyimpan...' : isPromotion ? 'Jadikan Reseller' : 'Ubah Role'}
+                  </Button>
+                </AlertDialogFooter>
+              </form>
             </AlertDialogContent>
           </AlertDialog>
 
