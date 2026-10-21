@@ -1,9 +1,9 @@
 import { Inter } from "next/font/google";
 import "@/app/styles/globals.css";
-import Sidebar from "@/layout/sidebar";
 import { Toaster } from "@/components/ui/toaster";
 import { requireStaffAccount } from "@/lib/serverAuth";
 import AdminSessionProvider from "@/components/admin/AdminSessionProvider";
+import AdminShell from "@/components/admin/AdminShell";
 import NextTopLoader from 'nextjs-toploader';
 
 const inter = Inter({ subsets: ["latin"] });
@@ -20,9 +20,7 @@ export default async function AdminLayout({ children }) {
       <body className={inter.className}>
       <NextTopLoader showSpinner={false} />
       <AdminSessionProvider sessionToken={session.user.sessionToken}>
-      <Sidebar authenticated={true} />
-
-        {children}
+        <AdminShell>{children}</AdminShell>
         <Toaster />
         </AdminSessionProvider>
         </body>

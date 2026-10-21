@@ -122,7 +122,7 @@ export default function CustomerAccountForm({ customer, onSaved }) {
                   <Input id="customer-brand-name" name="brandName" value={values.brandName} onChange={event => changeValue('brandName', event.target.value)} maxLength={100} required />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="customer-brand-slug">Slug Brand</Label>
+                  <Label htmlFor="customer-brand-slug">Subdomain Brand</Label>
                   <Input id="customer-brand-slug" name="brandSlug" value={values.brandSlug} onChange={event => changeValue('brandSlug', event.target.value)} minLength={3} maxLength={63} pattern={BRAND_SLUG_PATTERN} autoCapitalize="none" autoCorrect="off" spellCheck={false} required placeholder="contoh-brand" aria-describedby="customer-brand-slug-hint" />
                   <p id="customer-brand-slug-hint" className="text-xs text-muted-foreground">Digunakan sebagai alamat link brand.</p>
                 </div>

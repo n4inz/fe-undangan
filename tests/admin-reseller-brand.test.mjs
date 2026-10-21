@@ -14,7 +14,7 @@ function nodes(tree) {
   return [tree, ...nodes(tree.props?.children)];
 }
 
-async function loadComponent(path, props = {}, putResponse) {
+async function loadComponent(path, props = {}, putResponse, { getResponse } = {}) {
   const source = await readFile(new URL(`../src/${path}`, import.meta.url), 'utf8');
   const { outputText } = ts.transpileModule(source, {
     fileName: 'component.jsx',
@@ -26,12 +26,26 @@ async function loadComponent(path, props = {}, putResponse) {
   }, { context });
   const helper = new vm.SourceTextModule(await readFile(new URL('../src/lib/adminResellerBrand.js', import.meta.url), 'utf8'), { context });
   const state = [];
+  const refs = [];
+  const callbacks = [];
+  const effects = [];
   let cursor = 0;
+  let refCursor = 0;
+  let callbackCursor = 0;
+  let effectCursor = 0;
   const requests = [];
   const notifications = [];
+  const pendingGets = new Set();
+  const sameDependencies = (previous, next) => previous && next && previous.length === next.length && previous.every((value, index) => Object.is(value, next[index]));
   const axios = {
     isCancel: () => false,
-    get: async (...args) => { requests.push(['get', ...args]); return { data: { data: [], total: 0 } }; },
+    get: (...args) => {
+      requests.push(['get', ...args]);
+      const pending = Promise.resolve().then(() => getResponse ? getResponse(...args) : { data: { data: [], total: 0 } });
+      pendingGets.add(pending);
+      pending.then(() => pendingGets.delete(pending), () => pendingGets.delete(pending));
+      return pending;
+    },
     put: async (...args) => {
       requests.push(['put', ...args]);
       return putResponse ? putResponse(...args) : { data: { message: 'Berhasil', customer: { ...customer, ...args[1] } } };
@@ -50,8 +64,20 @@ async function loadComponent(path, props = {}, putResponse) {
         if (!(index in state)) state[index] = typeof initial === 'function' ? initial() : initial;
         return [state[index], value => { state[index] = typeof value === 'function' ? value(state[index]) : value; }];
       },
-      useCallback: callback => callback,
-      useEffect: () => {},
+      useRef: initial => {
+        const index = refCursor++;
+        if (!(index in refs)) refs[index] = { current: initial };
+        return refs[index];
+      },
+      useCallback: (callback, dependencies) => {
+        const index = callbackCursor++;
+        if (!sameDependencies(callbacks[index]?.dependencies, dependencies)) callbacks[index] = { callback, dependencies };
+        return callbacks[index].callback;
+      },
+      useEffect: (callback, dependencies) => {
+        const index = effectCursor++;
+        effects[index] = { ...effects[index], callback, nextDependencies: dependencies };
+      },
     });
     if (specifier === 'axios') return mock({ default: axios });
     if (specifier === 'next/link') return mock({ default: 'Link' });
@@ -62,7 +88,31 @@ async function loadComponent(path, props = {}, putResponse) {
     return mock(Object.fromEntries(uiNames.map(name => [name, name])));
   });
   await component.evaluate();
-  const render = () => { cursor = 0; return component.namespace.default(props); };
+  const render = () => {
+    cursor = 0;
+    refCursor = 0;
+    callbackCursor = 0;
+    effectCursor = 0;
+    return component.namespace.default(props);
+  };
+  const flushEffects = async ({ waitForRequests = true } = {}) => {
+    await new Promise(resolve => setImmediate(resolve));
+    for (let iteration = 0; iteration < 20; iteration++) {
+      const tree = render();
+      const pendingEffects = effects.filter(effect => !sameDependencies(effect.dependencies, effect.nextDependencies));
+      if (!pendingEffects.length && (!pendingGets.size || !waitForRequests)) return tree;
+      for (const effect of pendingEffects) {
+        effect.cleanup?.();
+        effect.dependencies = effect.nextDependencies?.slice();
+        effect.cleanup = effect.callback();
+      }
+      if (waitForRequests) {
+        while (pendingGets.size) await Promise.allSettled([...pendingGets]);
+      }
+      await new Promise(resolve => setImmediate(resolve));
+    }
+    assert.fail('Component effects did not settle');
+  };
   const find = predicate => nodes(render()).find(predicate);
   const byId = id => find(node => node.props?.id === id);
   const openRoleDialog = row => {
@@ -70,7 +120,7 @@ async function loadComponent(path, props = {}, putResponse) {
     const actionColumn = table.props.columns.find(column => column.name === 'Aksi');
     nodes(actionColumn.cell(row)).find(node => node.type === 'Button' && node.props.onClick).props.onClick();
   };
-  return { render, find, byId, openRoleDialog, requests, notifications, helper: helper.namespace };
+  return { render, find, byId, openRoleDialog, flushEffects, requests, notifications, helper: helper.namespace };
 }
 
 async function loadPromotionEditor(screen, row = customer) {
@@ -273,3 +323,210 @@ for (const screen of ['modal', 'account']) {
     }
   });
 }
+
+function roleFilter(fixture) {
+  return fixture.find(node => node.type === 'Select' && nodes(node.props.children).some(child => child.props?.id === 'customer-role-filter'));
+}
+
+function table(fixture) {
+  return fixture.find(node => node.type === 'DataTable');
+}
+
+function lastCustomerQuery(fixture) {
+  return fixture.requests.filter(([method]) => method === 'get').at(-1)[2].params;
+}
+
+function assertCustomerQuery(fixture, expected) {
+  assert.deepEqual(JSON.parse(JSON.stringify(lastCustomerQuery(fixture))), expected);
+}
+
+test('customer role filtering applies to server pagination, page size, and search changes', async () => {
+  const fixture = await loadComponent('app/(admin)/admin/customer/page.js', {}, undefined, {
+    getResponse: async () => ({ data: { data: [customer], total: 80 } }),
+  });
+  await fixture.flushEffects();
+  assertCustomerQuery(fixture, { page: 1, limit: 10, search: '', role: 'all' });
+
+  table(fixture).props.onChangePage(3);
+  await fixture.flushEffects();
+  assertCustomerQuery(fixture, { page: 3, limit: 10, search: '', role: 'all' });
+
+  roleFilter(fixture).props.onValueChange('reseller');
+  await fixture.flushEffects();
+  assertCustomerQuery(fixture, { page: 1, limit: 10, search: '', role: 'reseller' });
+  assert.equal(table(fixture).props.paginationDefaultPage, 1);
+
+  table(fixture).props.onChangePage(4);
+  await fixture.flushEffects();
+  assertCustomerQuery(fixture, { page: 4, limit: 10, search: '', role: 'reseller' });
+
+  table(fixture).props.onChangeRowsPerPage(25, 2);
+  await fixture.flushEffects();
+  assertCustomerQuery(fixture, { page: 2, limit: 25, search: '', role: 'reseller' });
+
+  fixture.find(node => node.type === 'DebounceInput').props.onChange(change('Bunga'));
+  await fixture.flushEffects();
+  assertCustomerQuery(fixture, { page: 1, limit: 25, search: 'Bunga', role: 'reseller' });
+
+  roleFilter(fixture).props.onValueChange('user');
+  await fixture.flushEffects();
+  assertCustomerQuery(fixture, { page: 1, limit: 25, search: 'Bunga', role: 'user' });
+  roleFilter(fixture).props.onValueChange('all');
+  await fixture.flushEffects();
+  assertCustomerQuery(fixture, { page: 1, limit: 25, search: 'Bunga', role: 'all' });
+});
+
+test('retrying a customer request keeps the selected role, search, and page', async () => {
+  let failNext = false;
+  const fixture = await loadComponent('app/(admin)/admin/customer/page.js', {}, undefined, {
+    getResponse: async () => {
+      if (failNext) {
+        failNext = false;
+        throw new Error('Connection interrupted');
+      }
+      return { data: { data: [customer], total: 30 } };
+    },
+  });
+  await fixture.flushEffects();
+  roleFilter(fixture).props.onValueChange('reseller');
+  fixture.find(node => node.type === 'DebounceInput').props.onChange(change('Bunga'));
+  await fixture.flushEffects();
+  failNext = true;
+  table(fixture).props.onChangePage(2);
+  await fixture.flushEffects();
+  assert.ok(fixture.find(node => node.props?.role === 'alert'));
+  assertCustomerQuery(fixture, { page: 2, limit: 10, search: 'Bunga', role: 'reseller' });
+
+  const retry = fixture.find(node => node.type === 'Button' && node.props.children === 'Coba Lagi');
+  await retry.props.onClick();
+  await fixture.flushEffects();
+  assertCustomerQuery(fixture, { page: 2, limit: 10, search: 'Bunga', role: 'reseller' });
+  assert.equal(fixture.find(node => node.props?.role === 'alert'), undefined);
+  assert.equal(table(fixture).props.paginationDefaultPage, 2);
+});
+
+test('changing a reseller role refreshes the current filtered page without clearing the search', async () => {
+  const reseller = { ...customer, role: 'reseller', brandName: 'Toko Bunga', brandSlug: 'toko-bunga' };
+  let demoted = false;
+  const fixture = await loadComponent('app/(admin)/admin/customer/page.js', {}, async () => {
+    demoted = true;
+    return { data: { message: 'Role diperbarui.' } };
+  }, {
+    getResponse: async () => ({ data: { data: demoted ? [{ ...reseller, id: 8 }] : [reseller], total: demoted ? 11 : 12 } }),
+  });
+  await fixture.flushEffects();
+  roleFilter(fixture).props.onValueChange('reseller');
+  fixture.find(node => node.type === 'DebounceInput').props.onChange(change('Bunga'));
+  await fixture.flushEffects();
+  table(fixture).props.onChangePage(2);
+  await fixture.flushEffects();
+  fixture.openRoleDialog(reseller);
+  await fixture.find(node => node.type === 'form').props.onSubmit(submit);
+  await fixture.flushEffects();
+
+  assertCustomerQuery(fixture, { page: 2, limit: 10, search: 'Bunga', role: 'reseller' });
+  assert.equal(roleFilter(fixture).props.value, 'reseller');
+  assert.equal(table(fixture).props.paginationDefaultPage, 2);
+  assert.equal(table(fixture).props.data[0].id, 8);
+  assert.equal(fixture.find(node => node.type === 'AlertDialog').props.open, false);
+});
+
+test('removing the last reseller from a filtered page returns to the last valid page', async () => {
+  const reseller = { ...customer, role: 'reseller', brandName: 'Toko Bunga', brandSlug: 'toko-bunga' };
+  let demoted = false;
+  const fixture = await loadComponent('app/(admin)/admin/customer/page.js', {}, async () => {
+    demoted = true;
+    return { data: { message: 'Role diperbarui.' } };
+  }, {
+    getResponse: async (_url, { params }) => ({
+      data: { data: demoted && params.page > 1 ? [] : [reseller], total: demoted ? 10 : 11 },
+    }),
+  });
+  await fixture.flushEffects();
+  roleFilter(fixture).props.onValueChange('reseller');
+  await fixture.flushEffects();
+  table(fixture).props.onChangePage(2);
+  await fixture.flushEffects();
+  fixture.openRoleDialog(reseller);
+  await fixture.find(node => node.type === 'form').props.onSubmit(submit);
+  await fixture.flushEffects();
+
+  assertCustomerQuery(fixture, { page: 1, limit: 10, search: '', role: 'reseller' });
+  assert.equal(roleFilter(fixture).props.value, 'reseller');
+  assert.equal(table(fixture).props.paginationDefaultPage, 1);
+  assert.equal(table(fixture).props.data.length, 1);
+  assert.equal(table(fixture).props.paginationTotalRows, 10);
+});
+
+function deferred() {
+  let resolve;
+  let reject;
+  const promise = new Promise((accept, decline) => { resolve = accept; reject = decline; });
+  return { promise, resolve, reject };
+}
+
+test('a delayed retry response cannot replace the results of a newer role filter', async () => {
+  const stale = deferred();
+  const latest = deferred();
+  const reseller = { ...customer, id: 8, role: 'reseller' };
+  let calls = 0;
+  const fixture = await loadComponent('app/(admin)/admin/customer/page.js', {}, undefined, {
+    getResponse: async () => {
+      calls++;
+      if (calls === 1) throw new Error('Initial request failed');
+      return calls === 2 ? stale.promise : latest.promise;
+    },
+  });
+  await fixture.flushEffects();
+  const retry = fixture.find(node => node.type === 'Button' && node.props.children === 'Coba Lagi').props.onClick();
+  roleFilter(fixture).props.onValueChange('reseller');
+  await fixture.flushEffects({ waitForRequests: false });
+  assert.equal(calls, 3);
+  assert.equal(table(fixture).props.progressPending, true);
+
+  latest.resolve({ data: { data: [reseller], total: 23 } });
+  await fixture.flushEffects({ waitForRequests: false });
+  assert.equal(table(fixture).props.data[0].id, 8);
+  assert.equal(table(fixture).props.paginationTotalRows, 23);
+  assert.equal(table(fixture).props.progressPending, false);
+
+  stale.resolve({ data: { data: [customer], total: 1 } });
+  await retry;
+  await fixture.flushEffects();
+  assert.equal(roleFilter(fixture).props.value, 'reseller');
+  assert.equal(table(fixture).props.data[0].id, 8);
+  assert.equal(table(fixture).props.paginationTotalRows, 23);
+  assert.equal(table(fixture).props.progressPending, false);
+  assert.equal(fixture.find(node => node.props?.role === 'alert'), undefined);
+});
+
+test('a failed stale retry leaves the newer filter loading without displaying its error', async () => {
+  const stale = deferred();
+  const latest = deferred();
+  const reseller = { ...customer, id: 8, role: 'reseller' };
+  let calls = 0;
+  const fixture = await loadComponent('app/(admin)/admin/customer/page.js', {}, undefined, {
+    getResponse: async () => {
+      calls++;
+      if (calls === 1) throw new Error('Initial request failed');
+      return calls === 2 ? stale.promise : latest.promise;
+    },
+  });
+  await fixture.flushEffects();
+  const retry = fixture.find(node => node.type === 'Button' && node.props.children === 'Coba Lagi').props.onClick();
+  roleFilter(fixture).props.onValueChange('reseller');
+  await fixture.flushEffects({ waitForRequests: false });
+
+  stale.reject(new Error('The older request failed'));
+  await retry;
+  await fixture.flushEffects({ waitForRequests: false });
+  assert.equal(table(fixture).props.progressPending, true);
+  assert.equal(fixture.find(node => node.props?.role === 'alert'), undefined);
+
+  latest.resolve({ data: { data: [reseller], total: 23 } });
+  await fixture.flushEffects();
+  assert.equal(table(fixture).props.data[0].id, 8);
+  assert.equal(table(fixture).props.paginationTotalRows, 23);
+  assert.equal(table(fixture).props.progressPending, false);
+  assert.equal(fixture.find(node => node.props?.role === 'alert'), undefined);
+});

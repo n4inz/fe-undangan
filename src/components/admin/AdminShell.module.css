@@ -1,0 +1,105 @@
+.shell {
+  --admin-sidebar-width: 300px;
+  --admin-header-height: 64px;
+  min-height: 100vh;
+}
+
+.header {
+  position: fixed;
+  inset: 0 0 auto;
+  z-index: 50;
+  display: flex;
+  height: var(--admin-header-height);
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  border-bottom: 1px solid #e2e8f0;
+  background: #fff;
+  padding: 0 1rem;
+}
+
+.sidebar {
+  position: fixed;
+  inset: var(--admin-header-height) auto 0 0;
+  z-index: 40;
+  display: flex;
+  width: min(var(--admin-sidebar-width), 85vw);
+  flex-direction: column;
+  border-right: 1px solid #e2e8f0;
+  background: #fff;
+  visibility: hidden;
+  transform: translateX(-100%);
+  transition: transform 200ms ease, visibility 200ms;
+}
+
+.sidebar[data-mobile-open="true"] {
+  visibility: visible;
+  transform: translateX(0);
+}
+
+.overlay {
+  position: fixed;
+  inset: var(--admin-header-height) 0 0;
+  z-index: 30;
+  background: rgb(15 23 42 / 45%);
+}
+
+.content {
+  min-width: 0;
+  padding-top: var(--admin-header-height);
+  transition: margin-left 200ms ease;
+}
+
+/* Older admin pages still include their own empty sidebar and header spacers.
+   The shared shell now reserves this space for every page. */
+.content > div:global(.h-10):global(.border-b) {
+  display: none;
+}
+
+.content > div:global(.flex):global(.min-h-screen) {
+  min-height: calc(100vh - var(--admin-header-height));
+  padding-top: 0;
+}
+
+.content > div:global(.flex) > div:global(.h-full):global(.w-64):global(.bg-gray-800),
+.content > div:global(.flex) > div[aria-hidden="true"][class~="w-[300px]"] {
+  display: none;
+}
+
+.content > div:global(.flex) > :global(.md\:pl-24),
+.content > div:global(.flex) > :global(.xl\:pl-24) {
+  min-width: 0;
+  padding-left: 0;
+}
+
+@media (min-width: 1280px) {
+  .sidebar {
+    width: var(--admin-sidebar-width);
+    visibility: visible;
+    transform: translateX(0);
+  }
+
+  .sidebar[data-desktop-collapsed="true"] {
+    visibility: hidden;
+    transform: translateX(-100%);
+  }
+
+  .content {
+    margin-left: var(--admin-sidebar-width);
+  }
+
+  .shell[data-sidebar-collapsed="true"] .content {
+    margin-left: 0;
+  }
+
+  .overlay {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sidebar,
+  .content {
+    transition: none;
+  }
+}

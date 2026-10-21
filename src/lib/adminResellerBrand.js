@@ -30,7 +30,7 @@ export function validateAdminResellerBrand({ brandName, brandSlug }) {
   }
   const slug = brandSlug.trim().toLowerCase();
   if (slug.length < 3 || slug.length > 63 || !new RegExp(`^${BRAND_SLUG_PATTERN}$`).test(slug)) {
-    return 'Slug brand wajib terdiri dari 3–63 huruf kecil, angka, atau tanda hubung di antara kata.';
+    return 'Subdomain brand wajib terdiri dari 3–63 huruf kecil, angka, atau tanda hubung di antara kata.';
   }
   return '';
 }

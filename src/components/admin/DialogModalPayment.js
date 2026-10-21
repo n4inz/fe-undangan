@@ -1,99 +1,130 @@
-import { useEffect, useState } from "react";
+"use client";
+
+import { useEffect, useRef, useState } from "react";
+import axios from "axios";
+import { Loader2 } from "lucide-react";
+
 import { Button } from "@/components/ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Loader2 } from "lucide-react";
-import axios from "axios"; // Assuming axios will be used later for image upload
-import { AlertDialog, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "../ui/alert-dialog";
+import {
+  AlertDialog,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
-export function DialogModalPayment({ open, onOpenChange, index, row, formId, onDataUpdate }) {
+export function DialogModalPayment({ open, onOpenChange, row, onDataUpdate }) {
   const [isLoading, setIsLoading] = useState(false);
-  const [formData, setFormData] = useState({ payment: "" });
+  const [payment, setPayment] = useState("");
+  const [error, setError] = useState("");
+  const saving = useRef(false);
 
-  const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+  useEffect(() => {
+    setPayment("");
+    setError("");
+  }, [open, row?.id]);
+
+  const handleOpenChange = (nextOpen) => {
+    if (saving.current) return;
+    setPayment("");
+    setError("");
+    onOpenChange(nextOpen);
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  const handleSubmit = async (event) => {
+    event.preventDefault();
+    if (saving.current) return;
+
+    const paymentAmount = Number(payment);
+    if (
+      !payment.trim() ||
+      !Number.isInteger(paymentAmount) ||
+      paymentAmount < 0 ||
+      paymentAmount > 2147483647
+    ) {
+      setError("Masukkan nominal bulat antara Rp 0 dan Rp 2.147.483.647.");
+      return;
+    }
+    if (!row?.id) {
+      setError("Data undangan tidak tersedia. Muat ulang halaman dan coba lagi.");
+      return;
+    }
+
+    saving.current = true;
     setIsLoading(true);
+    setError("");
 
     try {
       const response = await axios.post(
         `${process.env.NEXT_PUBLIC_API_URL}/update-payment/${row.id}`,
-        {
-          isPaid: row.isPaid,
-          paymentAmount: formData.payment
-        },
-        {
-          withCredentials: true // This should be inside the config object (third argument)
-        }
+        { isPaid: 0, paymentAmount },
+        { withCredentials: true }
       );
 
-
-      onOpenChange(false); // Close the dialog after successful upload
-      onDataUpdate(response.data.message); // Trigger data update
-    } catch (error) {
-      console.error("Error:", error);
+      onOpenChange(false);
+      onDataUpdate(response.data?.message);
+    } catch (requestError) {
+      setError(
+        requestError.response?.data?.error ||
+          requestError.response?.data?.message ||
+          "Pembayaran gagal disimpan. Silakan coba lagi."
+      );
     } finally {
+      saving.current = false;
       setIsLoading(false);
     }
   };
 
-  useEffect(() => {
-    if (!open) {
-      setFormData({ payment: "" }); // Clear the form when dialog is closed
-    }
-    console.log("row", row);
-  }, [open, row]);
-
   return (
-    <>
-      <AlertDialog open={open} onOpenChange={onOpenChange}>
-        <AlertDialogContent className="sm:max-w-[425px]">
-          <AlertDialogHeader>
-            <AlertDialogTitle>Pembayaran Lunas</AlertDialogTitle>
-            <AlertDialogDescription>
-              Masukkan jumlah pembayaran untuk menandai sebagai lunas.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <form onSubmit={handleSubmit}>
-            <div className="grid gap-4 py-4">
-              <div className="grid w-full max-w-sm items-center gap-1.5">
-                <Label htmlFor="payment">Jumlah Pembayaran</Label>
-                <Input
-                  type="number"
-                  name="payment"
-                  value={formData.payment}
-                  onChange={handleChange}
-                  className="mt-1 p-2 w-full border border-gray-300 rounded-lg"
-                />
-              </div>
+    <AlertDialog open={open} onOpenChange={handleOpenChange}>
+      <AlertDialogContent className="sm:max-w-[425px]">
+        <AlertDialogHeader>
+          <AlertDialogTitle>Pembayaran Lunas</AlertDialogTitle>
+          <AlertDialogDescription>
+            {row?.id ? `Undangan #${row.id}. ` : ""}
+            Masukkan jumlah pembayaran untuk menandai undangan sebagai lunas.
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <form onSubmit={handleSubmit} noValidate>
+          <div className="grid gap-4 py-4">
+            <div className="grid gap-1.5">
+              <Label htmlFor="payment-amount">Jumlah Pembayaran (Rp)</Label>
+              <Input
+                id="payment-amount"
+                type="number"
+                name="payment"
+                min="0"
+                max="2147483647"
+                step="1"
+                required
+                value={payment}
+                onChange={(event) => setPayment(event.target.value)}
+                disabled={isLoading}
+                aria-invalid={Boolean(error)}
+                aria-describedby={error ? "payment-error" : undefined}
+              />
             </div>
-            <AlertDialogFooter className="gap-2">
-              <AlertDialogCancel>Cancel</AlertDialogCancel>
-              <Button type="submit" disabled={isLoading}>
-                {isLoading ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Submit
-                  </>
-                ) : (
-                  "Submit"
-                )}
-              </Button>
-            </AlertDialogFooter>
-          </form>
-        </AlertDialogContent>
-      </AlertDialog>
-    </>
+            {error ? (
+              <p id="payment-error" role="alert" className="text-sm text-red-600">
+                {error}
+              </p>
+            ) : null}
+          </div>
+          <AlertDialogFooter className="gap-2">
+            <AlertDialogCancel type="button" disabled={isLoading}>
+              Kembali
+            </AlertDialogCancel>
+            <Button type="submit" disabled={isLoading}>
+              {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+              {isLoading ? "Menyimpan..." : "Tandai Lunas"}
+            </Button>
+          </AlertDialogFooter>
+        </form>
+      </AlertDialogContent>
+    </AlertDialog>
   );
 }

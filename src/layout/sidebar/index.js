@@ -4,7 +4,7 @@ import Link from "next/link";
 import { redirect, usePathname, useRouter } from "next/navigation";
 import { SlHome } from "react-icons/sl";
 import { FaListUl, FaClipboardList } from "react-icons/fa";
-import { BiLogOut, BiUser, BiMenu, BiMoney, BiHeartSquare, BiImages, BiSolidMusic, BiUserPlus, BiUserCircle, BiCog, BiX, BiImage, BiChat, BiFolder } from "react-icons/bi";
+import { BiLogOut, BiUser, BiMoney, BiHeartSquare, BiImages, BiSolidMusic, BiUserPlus, BiUserCircle, BiCog, BiImage, BiChat, BiFolder } from "react-icons/bi";
 import Image from "next/image";
 
 import logo from "../../../public/logo/Sewa.png";
@@ -15,11 +15,10 @@ import { getCompanyProfile } from "@/lib/company";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { ChevronDown } from "lucide-react";
 
-export default function Sidebar({ authenticated }) {
+export default function Sidebar({ authenticated, className, mobileOpen, desktopCollapsed, onMobileClose }) {
     const router = useRouter();
     const pathname = usePathname();
     const [isAdmin, setIsAdmin] = useState(0);
-    const [isSidebarOpen, setIsSidebarOpen] = useState(false); // State to handle sidebar visibility
     const [company, setCompany] = useState(null);
     const [profileLoading, setProfileLoading] = useState(false);
     const [isFileManagerOpen, setFileManagerOpen] = useState(false);
@@ -73,12 +72,6 @@ export default function Sidebar({ authenticated }) {
         ? `${process.env.NEXT_PUBLIC_API_URL}/asset/${company.logo}`
         : null;
 
-    // Define base class for sidebar
-    const className =
-        "pt-10 bg-white w-[300px] transition-transform ease-in-out duration-500 top-0 bottom-0 left-0 z-40 border-r fixed";
-    // Append class based on sidebar visibility state
-    const appendClass = isSidebarOpen ? " translate-x-0" : " -translate-x-full xl:translate-x-0";
-
     // Clickable menu items
     const MenuItem = ({ icon, name, route, onClick }) => {
         const isActive = route === "/admin/list"
@@ -88,7 +81,11 @@ export default function Sidebar({ authenticated }) {
         return (
             <Link
                 href={route !== "#logout" ? route : "#"}
-                onClick={onClick}
+                onClick={(event) => {
+                    onMobileClose?.();
+                    onClick?.(event);
+                }}
+                aria-current={isActive ? "page" : undefined}
                 className={`flex gap-1 [&>*]:my-auto text-sm pl-6 py-3 border-b-[1px] border-b-white/10 ${colorClass}`}
             >
                 <div className="text-xl flex [&>*]:mx-auto w-[30px]">
@@ -98,16 +95,6 @@ export default function Sidebar({ authenticated }) {
             </Link>
         );
     };
-
-    // Overlay to prevent background clicks, also serves as close button for mobile
-    const ModalOverlay = () => (
-        <div
-            className={`fixed xl:hidden top-0 right-0 bottom-0 left-0 bg-black/50 z-30`}
-            onClick={() => {
-                setIsSidebarOpen(false); // Close the sidebar when clicking outside
-            }}
-        />
-    );
 
     const handleLogout = async () => {
         try {
@@ -121,20 +108,14 @@ export default function Sidebar({ authenticated }) {
     };
 
     return (
-        <>
-            {/* Mobile toggle button */}
-            <div className="xl:hidden fixed top-4 left-4 z-50">
-                <button
-                    onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-                    className="text-3xl text-black p-2"
-                >
-                    {isSidebarOpen ? <BiX /> : <BiMenu />}
-                </button>
-            </div>
-
-            {/* Sidebar */}
-            <div className={`${className}${appendClass}`}>
-                <div className="p-2 flex items-center justify-center">
+            <aside
+                id="admin-sidebar"
+                aria-label="Navigasi admin"
+                className={className}
+                data-mobile-open={mobileOpen}
+                data-desktop-collapsed={desktopCollapsed}
+            >
+                <div className="shrink-0 p-4 flex items-center justify-center">
                     <Link href="#">
                         {profileLoading ? (
                             <div className="animate-pulse bg-gray-200 rounded-full w-24 h-24"></div>
@@ -158,7 +139,7 @@ export default function Sidebar({ authenticated }) {
                     </Link>
                 </div>
                 {/* Scrollable menu items */}
-                <div className="flex flex-col overflow-y-auto max-h-[calc(100vh-150px)] pb-4">
+                <nav className="flex min-h-0 flex-1 flex-col overflow-y-auto pb-4">
                     {isAdmin === 1 && (
                         <MenuItem name="Dashboard" route="/admin/dashboard" icon={<SlHome />} />
                     )}
@@ -223,11 +204,7 @@ export default function Sidebar({ authenticated }) {
 
                     <MenuItem name="Logout" route="#logout" icon={<BiLogOut />} onClick={handleLogout} />
 
-                </div>
-            </div>
-
-            {/* Overlay for mobile when the sidebar is open */}
-            {isSidebarOpen && <ModalOverlay />}
-        </>
+                </nav>
+            </aside>
     );
 }

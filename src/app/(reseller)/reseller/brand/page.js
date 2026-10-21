@@ -106,7 +106,7 @@ export default function ResellerBrand() {
       <div><h1 className="text-2xl font-semibold">Pengaturan Brand</h1><p className="mt-2 text-sm text-muted-foreground">Atur nama dan logo brand Anda.</p></div>
       {error && <ResellerError message={error} onRetry={reload} />}
       <Card>
-        <CardHeader><CardTitle className="text-lg">Identitas Brand</CardTitle><CardDescription>Nama dan logo brand dapat diperbarui. Slug brand ditetapkan oleh admin.</CardDescription></CardHeader>
+        <CardHeader><CardTitle className="text-lg">Identitas Brand</CardTitle><CardDescription>Nama dan logo brand dapat diperbarui. Subdomain brand ditetapkan oleh admin.</CardDescription></CardHeader>
         <CardContent>
           {loading ? <div className="space-y-5" role="status" aria-label="Memuat pengaturan brand"><Skeleton className="h-10 w-full" /><Skeleton className="h-28 w-28" /><Skeleton className="h-10 w-full" /></div> : (
             <form onSubmit={handleSubmit} className="space-y-6">
