@@ -20,11 +20,29 @@ async function loadComponent(path, props = {}, putResponse, { getResponse } = {}
     fileName: 'component.jsx',
     compilerOptions: { jsx: ts.JsxEmit.ReactJSX, module: ts.ModuleKind.ESNext, target: ts.ScriptTarget.ES2022 },
   });
-  const context = vm.createContext({ process: { env: { NEXT_PUBLIC_API_URL: 'https://api.example.test' } }, AbortController });
+  const objectUrls = { created: [], revoked: [] };
+  class MockFormData {
+    values = [];
+    append(key, value) { this.values.push([key, value]); }
+    entries() { return this.values[Symbol.iterator](); }
+  }
+  const context = vm.createContext({
+    process: { env: { NEXT_PUBLIC_API_URL: 'https://api.example.test' } },
+    AbortController,
+    FormData: MockFormData,
+    URL: class extends URL {
+      static createObjectURL(file) {
+        objectUrls.created.push(file);
+        return `blob:brand-logo-${objectUrls.created.length}`;
+      }
+      static revokeObjectURL(url) { objectUrls.revoked.push(url); }
+    },
+  });
   const mock = values => new vm.SyntheticModule(Object.keys(values), function () {
     for (const [name, value] of Object.entries(values)) this.setExport(name, value);
   }, { context });
   const helper = new vm.SourceTextModule(await readFile(new URL('../src/lib/adminResellerBrand.js', import.meta.url), 'utf8'), { context });
+  const resellerHelper = new vm.SourceTextModule(await readFile(new URL('../src/lib/resellerBrand.js', import.meta.url), 'utf8'), { context });
   const state = [];
   const refs = [];
   const callbacks = [];
@@ -48,7 +66,8 @@ async function loadComponent(path, props = {}, putResponse, { getResponse } = {}
     },
     put: async (...args) => {
       requests.push(['put', ...args]);
-      return putResponse ? putResponse(...args) : { data: { message: 'Berhasil', customer: { ...customer, ...args[1] } } };
+      const payload = args[1] instanceof MockFormData ? Object.fromEntries(args[1].entries()) : args[1];
+      return putResponse ? putResponse(...args) : { data: { message: 'Berhasil', customer: { ...customer, ...payload } } };
     },
   };
   const uiNames = ['Button', 'Badge', 'Input', 'Label', 'Card', 'CardContent', 'CardHeader', 'CardDescription', 'CardTitle', 'Select', 'SelectContent', 'SelectItem', 'SelectTrigger', 'SelectValue', 'AlertDialog', 'AlertDialogCancel', 'AlertDialogContent', 'AlertDialogDescription', 'AlertDialogFooter', 'AlertDialogHeader', 'AlertDialogTitle'];
@@ -80,11 +99,14 @@ async function loadComponent(path, props = {}, putResponse, { getResponse } = {}
       },
     });
     if (specifier === 'axios') return mock({ default: axios });
+    if (specifier === 'next/image') return mock({ default: 'Image' });
+    if (specifier === 'lucide-react') return mock({ ExternalLink: 'ExternalLink' });
     if (specifier === 'next/link') return mock({ default: 'Link' });
     if (specifier === 'react-data-table-component') return mock({ default: 'DataTable' });
     if (specifier === 'react-debounce-input') return mock({ DebounceInput: 'DebounceInput' });
     if (specifier === '@/components/ui/use-toast') return mock({ toast: value => notifications.push(value) });
     if (specifier === '@/lib/adminResellerBrand') return helper;
+    if (specifier === '@/lib/resellerBrand') return resellerHelper;
     return mock(Object.fromEntries(uiNames.map(name => [name, name])));
   });
   await component.evaluate();
@@ -120,7 +142,7 @@ async function loadComponent(path, props = {}, putResponse, { getResponse } = {}
     const actionColumn = table.props.columns.find(column => column.name === 'Aksi');
     nodes(actionColumn.cell(row)).find(node => node.type === 'Button' && node.props.onClick).props.onClick();
   };
-  return { render, find, byId, openRoleDialog, flushEffects, requests, notifications, helper: helper.namespace };
+  return { render, find, byId, openRoleDialog, flushEffects, requests, notifications, objectUrls, helper: helper.namespace };
 }
 
 async function loadPromotionEditor(screen, row = customer) {
@@ -262,6 +284,23 @@ test('manual slug sanitization removes spaces, punctuation, Unicode, and URL cha
 });
 
 for (const screen of ['modal', 'account']) {
+  test(`${screen}: the subdomain icon opens the current valid brand address in a new tab`, async () => {
+    const editor = await loadPromotionEditor(screen);
+    const link = () => editor.find(node => node.type === 'a' && node.props['aria-label'] === 'Buka subdomain brand');
+    assert.equal(link(), undefined);
+    editor.nameInput().props.onChange(change('Toko Bunga'));
+    assert.equal(link().props.href, 'https://toko-bunga.sewaundangan.com');
+    assert.equal(link().props.target, '_blank');
+    assert.equal(link().props.rel, 'noopener noreferrer');
+    assert.ok(nodes(link()).some(node => node.type === 'ExternalLink'));
+    editor.slugInput().props.onChange(change('bungaku'));
+    assert.equal(link().props.href, 'https://bungaku.sewaundangan.com');
+    editor.slugInput().props.onChange(change('bunga-'));
+    assert.equal(link(), undefined);
+    editor.slugInput().props.onChange(change('ab'));
+    assert.equal(link(), undefined);
+  });
+
   test(`${screen}: typing forbidden characters leaves the automatic slug following the brand name`, async () => {
     const editor = await loadPromotionEditor(screen);
     editor.nameInput().props.onChange(change('Toko Bunga'));
@@ -323,6 +362,151 @@ for (const screen of ['modal', 'account']) {
     }
   });
 }
+
+const resellerCustomer = {
+  ...customer, role: 'reseller', brandName: 'Toko Bunga', brandSlug: 'bungaku', brandLogo: '/uploads/old-logo.png',
+};
+
+function logoInput(fixture) {
+  return fixture.byId('customer-brand-logo');
+}
+
+function logoImage(fixture) {
+  return fixture.find(node => node.type === 'Image' && node.props.alt === 'Logo brand');
+}
+
+function selectLogo(fixture, file) {
+  const target = { files: file ? [file] : [], value: file ? `C:\\fakepath\\${file.name}` : '' };
+  logoInput(fixture).props.onChange({ target });
+  return target;
+}
+
+test('admin can preview and upload a brand logo with the edited account fields', async () => {
+  let saved;
+  const fixture = await loadComponent('components/admin/CustomerAccountForm.js', {
+    customer: resellerCustomer, onSaved: value => { saved = value; },
+  }, async (_url, payload) => ({ data: {
+    message: 'Berhasil', customer: { ...resellerCustomer, ...Object.fromEntries(payload.entries()), brandLogo: '/uploads/new-logo.webp' },
+  } }));
+  await fixture.flushEffects();
+  assert.equal(logoInput(fixture).props.name, 'brandLogo');
+  assert.equal(logoInput(fixture).props.type, 'file');
+  assert.equal(logoInput(fixture).props.accept, 'image/jpeg,image/png,image/webp');
+  assert.equal(logoImage(fixture).props.src, 'https://api.example.test/uploads/old-logo.png');
+  const file = { name: 'new-logo.webp', type: 'image/webp', size: 1024 };
+  const inputElement = { value: 'C:\\fakepath\\new-logo.webp' };
+  logoInput(fixture).props.ref.current = inputElement;
+  selectLogo(fixture, file);
+  fixture.byId('customer-name').props.onChange(change('  Customer Baru  '));
+  fixture.byId('customer-email').props.onChange(change('  CUSTOMER@EXAMPLE.COM  '));
+  fixture.byId('customer-contact').props.onChange(change('  081234567890  '));
+  fixture.byId('customer-brand-name').props.onChange(change('  Toko Baru  '));
+  await fixture.flushEffects();
+  assert.equal(fixture.requests.length, 0);
+  assert.equal(logoImage(fixture).props.src, 'blob:brand-logo-1');
+  await fixture.find(node => node.type === 'form').props.onSubmit(submit);
+  assert.equal(fixture.requests.length, 1);
+  const [method, url, body, options] = fixture.requests[0];
+  assert.equal(method, 'put');
+  assert.equal(url, 'https://api.example.test/customer/7');
+  assert.deepEqual(Object.fromEntries(body.entries()), {
+    name: 'Customer Baru', email: 'customer@example.com', contact: '081234567890', role: 'reseller',
+    brandName: 'Toko Baru', brandSlug: 'bungaku', brandLogo: file,
+  });
+  assert.equal(options.withCredentials, true);
+  assert.equal(saved.brandLogo, '/uploads/new-logo.webp');
+  assert.equal(inputElement.value, '');
+  await fixture.flushEffects();
+  assert.equal(logoImage(fixture).props.src, 'https://api.example.test/uploads/new-logo.webp');
+  assert.deepEqual(fixture.objectUrls.revoked, ['blob:brand-logo-1']);
+});
+
+test('admin rejects unsupported and oversized brand logos before a file can be uploaded', async () => {
+  for (const file of [
+    { name: 'logo.svg', type: 'image/svg+xml', size: 1024 },
+    { name: 'logo.png', type: 'image/png', size: 5 * 1024 * 1024 + 1 },
+  ]) {
+    const fixture = await loadComponent('components/admin/CustomerAccountForm.js', { customer: resellerCustomer, onSaved() {} });
+    const input = selectLogo(fixture, file);
+    await fixture.flushEffects();
+    assert.equal(input.value, '');
+    assert.equal(fixture.requests.length, 0);
+    assert.equal(fixture.notifications[0].variant, 'destructive');
+    assert.equal(fixture.notifications[0].title, 'Logo tidak valid');
+    assert.equal(logoImage(fixture).props.src, 'https://api.example.test/uploads/old-logo.png');
+    await fixture.find(node => node.type === 'form').props.onSubmit(submit);
+    assert.equal(typeof fixture.requests[0][2].entries, 'undefined');
+    assert.equal('brandLogo' in fixture.requests[0][2], false);
+  }
+});
+
+test('admin accepts JPG, PNG, and WebP logos up to the 5 MB limit', async () => {
+  for (const [type, extension] of [['image/jpeg', 'jpg'], ['image/png', 'png'], ['image/webp', 'webp']]) {
+    const fixture = await loadComponent('components/admin/CustomerAccountForm.js', { customer: resellerCustomer, onSaved() {} });
+    const file = { name: `logo.${extension}`, type, size: 5 * 1024 * 1024 };
+    selectLogo(fixture, file);
+    await fixture.find(node => node.type === 'form').props.onSubmit(submit);
+    assert.equal(Object.fromEntries(fixture.requests[0][2].entries()).brandLogo, file);
+    assert.equal(fixture.notifications.some(notice => notice.variant === 'destructive'), false);
+  }
+});
+
+test('canceling admin changes restores the saved logo and clears its pending upload', async () => {
+  const fixture = await loadComponent('components/admin/CustomerAccountForm.js', { customer: resellerCustomer, onSaved() {} });
+  const file = { name: 'new-logo.png', type: 'image/png', size: 1024 };
+  const inputElement = { value: 'C:\\fakepath\\new-logo.png' };
+  logoInput(fixture).props.ref.current = inputElement;
+  selectLogo(fixture, file);
+  fixture.byId('customer-brand-name').props.onChange(change('Brand Belum Disimpan'));
+  await fixture.flushEffects();
+  assert.equal(logoImage(fixture).props.src, 'blob:brand-logo-1');
+  fixture.find(node => node.type === 'Button' && node.props.children === 'Batal Perubahan').props.onClick();
+  await fixture.flushEffects();
+  assert.equal(inputElement.value, '');
+  assert.equal(fixture.byId('customer-brand-name').props.value, 'Toko Bunga');
+  assert.equal(logoImage(fixture).props.src, 'https://api.example.test/uploads/old-logo.png');
+  assert.deepEqual(fixture.objectUrls.revoked, ['blob:brand-logo-1']);
+  await fixture.find(node => node.type === 'form').props.onSubmit(submit);
+  assert.equal(typeof fixture.requests[0][2].entries, 'undefined');
+});
+
+test('a failed admin save preserves the draft logo and account changes for retry', async () => {
+  const fixture = await loadComponent('components/admin/CustomerAccountForm.js', { customer: resellerCustomer, onSaved() {} }, async () => {
+    throw { response: { data: { message: 'Gagal mengunggah logo brand.' } } };
+  });
+  const file = { name: 'new-logo.png', type: 'image/png', size: 1024 };
+  const inputElement = { value: 'C:\\fakepath\\new-logo.png' };
+  logoInput(fixture).props.ref.current = inputElement;
+  selectLogo(fixture, file);
+  fixture.byId('customer-brand-name').props.onChange(change('Brand Baru'));
+  await fixture.flushEffects();
+  await fixture.find(node => node.type === 'form').props.onSubmit(submit);
+  await fixture.flushEffects();
+  assert.equal(fixture.find(node => node.props?.role === 'alert').props.children, 'Gagal mengunggah logo brand.');
+  assert.equal(fixture.byId('customer-brand-name').props.value, 'Brand Baru');
+  assert.equal(logoImage(fixture).props.src, 'blob:brand-logo-1');
+  assert.equal(inputElement.value, 'C:\\fakepath\\new-logo.png');
+  assert.deepEqual(fixture.objectUrls.revoked, []);
+  await fixture.find(node => node.type === 'form').props.onSubmit(submit);
+  assert.equal(Object.fromEntries(fixture.requests[1][2].entries()).brandLogo, file);
+});
+
+test('switching a reseller back to user discards its unsaved logo selection', async () => {
+  const fixture = await loadComponent('components/admin/CustomerAccountForm.js', { customer: resellerCustomer, onSaved() {} });
+  const file = { name: 'new-logo.png', type: 'image/png', size: 1024 };
+  const inputElement = { value: 'C:\\fakepath\\new-logo.png' };
+  logoInput(fixture).props.ref.current = inputElement;
+  selectLogo(fixture, file);
+  await fixture.flushEffects();
+  fixture.find(node => node.type === 'Select').props.onValueChange('user');
+  await fixture.flushEffects();
+  assert.equal(logoInput(fixture), undefined);
+  assert.equal(inputElement.value, '');
+  assert.deepEqual(fixture.objectUrls.revoked, ['blob:brand-logo-1']);
+  await fixture.find(node => node.type === 'form').props.onSubmit(submit);
+  assert.equal(fixture.requests[0][2].role, 'user');
+  assert.equal('brandLogo' in fixture.requests[0][2], false);
+});
 
 function roleFilter(fixture) {
   return fixture.find(node => node.type === 'Select' && nodes(node.props.children).some(child => child.props?.id === 'customer-role-filter'));

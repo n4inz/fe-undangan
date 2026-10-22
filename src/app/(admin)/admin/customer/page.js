@@ -3,6 +3,7 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { DebounceInput } from 'react-debounce-input';
 import DataTable from 'react-data-table-component';
 import Link from 'next/link';
+import { ExternalLink } from 'lucide-react';
 import axios from 'axios';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -20,6 +21,7 @@ import {
 } from '@/components/ui/alert-dialog';
 import { toast } from '@/components/ui/use-toast';
 import { BRAND_SLUG_PATTERN, createBrandSlug, hasCustomBrandSlug, sanitizeBrandSlugInput, validateAdminResellerBrand } from '@/lib/adminResellerBrand';
+import { brandSubdomainUrl } from '@/lib/resellerBrand';
 
 const tableStyles = {
   table: { style: { minWidth: '970px' } },
@@ -49,6 +51,7 @@ const Customer = () => {
   const latestRequest = useRef(0);
   const isPromotion = selectedRow && selectedRow.role !== 'reseller';
   const brandError = isPromotion ? validateAdminResellerBrand(brandValues) : '';
+  const subdomainUrl = brandSubdomainUrl(brandValues.brandSlug);
 
   const fetchData = useCallback(async (page, limit, searchQuery, role, signal) => {
     const requestId = ++latestRequest.current;
@@ -252,7 +255,13 @@ const Customer = () => {
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="reseller-brand-slug">Subdomain Brand</Label>
-                  <Input id="reseller-brand-slug" name="brandSlug" value={brandValues.brandSlug} onChange={handleBrandSlugChange} minLength={3} maxLength={63} pattern={BRAND_SLUG_PATTERN} autoCapitalize="none" autoCorrect="off" spellCheck={false} required placeholder="toko-bunga" aria-describedby="reseller-brand-slug-hint" />
+                  <div className="flex items-center gap-2">
+                    <div className="flex min-w-0 flex-1">
+                      <Input id="reseller-brand-slug" name="brandSlug" value={brandValues.brandSlug} onChange={handleBrandSlugChange} minLength={3} maxLength={63} pattern={BRAND_SLUG_PATTERN} autoCapitalize="none" autoCorrect="off" spellCheck={false} required placeholder="toko-bunga" className="min-w-0 rounded-r-none" aria-describedby="reseller-brand-domain reseller-brand-slug-hint" />
+                      <span id="reseller-brand-domain" className="inline-flex shrink-0 items-center rounded-r-md border border-l-0 border-input bg-muted px-3 text-sm text-muted-foreground">.sewaundangan.com</span>
+                    </div>
+                    {subdomainUrl && <Button asChild variant="outline" size="icon" className="shrink-0"><a href={subdomainUrl} target="_blank" rel="noopener noreferrer" aria-label="Buka subdomain brand" title={subdomainUrl}><ExternalLink className="h-4 w-4" aria-hidden="true" /></a></Button>}
+                  </div>
                   <p id="reseller-brand-slug-hint" className="text-xs text-muted-foreground">Digunakan sebagai alamat link brand.</p>
                 </div>
               </fieldset>

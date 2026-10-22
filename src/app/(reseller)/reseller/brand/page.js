@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import Image from 'next/image';
-import { Loader2 } from 'lucide-react';
+import { ExternalLink, Loader2 } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -11,7 +11,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { toast } from '@/components/ui/use-toast';
 import { getResellerError, useResellerRequest, useResellerBrandSettings } from '@/components/reseller/api';
 import { ResellerError } from '@/components/reseller/ResellerShared';
-import { brandLogoUrl } from '@/lib/resellerBrand';
+import { brandLogoUrl, brandSubdomainUrl } from '@/lib/resellerBrand';
 
 const emptyBrand = { brandName: '', brandSlug: '', brandLogo: '' };
 const allowedLogoTypes = ['image/jpeg', 'image/png', 'image/webp'];
@@ -87,6 +87,7 @@ export default function ResellerBrand() {
   };
 
   const displayedLogo = preview || brandLogoUrl(form.brandLogo);
+  const subdomainUrl = brandSubdomainUrl(savedBrand.brandSlug);
   const shareLinks = savedBrand.brandSlug && savedBrand.brandName ? [
     { label: 'Wedding', url: `${origin}/forms/new?brand=${encodeURIComponent(savedBrand.brandSlug)}` },
     { label: 'Aqiqah / Khitan', url: `${origin}/forms/aqiqah-khitan/new?brand=${encodeURIComponent(savedBrand.brandSlug)}` },
@@ -120,8 +121,14 @@ export default function ResellerBrand() {
                   <p id="brand-logo-help" className="text-xs text-muted-foreground">JPG, PNG, atau WebP. Maksimal 5 MB.</p>
                 </div>
                 <div className="space-y-2">
-                  <p className="text-sm font-medium">Slug Brand</p>
-                  <p className="rounded-md border bg-muted/50 px-3 py-2 text-sm">{savedBrand.brandSlug || 'Belum ditentukan admin'}</p>
+                  <p className="text-sm font-medium">Subdomain Brand</p>
+                  <div className="flex items-center gap-2">
+                    <p className="flex min-w-0 flex-1 overflow-hidden rounded-md border border-input bg-muted/50 text-sm">
+                      <span className="min-w-0 flex-1 break-all px-3 py-2">{savedBrand.brandSlug || 'Belum ditentukan admin'}</span>
+                      {savedBrand.brandSlug && <span className="shrink-0 border-l border-input bg-muted px-3 py-2 text-muted-foreground">.sewaundangan.com</span>}
+                    </p>
+                    {subdomainUrl && <Button asChild variant="outline" size="icon" className="shrink-0"><a href={subdomainUrl} target="_blank" rel="noopener noreferrer" aria-label="Buka subdomain brand" title={subdomainUrl}><ExternalLink className="h-4 w-4" aria-hidden="true" /></a></Button>}
+                  </div>
                   <p className="text-xs text-muted-foreground">Slug bersifat tetap dan tidak dapat diubah.</p>
                 </div>
                 <Button type="submit">{saving && <Loader2 className="h-4 w-4 animate-spin" />}{saving ? 'Menyimpan...' : 'Simpan Brand'}</Button>

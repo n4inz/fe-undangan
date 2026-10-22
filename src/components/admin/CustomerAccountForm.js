@@ -1,6 +1,8 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import Image from 'next/image';
+import { ExternalLink } from 'lucide-react';
 import axios from 'axios';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -9,6 +11,9 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from '@/components/ui/use-toast';
 import { BRAND_SLUG_PATTERN, createBrandSlug, hasCustomBrandSlug, sanitizeBrandSlugInput, validateAdminResellerBrand } from '@/lib/adminResellerBrand';
+import { brandLogoUrl, brandSubdomainUrl } from '@/lib/resellerBrand';
+
+const allowedLogoTypes = ['image/jpeg', 'image/png', 'image/webp'];
 
 const accountValues = customer => ({
   name: customer.name || '',
@@ -17,6 +22,7 @@ const accountValues = customer => ({
   role: customer.role || 'user',
   brandName: customer.brandName || '',
   brandSlug: customer.brandSlug || '',
+  brandLogo: customer.brandLogo || '',
 });
 
 export default function CustomerAccountForm({ customer, onSaved }) {
@@ -24,10 +30,44 @@ export default function CustomerAccountForm({ customer, onSaved }) {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
   const [slugEdited, setSlugEdited] = useState(() => hasCustomBrandSlug(customer));
+  const [logo, setLogo] = useState(null);
+  const [preview, setPreview] = useState('');
+  const fileInput = useRef(null);
   const editable = customer.isAdmin === 0 && ['user', 'reseller'].includes(customer.role);
   const brandError = values.role === 'reseller' ? validateAdminResellerBrand(values) : '';
+  const subdomainUrl = brandSubdomainUrl(values.brandSlug);
+  const displayedLogo = preview || brandLogoUrl(values.brandLogo);
+
+  useEffect(() => {
+    if (!logo) {
+      setPreview('');
+      return;
+    }
+    const objectUrl = URL.createObjectURL(logo);
+    setPreview(objectUrl);
+    return () => URL.revokeObjectURL(objectUrl);
+  }, [logo]);
+
+  const clearLogo = () => {
+    setLogo(null);
+    setPreview('');
+    if (fileInput.current) fileInput.current.value = '';
+  };
+
+  const handleLogo = event => {
+    const file = event.target.files?.[0];
+    if (file && (!allowedLogoTypes.includes(file.type) || file.size > 5 * 1024 * 1024)) {
+      event.target.value = '';
+      clearLogo();
+      toast({ variant: 'destructive', title: 'Logo tidak valid', description: 'Gunakan gambar JPG, PNG, atau WebP dengan ukuran maksimal 5 MB.' });
+      return;
+    }
+    setLogo(file || null);
+    setError('');
+  };
 
   const changeValue = (field, value) => {
+    if (field === 'role' && value !== 'reseller') clearLogo();
     if (field === 'brandSlug') {
       value = sanitizeBrandSlugInput(value);
       if (value === values.brandSlug) return;
@@ -56,20 +96,28 @@ export default function CustomerAccountForm({ customer, onSaved }) {
     setError('');
 
     try {
+      const profile = {
+        name: values.name.trim(),
+        email: values.email.trim().toLowerCase(),
+        contact: values.contact.trim(),
+        role: values.role,
+        brandName: values.brandName.trim(),
+        brandSlug: values.brandSlug.trim().toLowerCase(),
+      };
+      let payload = profile;
+      if (logo && values.role === 'reseller') {
+        payload = new FormData();
+        Object.entries(profile).forEach(([key, value]) => payload.append(key, value));
+        payload.append('brandLogo', logo);
+      }
       const response = await axios.put(
         `${process.env.NEXT_PUBLIC_API_URL}/customer/${customer.id}`,
-        {
-          name: values.name.trim(),
-          email: values.email.trim().toLowerCase(),
-          contact: values.contact.trim(),
-          role: values.role,
-          brandName: values.brandName.trim(),
-          brandSlug: values.brandSlug.trim().toLowerCase(),
-        },
+        payload,
         { withCredentials: true }
       );
       setValues(accountValues(response.data.customer));
       setSlugEdited(hasCustomBrandSlug(response.data.customer));
+      clearLogo();
       onSaved(response.data.customer);
       toast({ title: response.data.message || 'Data customer berhasil disimpan.' });
     } catch (error) {
@@ -123,8 +171,20 @@ export default function CustomerAccountForm({ customer, onSaved }) {
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="customer-brand-slug">Subdomain Brand</Label>
-                  <Input id="customer-brand-slug" name="brandSlug" value={values.brandSlug} onChange={event => changeValue('brandSlug', event.target.value)} minLength={3} maxLength={63} pattern={BRAND_SLUG_PATTERN} autoCapitalize="none" autoCorrect="off" spellCheck={false} required placeholder="contoh-brand" aria-describedby="customer-brand-slug-hint" />
+                  <div className="flex items-center gap-2">
+                    <div className="flex min-w-0 flex-1">
+                      <Input id="customer-brand-slug" name="brandSlug" value={values.brandSlug} onChange={event => changeValue('brandSlug', event.target.value)} minLength={3} maxLength={63} pattern={BRAND_SLUG_PATTERN} autoCapitalize="none" autoCorrect="off" spellCheck={false} required placeholder="contoh-brand" className="min-w-0 rounded-r-none" aria-describedby="customer-brand-domain customer-brand-slug-hint" />
+                      <span id="customer-brand-domain" className="inline-flex shrink-0 items-center rounded-r-md border border-l-0 border-input bg-muted px-3 text-sm text-muted-foreground">.sewaundangan.com</span>
+                    </div>
+                    {subdomainUrl && <Button asChild variant="outline" size="icon" className="shrink-0"><a href={subdomainUrl} target="_blank" rel="noopener noreferrer" aria-label="Buka subdomain brand" title={subdomainUrl}><ExternalLink className="h-4 w-4" aria-hidden="true" /></a></Button>}
+                  </div>
                   <p id="customer-brand-slug-hint" className="text-xs text-muted-foreground">Digunakan sebagai alamat link brand.</p>
+                </div>
+                <div className="space-y-2 md:col-span-2">
+                  <Label htmlFor="customer-brand-logo">Logo Brand</Label>
+                  {displayedLogo && <div className="w-fit rounded-lg border bg-white p-3"><Image src={displayedLogo} alt="Logo brand" width={128} height={128} unoptimized className="h-32 w-32 object-contain" /></div>}
+                  <Input ref={fileInput} id="customer-brand-logo" name="brandLogo" type="file" accept="image/jpeg,image/png,image/webp" onChange={handleLogo} aria-describedby="customer-brand-logo-hint" />
+                  <p id="customer-brand-logo-hint" className="text-xs text-muted-foreground">JPG, PNG, atau WebP. Maksimal 5 MB. Pilih gambar untuk menambah atau mengganti logo brand.</p>
                 </div>
               </>
             )}
@@ -136,7 +196,7 @@ export default function CustomerAccountForm({ customer, onSaved }) {
           {editable && (
             <div className="flex flex-wrap gap-2">
               <Button type="submit" disabled={saving || Boolean(brandError)}>{saving ? 'Menyimpan...' : 'Simpan Perubahan'}</Button>
-              <Button type="button" variant="outline" disabled={saving} onClick={() => { setValues(accountValues(customer)); setSlugEdited(hasCustomBrandSlug(customer)); setError(''); }}>Batal Perubahan</Button>
+              <Button type="button" variant="outline" disabled={saving} onClick={() => { setValues(accountValues(customer)); setSlugEdited(hasCustomBrandSlug(customer)); clearLogo(); setError(''); }}>Batal Perubahan</Button>
             </div>
           )}
         </form>

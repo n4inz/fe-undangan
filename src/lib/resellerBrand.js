@@ -8,6 +8,11 @@ export function readBrandQuery(searchParams) {
   return { requested: true, slug, error: null };
 }
 
+export function brandSubdomainUrl(slug) {
+  if (typeof slug !== 'string' || slug.length < 3 || slug.length > 63 || !/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(slug)) return '';
+  return `https://${slug}.sewaundangan.com`;
+}
+
 export function brandLogoUrl(path) {
   if (typeof path !== 'string' || !path) return '';
   if (/^https?:\/\//i.test(path)) return path;

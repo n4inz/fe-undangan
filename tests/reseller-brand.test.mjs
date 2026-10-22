@@ -72,7 +72,7 @@ async function brandSettingsHarness({ brand, requestError } = {}) {
       } }),
     });
     if (specifier.endsWith('/use-toast')) return mock({ toast: value => notices.push(value) });
-    const names = ['default', 'Loader2', 'Card', 'CardContent', 'CardDescription', 'CardHeader', 'CardTitle', 'Button', 'Input', 'Label', 'Skeleton', 'ResellerError'];
+    const names = ['default', 'Loader2', 'ExternalLink', 'Card', 'CardContent', 'CardDescription', 'CardHeader', 'CardTitle', 'Button', 'Input', 'Label', 'Skeleton', 'ResellerError'];
     return mock(Object.fromEntries(names.map(name => [name, name])));
   });
   await component.evaluate();
@@ -95,7 +95,12 @@ test('reseller brand settings expose only name and logo editing while preserving
   const tree = nodes(app.render());
   assert.deepEqual(tree.filter(node => node.type === 'Input').map(node => node.props.name), ['brandName', 'brandLogo']);
   assert.match(JSON.stringify(tree), /slug-permanen/);
-  assert.deepEqual(tree.filter(node => node.type === 'a').map(node => node.props.href), [
+  const subdomain = tree.find(node => node.type === 'a' && node.props['aria-label'] === 'Buka subdomain brand');
+  assert.equal(subdomain.props.href, 'https://slug-permanen.sewaundangan.com');
+  assert.equal(subdomain.props.target, '_blank');
+  assert.equal(subdomain.props.rel, 'noopener noreferrer');
+  assert.ok(nodes(subdomain).some(node => node.type === 'ExternalLink'));
+  assert.deepEqual(tree.filter(node => node.type === 'a' && node !== subdomain).map(node => node.props.href), [
     'https://invitation.example.test/forms/new?brand=slug-permanen',
     'https://invitation.example.test/forms/aqiqah-khitan/new?brand=slug-permanen',
   ]);
@@ -123,7 +128,8 @@ test('saving reseller branding sends only trimmed name and selected logo', async
   assert.match(app.notices[0].title, /berhasil/);
   const savedTree = nodes(app.render());
   assert.equal(savedTree.find(node => node.props?.name === 'brandName').props.value, 'Brand Baru');
-  assert.equal(savedTree.filter(node => node.type === 'a').every(node => node.props.href.endsWith('brand=slug-permanen')), true);
+  assert.equal(savedTree.find(node => node.type === 'a' && node.props['aria-label'] === 'Buka subdomain brand').props.href, 'https://slug-permanen.sewaundangan.com');
+  assert.equal(savedTree.filter(node => node.type === 'a' && node.props['aria-label'] !== 'Buka subdomain brand').every(node => node.props.href.endsWith('brand=slug-permanen')), true);
 });
 
 test('failed brand saves retain the draft and assigned links and display the backend error', async () => {
@@ -138,8 +144,16 @@ test('failed brand saves retain the draft and assigned links and display the bac
   const failedTree = nodes(app.render());
   assert.equal(failedTree.find(node => node.props?.name === 'brandName').props.value, 'Brand Baru');
   assert.equal(failedTree.find(node => node.type === 'ResellerError').props.message, 'Nama brand tidak valid');
-  assert.equal(failedTree.filter(node => node.type === 'a').every(node => node.props.href.endsWith('brand=slug-permanen')), true);
+  assert.equal(failedTree.find(node => node.type === 'a' && node.props['aria-label'] === 'Buka subdomain brand').props.href, 'https://slug-permanen.sewaundangan.com');
+  assert.equal(failedTree.filter(node => node.type === 'a' && node.props['aria-label'] !== 'Buka subdomain brand').every(node => node.props.href.endsWith('brand=slug-permanen')), true);
   assert.equal(app.notices[0].variant, 'destructive');
+});
+
+test('reseller subdomain icon is unavailable for missing or malformed assigned slugs', async () => {
+  for (const brandSlug of ['', 'ab', 'bad/slug', 'brand-', 'brand--name', 'a'.repeat(64)]) {
+    const app = await brandSettingsHarness({ brand: { brandName: 'Brand', brandSlug, brandLogo: '' } });
+    assert.equal(nodes(app.render()).find(node => node.type === 'a' && node.props['aria-label'] === 'Buka subdomain brand'), undefined);
+  }
 });
 
 async function harness({ query = '', pathname = '/forms/new', swr = {}, session = {}, status = 'unauthenticated' } = {}) {
@@ -289,6 +303,16 @@ test('reseller contact supports WhatsApp/email and rejects executable or invalid
   assert.equal(helpers.brandLogoUrl('javascript:alert(1)'), '');
   assert.equal(helpers.brandLogoUrl('//untrusted.test/logo.png'), '');
   assert.equal(helpers.brandLogoUrl('/images/logo.webp'), 'https://api.example.test/images/logo.webp');
+});
+
+test('brand subdomain addresses use the fixed main domain and accept only valid DNS labels', async () => {
+  const { helpers } = await harness();
+  assert.equal(helpers.brandSubdomainUrl('weddingku'), 'https://weddingku.sewaundangan.com');
+  assert.equal(helpers.brandSubdomainUrl('toko-bunga'), 'https://toko-bunga.sewaundangan.com');
+  assert.equal(helpers.brandSubdomainUrl('a'.repeat(63)), `https://${'a'.repeat(63)}.sewaundangan.com`);
+  for (const slug of [null, undefined, {}, '', 'ab', '-brand', 'brand-', 'brand--name', 'bad/slug', 'https://brand.test', 'a'.repeat(64)]) {
+    assert.equal(helpers.brandSubdomainUrl(slug), '');
+  }
 });
 
 test('WhatsApp and email activation messages include only the numeric order identifier', async () => {
