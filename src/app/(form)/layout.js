@@ -5,8 +5,8 @@ import "core-js/actual/array/find-last";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata = {
-  title: "Form Pesanan Undangan - SewaUndangan",
-  description: "Form Pemesanan Undangan di SewaUndangan.com",
+  title: "Form Pesanan Undangan",
+  description: "Form Pemesanan Undangan Digital",
 };
 
 export default function RootLayout({ children }) {

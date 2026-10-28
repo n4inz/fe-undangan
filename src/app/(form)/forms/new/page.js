@@ -70,6 +70,7 @@ const Home = () => {
   const searchParams = useSearchParams();
   const qs = getFormTheme(searchParams);
   const { brand, isReseller, loading: brandLoading, error: brandError } = useResellerBrand();
+  const hideCompanyBrand = searchParams.has('brand') || isReseller || brandLoading || Boolean(brandError);
 
   const [currentStep, setCurrentStep] = useState(1); // Track the current step
   const [mounted, setMounted] = useState(false); // Track if component is mounted
@@ -659,7 +660,7 @@ const Home = () => {
           )}
 
           <h1 className="text-2xl font-bold">
-            {profileLoading ? 'Form Undangan' : company?.name}
+            {hideCompanyBrand || profileLoading ? 'Form Undangan' : company?.name}
           </h1>
         </div>
 
@@ -1648,15 +1649,17 @@ const Home = () => {
               <>
                 <div className="mb-4">
                   <label className="block text-gray-700">
-                    Pilihan Thema Ceknya di{' '}
-                    <a
-                      href={profileLoading ? '#' : (company?.url || '#')}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-blue-500 hover:underline"
-                    >
-                      {profileLoading ? 'website' : company?.name}
-                    </a>
+                    {hideCompanyBrand ? 'Pilihan Thema' : <>
+                      Pilihan Thema Ceknya di{' '}
+                      <a
+                        href={profileLoading ? '#' : (company?.url || '#')}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-blue-500 hover:underline"
+                      >
+                        {profileLoading ? 'website' : company?.name}
+                      </a>
+                    </>}
                     <span className='text-red-500'>*</span>
                   </label>
 
