@@ -46,7 +46,7 @@ async function loadPaymentModal(orderBrand) {
       }])));
     }
     if (specifier === 'axios') return createModule({ default: { get: url => requests.push(url), post: url => requests.push(url) } });
-    if (specifier === '@/components/reseller/useResellerBrand') return createModule({ useOrderBrand: options => {
+    if (specifier === '@/components/reseller/useResellerBrand') return createModule({ usePaymentDestination: options => {
       lookups.push(options);
       return currentOrderBrand;
     } });
@@ -58,14 +58,16 @@ async function loadPaymentModal(orderBrand) {
   return paymentFixture;
 }
 
-test('AK reseller payment uses persisted brand even when the URL brand is removed or replaced', async () => {
+test('AK WhatsApp payment uses the resolved contact and preserves order metadata without payment requests', async () => {
   const brand = { brandName: 'WeddingKu', brandSlug: 'weddingku', contact: '081234567890' };
-  const app = await loadPaymentModal({ brand, orderId: 124, isReseller: true, loading: false, error: '' });
+  const app = await loadPaymentModal({ brand, orderId: 124, phone: '6281234567890', loading: false, error: '' });
   const result = app.render({ formId: 'opaque-order-uuid', brandSlug: 'another-brand', isPaid: 0 });
 
   assert.equal(result.type, app.resellerModal);
   assert.equal(result.props.brand, brand);
   assert.equal(result.props.orderId, 124);
+  assert.equal(result.props.contactPhone, '6281234567890');
+  assert.equal(result.props.direct, true);
   assert.equal(result.props.formId, undefined);
   assert.equal(app.lookups[0].type, 'aqiqah-khitan');
   assert.equal(app.lookups[0].formId, 'opaque-order-uuid');
@@ -80,6 +82,33 @@ test('AK normal order retains the existing payment component after metadata look
   assert.equal(result.type.name, 'StandardPaymentModalAk');
   assert.equal(result.props.formId, props.formId);
   assert.equal(result.props.buttonClassName, props.buttonClassName);
+});
+
+test('AK reopened phone-only order contacts the saved admin without mounting default payment', async () => {
+  const app = await loadPaymentModal({ brand: null, orderId: 124, adminPhone: '6289876543210', phone: '6289876543210', contactLabel: 'Hubungi Admin', loading: false, error: null });
+  const result = app.render({ formId: 'secret-uuid', title: 'Aqiqah Alya', isPaid: 0 });
+  assert.equal(result.type, app.resellerModal);
+  assert.equal(result.props.brand, null);
+  assert.equal(result.props.contactPhone, '6289876543210');
+  assert.equal(result.props.buttonLabel, 'Hubungi Admin');
+  assert.equal(result.props.orderId, 124);
+  assert.equal(result.props.title, 'Aqiqah Alya');
+  assert.deepEqual(app.requests, []);
+});
+
+test('AK reseller without any valid contact uses the existing default payment component', async () => {
+  const app = await loadPaymentModal({ brand: { contact: null }, orderId: 124, phone: null, loading: false, error: '' });
+  assert.equal(app.render({ formId: 'reseller-uuid' }).type.name, 'StandardPaymentModalAk');
+  assert.deepEqual(app.requests, []);
+});
+
+test('AK phone-only destination preserves numeric order id and invitation title', async () => {
+  const app = await loadPaymentModal({ brand: null, orderId: 124, phone: '6289876543210', loading: false, error: '' });
+  const result = app.render({ formId: 'secret-uuid', title: 'Aqiqah Alya' });
+  assert.equal(result.type, app.resellerModal);
+  assert.equal(result.props.contactPhone, '6289876543210');
+  assert.equal(result.props.orderId, 124);
+  assert.equal(result.props.title, 'Aqiqah Alya');
 });
 
 test('AK waits for persisted attribution before showing either payment flow', async () => {

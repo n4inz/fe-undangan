@@ -37,6 +37,7 @@ async function loadCustomerDetail({ isAdmin = 1, getResponse } = {}) {
   const page = await compile('app/(admin)/admin/customer/[dataId]/page.js');
   const account = await compile('components/admin/CustomerAccountForm.js');
   const helper = new vm.SourceTextModule(await readFile(new URL('../src/lib/adminResellerBrand.js', import.meta.url), 'utf8'), { context });
+  const resellerHelper = new vm.SourceTextModule(await readFile(new URL('../src/lib/resellerBrand.js', import.meta.url), 'utf8'), { context });
   const createFrame = () => ({ state: [], refs: [], callbacks: [], effects: [] });
   const pageFrame = createFrame();
   let accountFrame;
@@ -91,6 +92,9 @@ async function loadCustomerDetail({ isAdmin = 1, getResponse } = {}) {
     ['axios', mock({ default: axios })],
     ['@/components/admin/CustomerAccountForm', account],
     ['@/lib/adminResellerBrand', helper],
+    ['@/lib/resellerBrand', resellerHelper],
+    ['next/image', mock({ default: 'Image' })],
+    ['lucide-react', mock({ ExternalLink: 'ExternalLink' })],
     ['next/link', mock({ default: 'Link' })],
     ['react-data-table-component', mock({ default: 'DataTable' })],
     ['react-debounce-input', mock({ DebounceInput: 'DebounceInput' })],

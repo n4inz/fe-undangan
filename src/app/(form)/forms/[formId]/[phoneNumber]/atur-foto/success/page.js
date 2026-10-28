@@ -3,7 +3,8 @@ import { useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { BiArrowBack, BiEnvelope, BiPhone, BiPhotoAlbum } from "react-icons/bi";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { appendFormQuery } from "@/lib/formNavigation";
 import { checkForm } from "@/utils/checkForm";
 import PaymentModal from "./paymentModal";
 import { Toaster } from "@/components/ui/toaster";
@@ -14,7 +15,8 @@ const Success = ({ params }) => {
   const { formId, phoneNumber } = params; // Destructure params for cleaner access
   const pathname = usePathname();
   const router = useRouter();
-  const { brand, isReseller, loading: brandLoading, error: brandError } = useOrderBrand({ type: "wedding", formId });
+  const searchParams = useSearchParams();
+  const { brand, isReseller, adminPhone, loading: brandLoading, error: brandError } = useOrderBrand({ type: "wedding", formId });
 
   const [loading, setLoading] = useState(true);
   const [form, setForm] = useState(null); // Initialize form as null
@@ -71,7 +73,7 @@ const Success = ({ params }) => {
       <Toaster className="z-50" />
       <div className="h-screen justify-center bg-white p-8 rounded-lg shadow-lg max-w-lg w-full flex items-center flex-col relative">
         {/* Back Button */}
-        <Link href={`/forms/${formId}/${phoneNumber}/atur-foto`} className="absolute top-4 left-4">
+        <Link href={appendFormQuery(`/forms/${formId}/${phoneNumber}/atur-foto`, searchParams)} className="absolute top-4 left-4">
           <BiArrowBack className="h-8 w-8" />
         </Link>
 
@@ -79,7 +81,7 @@ const Success = ({ params }) => {
         <div className="text-center">
           <ResellerBrandBanner brand={brand} loading={brandLoading} error={brandError} />
           <p className="text-lg font-semibold">
-            {isReseller
+            {isReseller || adminPhone
               ? `Terima kasih telah mengisi form ${brand?.brandName || "undangan"}. Pesanan dengan ID ${form.id ?? "N/A"} telah kami terima. ${Number(form.isPaid) === 1 ? "Undangan Anda sudah aktif." : "Silakan hubungi admin untuk mengaktifkan undangan Anda."}`
               : brandLoading || brandError
                 ? `Terima kasih telah mengisi form. Pesanan dengan ID ${form.id ?? "N/A"} telah kami terima.`
@@ -119,7 +121,7 @@ const Success = ({ params }) => {
         {/* Edit Data Button */}
         <div className={buttonContainerClasses}>
           <Link
-            href={`${pathname}/result`}
+            href={appendFormQuery(`${pathname}/result`, searchParams)}
             className={editButtonClasses}
           >
             <BiPhotoAlbum className="h-6 w-6 mr-2" />

@@ -5,10 +5,13 @@ import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { numericOrderId, resellerContactUrl } from '@/lib/resellerBrand';
 
-export default function ResellerPaymentModal({ brand, orderId, title, buttonClassName, isPaid }) {
+export default function ResellerPaymentModal({ brand, orderId, title, buttonClassName, isPaid, contactPhone, direct = false, buttonLabel = 'Bayar Sekarang' }) {
   if (Number(isPaid) === 1) return <p role="status" className="rounded-lg bg-green-50 p-3 text-sm text-green-800">Undangan Anda sudah aktif.</p>;
   const id = numericOrderId(orderId);
-  const contactUrl = resellerContactUrl(brand?.contact, title, id);
+  const contactUrl = resellerContactUrl(contactPhone || brand?.contact, title, id, { normalizedPhone: Boolean(contactPhone) });
+  if (direct && contactUrl) {
+    return <Button asChild className={buttonClassName}><a href={contactUrl} target="_blank" rel="noopener noreferrer"><MessageCircle className="mr-2 h-4 w-4" />{buttonLabel}</a></Button>;
+  }
   return (
     <Dialog>
       <DialogTrigger asChild><Button className={buttonClassName}><MessageCircle className="mr-2 h-4 w-4" />Hubungi Admin</Button></DialogTrigger>

@@ -32,6 +32,8 @@ import {
 import QuillHtmlEditor from "@/components/QuillHtmlEditor.client";
 import { useResellerBrand } from "@/components/reseller/useResellerBrand";
 import ResellerBrandBanner from "@/components/reseller/ResellerBrandBanner";
+import { appendFormQuery } from "@/lib/formNavigation";
+import { readPhoneQuery } from "@/lib/resellerBrand";
 
 const FORM_DATA_KEY = "formAqiqahKhitanData";
 const MAX_DEFAULT_STRING_LENGTH = 191;
@@ -761,6 +763,8 @@ const FormAqiqahKhitanPage = () => {
 
       const payload = {
         ...normalizePayload(fields, formData),
+        // Preserve the international prefix; the API normalizes this value once.
+        adminPhone: readPhoneQuery(searchParams) ? searchParams.get('phone') : null,
         customerSessionToken: session?.user?.sessionToken || null,
         ...(isReseller ? { brandSlug: brand.brandSlug } : {}),
       };
@@ -784,7 +788,7 @@ const FormAqiqahKhitanPage = () => {
 
       // Jangan setIsSubmitting(false) di sini.
       // Biarkan tombol tetap disable sampai pindah halaman.
-      router.push(`/forms/aqiqah-khitan/${formId}/atur-foto`);
+      router.push(appendFormQuery(`/forms/aqiqah-khitan/${formId}/atur-foto`, searchParams));
     } catch (error) {
       console.error("Gagal submit form aqiqah khitan:", error);
 

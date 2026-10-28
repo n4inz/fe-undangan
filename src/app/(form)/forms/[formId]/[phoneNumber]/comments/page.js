@@ -6,13 +6,16 @@ import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardContent, CardFooter } from "@/components/ui/card";
 import { Trash2, Users, UserCheck, UserX } from "lucide-react";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
-import { useParams } from 'next/navigation';
+import { useParams, useSearchParams } from 'next/navigation';
+import { appendFormQuery } from '@/lib/formNavigation';
 import { Skeleton } from "@/components/ui/skeleton";
 import Link from 'next/link';
 import { BiArrowBack } from 'react-icons/bi';
 
 export default function CommentSection({ params }) {
     const { id, phoneNumber } = useParams();
+    const searchParams = useSearchParams();
+    const resultUrl = appendFormQuery(`/forms/${params.formId}/${params.phoneNumber}/atur-foto/success/result`, searchParams);
     const [comments, setComments] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
@@ -118,7 +121,7 @@ export default function CommentSection({ params }) {
                 <div className="relative z-10 flex flex-col items-center justify-center min-h-screen py-8">
                     <div className="w-full max-w-md p-6 bg-white rounded-lg shadow shadow-gray-200 flex flex-col items-center">
                         <div className="text-red-600 text-center font-medium mb-4">{error}</div>
-                        <Link href={`/forms/${params.formId}/${params.phoneNumber}/atur-foto/success/result`} className="flex items-center gap-2 text-blue-600 hover:underline">
+                        <Link href={resultUrl} className="flex items-center gap-2 text-blue-600 hover:underline">
                             <BiArrowBack className="h-5 w-5" />
                             <span>Kembali</span>
                         </Link>
@@ -138,7 +141,7 @@ export default function CommentSection({ params }) {
                     <Card>
                         <CardHeader className="border-b">
                             <div className="flex items-center mb-2">
-                                <Link href={`/forms/${params.formId}/${params.phoneNumber}/atur-foto/success/result`} className="mr-4">
+                                <Link href={resultUrl} className="mr-4">
                                     <BiArrowBack className="h-8 w-8" />
                                 </Link>
                                 <h2 className="text-xl font-semibold">Ucapan Tamu</h2>

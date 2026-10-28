@@ -165,7 +165,7 @@ async function harness({ query = '', pathname = '/forms/new', swr = {}, session 
     for (const [name, value] of Object.entries(values)) this.setExport(name, value);
   }, { context });
   const dependencies = {
-    react: mock({ useEffect: effect => effect() }),
+    react: mock({ useEffect: effect => effect(), useRef: initial => ({ current: initial }) }),
     axios: mock({ default: { get: async (...args) => { calls.push({ request: args }); return { data: { ok: true } }; } } }),
     swr: mock({ default: (key, fetcher) => {
       calls.push({ key, fetcher });

@@ -47,6 +47,8 @@ import AdditionalEventsModal from '@/components/AdditionalEventsModal';
 import { getFormTheme } from '@/lib/form-theme';
 import { useResellerBrand } from '@/components/reseller/useResellerBrand';
 import ResellerBrandBanner from '@/components/reseller/ResellerBrandBanner';
+import { appendFormQuery } from '@/lib/formNavigation';
+import { readPhoneQuery } from '@/lib/resellerBrand';
 
 const FORM_DATA_KEY = "formData";
 
@@ -396,6 +398,9 @@ const Home = () => {
       fd.append("rekeningList", JSON.stringify(rekeningList || []));
       fd.append("weddingEvents", JSON.stringify(weddingEvents || []));
       fd.append("session", JSON.stringify({ name, email, avatar }));
+      // Preserve the international prefix; the API normalizes this value once.
+      const adminPhone = readPhoneQuery(searchParams) ? searchParams.get('phone') : null;
+      if (adminPhone) fd.append("adminPhone", adminPhone);
       if (isReseller) fd.append("brandSlug", brand.brandSlug);
 
       const response = await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/forms`, fd, {
@@ -417,7 +422,7 @@ const Home = () => {
         console.error("Send notification failed:", err);
       });
 
-      router.push(`/forms/${response.data.uuid}/${response.data.nomorWa}/atur-foto`);
+      router.push(appendFormQuery(`/forms/${response.data.uuid}/${response.data.nomorWa}/atur-foto`, searchParams));
     } catch (error) {
       setIsLoading(false);
 
@@ -648,7 +653,7 @@ const Home = () => {
       <div className="bg-white p-8 rounded-lg shadow-lg max-w-lg w-full">
         <div className="flex items-center mb-2">
           {session && (
-            <Link href="/forms" className="mr-4">
+            <Link href={appendFormQuery('/forms', searchParams)} className="mr-4">
               <BiArrowBack className="h-8 w-8" />
             </Link>
           )}

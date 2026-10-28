@@ -251,7 +251,7 @@ const Customer = () => {
               <fieldset disabled={saving} className="space-y-4">
                 <div className="space-y-2">
                   <Label htmlFor="reseller-brand-name">Nama Brand</Label>
-                  <Input id="reseller-brand-name" name="brandName" value={brandValues.brandName} onChange={handleBrandNameChange} maxLength={100} required placeholder="Toko Bunga" autoFocus />
+                  <Input id="reseller-brand-name" name="brandName" value={brandValues.brandName} onChange={handleBrandNameChange} maxLength={100} placeholder="Toko Bunga" autoFocus />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="reseller-brand-slug">Subdomain Brand</Label>

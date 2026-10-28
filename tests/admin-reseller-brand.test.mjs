@@ -167,21 +167,24 @@ test('admin brand slug generation and validation follow the URL and length rules
   assert.equal(helper.createBrandSlug('Bungá & Kebun!'), 'bunga-kebun');
   assert.equal(helper.createBrandSlug('a'.repeat(62) + ' b'), 'a'.repeat(62));
   for (const brand of [
-    { brandName: '', brandSlug: 'valid' },
     { brandName: 'a'.repeat(101), brandSlug: 'valid' },
+    { brandName: 123, brandSlug: 'valid' },
     ...['', 'ab', '-brand', 'brand-', 'brand--name', 'bad/slug', 'a'.repeat(64)].map(brandSlug => ({ brandName: 'Brand', brandSlug })),
   ]) assert.notEqual(helper.validateAdminResellerBrand(brand), '');
+  for (const brandName of ['', '   ', null, undefined]) {
+    assert.equal(helper.validateAdminResellerBrand({ brandName, brandSlug: 'valid' }), '');
+  }
   assert.equal(helper.validateAdminResellerBrand({ brandName: 'Toko Bunga', brandSlug: 'toko-bunga' }), '');
 });
 
-test('admin opens a required brand modal, auto-generates slug until manual editing, and saves before closing', async () => {
+test('admin promotion requires a slug, auto-generates it until manual editing, and saves before closing', async () => {
   let finish;
   const fixture = await loadComponent('app/(admin)/admin/customer/page.js', {}, () => new Promise(resolve => { finish = resolve; }));
   fixture.openRoleDialog(customer);
   assert.equal(fixture.requests.length, 0);
   assert.equal(fixture.find(node => node.type === 'AlertDialog').props.open, true);
   assert.equal(fixture.find(node => node.type === 'Button' && node.props.type === 'submit').props.disabled, true);
-  assert.equal(fixture.byId('reseller-brand-name').props.required, true);
+  assert.equal(Boolean(fixture.byId('reseller-brand-name').props.required), false);
   assert.equal(fixture.byId('reseller-brand-slug').props.required, true);
   await fixture.find(node => node.type === 'form').props.onSubmit(submit);
   assert.equal(fixture.requests.length, 0);
@@ -228,7 +231,7 @@ test('demoting a reseller preserves the role confirmation without brand fields',
   assert.equal(JSON.stringify(fixture.requests[0][2]), JSON.stringify({ role: 'user' }));
 });
 
-test('admin account editing also requires brand data when granting reseller access', async () => {
+test('admin account editing also requires a valid slug when granting reseller access', async () => {
   let saved;
   const fixture = await loadComponent('components/admin/CustomerAccountForm.js', { customer, onSaved: value => { saved = value; } });
   fixture.find(node => node.type === 'Select').props.onValueChange('reseller');
@@ -284,6 +287,22 @@ test('manual slug sanitization removes spaces, punctuation, Unicode, and URL cha
 });
 
 for (const screen of ['modal', 'account']) {
+  test(`${screen}: admin can grant reseller access with an empty brand name and a manual slug`, async () => {
+    const editor = await loadPromotionEditor(screen, { ...customer, contact: null, brandLogo: null });
+    assert.equal(Boolean(editor.nameInput().props.required), false);
+    editor.slugInput().props.onChange(change('brand-link'));
+    assert.equal(editor.saveButton().props.disabled, false);
+    await editor.find(node => node.type === 'form').props.onSubmit(submit);
+    const payload = editor.requests.find(([method]) => method === 'put')[2];
+    assert.equal(payload.role, 'reseller');
+    assert.equal(payload.brandName, '');
+    assert.equal(payload.brandSlug, 'brand-link');
+    if (screen === 'account') {
+      assert.equal(payload.contact, '');
+      assert.equal('brandLogo' in payload, false);
+    }
+  });
+
   test(`${screen}: the subdomain icon opens the current valid brand address in a new tab`, async () => {
     const editor = await loadPromotionEditor(screen);
     const link = () => editor.find(node => node.type === 'a' && node.props['aria-label'] === 'Buka subdomain brand');
@@ -380,6 +399,87 @@ function selectLogo(fixture, file) {
   logoInput(fixture).props.onChange({ target });
   return target;
 }
+
+function removeLogo(fixture) {
+  fixture.find(node => node.type === 'Button' && node.props.children === 'Hapus Logo').props.onClick();
+}
+
+test('admin persists deleting a saved logo and clearing reseller contact and brand name together', async () => {
+  let saved;
+  const fixture = await loadComponent('components/admin/CustomerAccountForm.js', {
+    customer: { ...resellerCustomer, contact: '081234567890' }, onSaved: value => { saved = value; },
+  }, async (_url, payload) => ({ data: {
+    customer: { ...resellerCustomer, ...payload, contact: null, brandName: null, brandLogo: null },
+  } }));
+  fixture.byId('customer-contact').props.onChange(change('   '));
+  fixture.byId('customer-brand-name').props.onChange(change(''));
+  assert.equal(fixture.byId('customer-brand-slug').props.value, 'bungaku');
+  removeLogo(fixture);
+  await fixture.flushEffects();
+  assert.equal(logoImage(fixture), undefined);
+  await fixture.find(node => node.type === 'form').props.onSubmit(submit);
+  const payload = fixture.requests[0][2];
+  assert.equal(payload.removeBrandLogo, true);
+  assert.equal(payload.brandName, '');
+  assert.equal(payload.contact, '');
+  assert.equal(payload.brandSlug, 'bungaku');
+  assert.equal('brandLogo' in payload, false);
+  assert.equal(saved.brandLogo, null);
+  assert.equal(saved.brandName, null);
+  assert.equal(saved.contact, null);
+  await fixture.flushEffects();
+  assert.equal(logoImage(fixture), undefined);
+  assert.equal(fixture.byId('customer-brand-name').props.value, '');
+  assert.equal(fixture.byId('customer-contact').props.value, '');
+  await fixture.find(node => node.type === 'form').props.onSubmit(submit);
+  assert.equal('removeBrandLogo' in fixture.requests[1][2], false);
+});
+
+test('canceling logo deletion restores the saved logo without requesting its removal', async () => {
+  const fixture = await loadComponent('components/admin/CustomerAccountForm.js', { customer: resellerCustomer, onSaved() {} });
+  removeLogo(fixture);
+  assert.equal(logoImage(fixture), undefined);
+  fixture.find(node => node.type === 'Button' && node.props.children === 'Batal Perubahan').props.onClick();
+  await fixture.flushEffects();
+  assert.equal(logoImage(fixture).props.src, 'https://api.example.test/uploads/old-logo.png');
+  await fixture.find(node => node.type === 'form').props.onSubmit(submit);
+  assert.equal('removeBrandLogo' in fixture.requests[0][2], false);
+});
+
+test('a failed logo deletion keeps the removal draft available for retry', async () => {
+  const fixture = await loadComponent('components/admin/CustomerAccountForm.js', { customer: resellerCustomer, onSaved() {} }, async () => {
+    throw { response: { data: { message: 'Gagal menyimpan data customer.' } } };
+  });
+  removeLogo(fixture);
+  await fixture.find(node => node.type === 'form').props.onSubmit(submit);
+  await fixture.flushEffects();
+  assert.equal(logoImage(fixture), undefined);
+  assert.equal(fixture.find(node => node.props?.role === 'alert').props.children, 'Gagal menyimpan data customer.');
+  await fixture.find(node => node.type === 'form').props.onSubmit(submit);
+  assert.equal(fixture.requests[1][2].removeBrandLogo, true);
+});
+
+test('selecting a replacement after deletion uploads the new logo without the delete marker', async () => {
+  const fixture = await loadComponent('components/admin/CustomerAccountForm.js', { customer: resellerCustomer, onSaved() {} });
+  removeLogo(fixture);
+  const file = { name: 'replacement.webp', type: 'image/webp', size: 1024 };
+  selectLogo(fixture, file);
+  await fixture.flushEffects();
+  assert.equal(logoImage(fixture).props.src, 'blob:brand-logo-1');
+  await fixture.find(node => node.type === 'form').props.onSubmit(submit);
+  const payload = Object.fromEntries(fixture.requests[0][2].entries());
+  assert.equal(payload.brandLogo, file);
+  assert.equal('removeBrandLogo' in payload, false);
+});
+
+test('demoting a reseller discards its pending logo deletion and preserves brand data', async () => {
+  const fixture = await loadComponent('components/admin/CustomerAccountForm.js', { customer: resellerCustomer, onSaved() {} });
+  removeLogo(fixture);
+  fixture.find(node => node.type === 'Select').props.onValueChange('user');
+  await fixture.find(node => node.type === 'form').props.onSubmit(submit);
+  assert.equal(fixture.requests[0][2].role, 'user');
+  assert.equal('removeBrandLogo' in fixture.requests[0][2], false);
+});
 
 test('admin can preview and upload a brand logo with the edited account fields', async () => {
   let saved;

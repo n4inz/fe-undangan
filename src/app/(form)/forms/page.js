@@ -439,11 +439,11 @@ export default function Dashboard() {
                                               ? `${form.namaPanggilanPria} & ${form.namaPanggilanWanita}`
                                               : "Undangan Pernikahan";
                                         const photoPath = isAqiqahKhitan
-                                            ? `/forms/aqiqah-khitan/${form.id}/atur-foto`
-                                            : `/forms/${form.id}/${form.nomorWa || ""}/atur-foto`;
+                                            ? `/forms/aqiqah-khitan/${form.id}/atur-foto${qsWithPrefix}`
+                                            : `/forms/${form.id}/${form.nomorWa || ""}/atur-foto${qsWithPrefix}`;
                                         const resultPath = isAqiqahKhitan
-                                            ? `/forms/aqiqah-khitan/${form.id}/atur-foto/success/result`
-                                            : `/forms/${form.id}/${form.nomorWa || ""}/atur-foto/success/result`;
+                                            ? `/forms/aqiqah-khitan/${form.id}/atur-foto/success/result${qsWithPrefix}`
+                                            : `/forms/${form.id}/${form.nomorWa || ""}/atur-foto/success/result${qsWithPrefix}`;
 
                                         return (
                                             <Card

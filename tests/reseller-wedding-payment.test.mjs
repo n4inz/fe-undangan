@@ -41,7 +41,7 @@ async function loadPaymentModal(orderBrand) {
       throw new Error('Normal payment effects must not mount before resolving saved reseller attribution');
     }])));
     if (specifier === 'axios') return mock({ default: { get: url => requests.push(url), post: url => requests.push(url) } });
-    if (specifier === '@/components/reseller/useResellerBrand') return mock({ useOrderBrand: options => {
+    if (specifier === '@/components/reseller/useResellerBrand') return mock({ usePaymentDestination: options => {
       lookups.push(options);
       return currentOrderBrand;
     } });
@@ -53,14 +53,16 @@ async function loadPaymentModal(orderBrand) {
   return paymentFixture;
 }
 
-test('Wedding reseller payment uses saved attribution and never starts pricing/payment requests', async () => {
+test('Wedding WhatsApp payment uses the resolved contact without pricing/payment requests', async () => {
   const brand = { brandName: 'WeddingKu', contact: '081234567890' };
-  const app = await loadPaymentModal({ brand, orderId: 123, isReseller: true, loading: false, error: null });
+  const app = await loadPaymentModal({ brand, orderId: 123, phone: '6281234567890', loading: false, error: null });
   const result = app.render({ formId: 'opaque-uuid', phoneNumber: '08123', brandSlug: 'another-brand', isPaid: 0 });
   assert.equal(result.type, app.resellerModal);
   assert.equal(result.props.brand, brand);
   assert.equal(result.props.isPaid, 0);
   assert.equal(result.props.orderId, 123);
+  assert.equal(result.props.contactPhone, '6281234567890');
+  assert.equal(result.props.direct, true);
   assert.equal(result.props.title, undefined);
   assert.equal(result.props.formId, undefined);
   assert.equal(app.lookups[0].type, 'wedding');
@@ -75,6 +77,34 @@ test('Wedding normal payment retains its existing component after metadata looku
   assert.equal(result.props.formId, 'normal-uuid');
   assert.equal(result.props.phoneNumber, '08123');
   assert.equal(result.props.buttonClassName, 'wide');
+});
+
+test('Wedding reseller without any valid contact uses the existing default payment component', async () => {
+  const app = await loadPaymentModal({ brand: { contact: null }, orderId: 123, phone: null, loading: false, error: null });
+  const result = app.render({ formId: 'reseller-uuid', phoneNumber: '08123' });
+  assert.equal(result.type.name, 'NormalPaymentModal');
+  assert.deepEqual(app.requests, []);
+});
+
+test('Wedding phone-only contact keeps the numeric order id and invitation title', async () => {
+  const app = await loadPaymentModal({ brand: null, orderId: 123, phone: '6289876543210', loading: false, error: null });
+  const result = app.render({ formId: 'secret-uuid', title: 'Ayu & Budi' });
+  assert.equal(result.type, app.resellerModal);
+  assert.equal(result.props.contactPhone, '6289876543210');
+  assert.equal(result.props.orderId, 123);
+  assert.equal(result.props.title, 'Ayu & Budi');
+});
+
+test('Wedding reopened phone-only order contacts the saved admin without mounting normal payment', async () => {
+  const app = await loadPaymentModal({ brand: null, orderId: 123, adminPhone: '6289876543210', phone: '6289876543210', contactLabel: 'Hubungi Admin', loading: false, error: null });
+  const result = app.render({ formId: 'secret-uuid', title: 'Ayu & Budi', isPaid: 0 });
+  assert.equal(result.type, app.resellerModal);
+  assert.equal(result.props.brand, null);
+  assert.equal(result.props.contactPhone, '6289876543210');
+  assert.equal(result.props.buttonLabel, 'Hubungi Admin');
+  assert.equal(result.props.orderId, 123);
+  assert.equal(result.props.title, 'Ayu & Budi');
+  assert.deepEqual(app.requests, []);
 });
 
 test('Wedding metadata loading and failure do not expose the normal payment flow', async () => {

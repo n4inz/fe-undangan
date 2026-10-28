@@ -25,10 +25,10 @@ export function hasCustomBrandSlug({ brandName, brandSlug, role }) {
 }
 
 export function validateAdminResellerBrand({ brandName, brandSlug }) {
-  if (!brandName.trim() || brandName.trim().length > 100) {
-    return 'Nama brand wajib diisi dan maksimal 100 karakter.';
+  if (brandName != null && (typeof brandName !== 'string' || brandName.trim().length > 100)) {
+    return 'Nama brand maksimal 100 karakter.';
   }
-  const slug = brandSlug.trim().toLowerCase();
+  const slug = typeof brandSlug === 'string' ? brandSlug.trim().toLowerCase() : '';
   if (slug.length < 3 || slug.length > 63 || !new RegExp(`^${BRAND_SLUG_PATTERN}$`).test(slug)) {
     return 'Subdomain brand wajib terdiri dari 3–63 huruf kecil, angka, atau tanda hubung di antara kata.';
   }

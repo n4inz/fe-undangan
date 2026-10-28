@@ -31,12 +31,13 @@ export default function CustomerAccountForm({ customer, onSaved }) {
   const [error, setError] = useState('');
   const [slugEdited, setSlugEdited] = useState(() => hasCustomBrandSlug(customer));
   const [logo, setLogo] = useState(null);
+  const [logoRemoved, setLogoRemoved] = useState(false);
   const [preview, setPreview] = useState('');
   const fileInput = useRef(null);
   const editable = customer.isAdmin === 0 && ['user', 'reseller'].includes(customer.role);
   const brandError = values.role === 'reseller' ? validateAdminResellerBrand(values) : '';
   const subdomainUrl = brandSubdomainUrl(values.brandSlug);
-  const displayedLogo = preview || brandLogoUrl(values.brandLogo);
+  const displayedLogo = preview || (logoRemoved ? '' : brandLogoUrl(values.brandLogo));
 
   useEffect(() => {
     if (!logo) {
@@ -63,11 +64,15 @@ export default function CustomerAccountForm({ customer, onSaved }) {
       return;
     }
     setLogo(file || null);
+    if (file) setLogoRemoved(false);
     setError('');
   };
 
   const changeValue = (field, value) => {
-    if (field === 'role' && value !== 'reseller') clearLogo();
+    if (field === 'role' && value !== 'reseller') {
+      clearLogo();
+      setLogoRemoved(false);
+    }
     if (field === 'brandSlug') {
       value = sanitizeBrandSlugInput(value);
       if (value === values.brandSlug) return;
@@ -103,6 +108,7 @@ export default function CustomerAccountForm({ customer, onSaved }) {
         role: values.role,
         brandName: values.brandName.trim(),
         brandSlug: values.brandSlug.trim().toLowerCase(),
+        ...(logoRemoved && values.role === 'reseller' ? { removeBrandLogo: true } : {}),
       };
       let payload = profile;
       if (logo && values.role === 'reseller') {
@@ -118,6 +124,7 @@ export default function CustomerAccountForm({ customer, onSaved }) {
       setValues(accountValues(response.data.customer));
       setSlugEdited(hasCustomBrandSlug(response.data.customer));
       clearLogo();
+      setLogoRemoved(false);
       onSaved(response.data.customer);
       toast({ title: response.data.message || 'Data customer berhasil disimpan.' });
     } catch (error) {
@@ -167,7 +174,7 @@ export default function CustomerAccountForm({ customer, onSaved }) {
               <>
                 <div className="space-y-2">
                   <Label htmlFor="customer-brand-name">Nama Brand</Label>
-                  <Input id="customer-brand-name" name="brandName" value={values.brandName} onChange={event => changeValue('brandName', event.target.value)} maxLength={100} required />
+                  <Input id="customer-brand-name" name="brandName" value={values.brandName} onChange={event => changeValue('brandName', event.target.value)} maxLength={100} />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="customer-brand-slug">Subdomain Brand</Label>
@@ -183,6 +190,7 @@ export default function CustomerAccountForm({ customer, onSaved }) {
                 <div className="space-y-2 md:col-span-2">
                   <Label htmlFor="customer-brand-logo">Logo Brand</Label>
                   {displayedLogo && <div className="w-fit rounded-lg border bg-white p-3"><Image src={displayedLogo} alt="Logo brand" width={128} height={128} unoptimized className="h-32 w-32 object-contain" /></div>}
+                  {(displayedLogo || logo) && <Button type="button" variant="outline" size="sm" onClick={() => { clearLogo(); setLogoRemoved(true); setError(''); }}>Hapus Logo</Button>}
                   <Input ref={fileInput} id="customer-brand-logo" name="brandLogo" type="file" accept="image/jpeg,image/png,image/webp" onChange={handleLogo} aria-describedby="customer-brand-logo-hint" />
                   <p id="customer-brand-logo-hint" className="text-xs text-muted-foreground">JPG, PNG, atau WebP. Maksimal 5 MB. Pilih gambar untuk menambah atau mengganti logo brand.</p>
                 </div>
@@ -196,7 +204,7 @@ export default function CustomerAccountForm({ customer, onSaved }) {
           {editable && (
             <div className="flex flex-wrap gap-2">
               <Button type="submit" disabled={saving || Boolean(brandError)}>{saving ? 'Menyimpan...' : 'Simpan Perubahan'}</Button>
-              <Button type="button" variant="outline" disabled={saving} onClick={() => { setValues(accountValues(customer)); setSlugEdited(hasCustomBrandSlug(customer)); clearLogo(); setError(''); }}>Batal Perubahan</Button>
+              <Button type="button" variant="outline" disabled={saving} onClick={() => { setValues(accountValues(customer)); setSlugEdited(hasCustomBrandSlug(customer)); clearLogo(); setLogoRemoved(false); setError(''); }}>Batal Perubahan</Button>
             </div>
           )}
         </form>

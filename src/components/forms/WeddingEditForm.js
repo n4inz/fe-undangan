@@ -10,7 +10,8 @@ import { Label } from '@/components/ui/label';
 import axios from 'axios';
 import { Button } from '@/components/ui/button';
 import { ClipLoader } from 'react-spinners'; // Import the spinner
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { appendFormQuery } from '@/lib/formNavigation';
 // import { XMarkIcon } from '@heroicons/react/24/solid';
 import { BiLeftArrowAlt, BiX } from "react-icons/bi";
 import { mainSchema } from '@/lib/validation'
@@ -26,7 +27,8 @@ import { selectEditableFormFields } from '@/lib/resellerEditor';
 const WeddingEditForm = ({ params, editorApi, returnPath }) => {
 
     const router = useRouter();
-    const resultPath = returnPath || `/forms/${params.formId}/${params.phoneNumber}/atur-foto/success/result`;
+    const searchParams = useSearchParams();
+    const resultPath = returnPath || appendFormQuery(`/forms/${params.formId}/${params.phoneNumber}/atur-foto/success/result`, searchParams);
 
     // Set initial state for formData
     const [formData, setFormData] = useState({});

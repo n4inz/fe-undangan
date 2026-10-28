@@ -10,7 +10,8 @@ import StepH from "./StepH";
 import StepI from "./StepI";
 import StepJ from "./StepJ";
 import axios from "axios";
-import { useRouter, usePathname, useParams } from "next/navigation";
+import { useRouter, usePathname, useParams, useSearchParams } from "next/navigation";
+import { appendFormQuery } from "@/lib/formNavigation";
 import StepI1 from "./StepI1";
 import { Toaster } from "../ui/toaster";
 import { max } from "date-fns";
@@ -19,6 +20,7 @@ const MultiStepForm = ({ onFormChange }) => {
   const router = useRouter();
   const params = useParams();
   const pathname = usePathname()
+  const searchParams = useSearchParams();
   const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
   const [isSyari, setIsSyari] = useState(false);
@@ -136,7 +138,7 @@ const MultiStepForm = ({ onFormChange }) => {
         throw new Error(`API call failed with status: ${response.status}`);
       }
 
-      await router.push(`${pathname}/success`);
+      await router.push(appendFormQuery(`${pathname}/success`, searchParams));
     } catch (error) {
       console.error("Error generating thumbnail:", error);
     } finally {

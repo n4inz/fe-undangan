@@ -3,6 +3,8 @@
 import { useEffect, useMemo, useState } from "react";
 import axios from "axios";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
+import { appendFormQuery } from "@/lib/formNavigation";
 import { BiArrowBack } from "react-icons/bi";
 import { CalendarDays, UserCheck, Users, UserX } from "lucide-react";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
@@ -41,6 +43,7 @@ const formatDate = (dateString) => {
 };
 
 export default function RsvpPage({ params }) {
+    const searchParams = useSearchParams();
     const [rsvpEntries, setRsvpEntries] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
@@ -78,7 +81,7 @@ export default function RsvpPage({ params }) {
         );
     }, [rsvpEntries]);
 
-    const resultUrl = `/forms/${params.formId}/${params.phoneNumber}/atur-foto/success/result`;
+    const resultUrl = appendFormQuery(`/forms/${params.formId}/${params.phoneNumber}/atur-foto/success/result`, searchParams);
 
     if (loading) {
         return (

@@ -10,7 +10,7 @@ import { useResellerResource } from './api';
 export default function AddInvitationButton() {
   const { data: brand, loading, error, reload } = useResellerResource('/brand');
   const query = readBrandQuery(new URLSearchParams({ brand: brand?.brandSlug || '' }));
-  const configured = typeof brand?.brandName === 'string' && brand.brandName.trim() && !query.error;
+  const configured = Boolean(query.slug) && !query.error;
 
   if (loading) return <Button disabled><Loader2 className="mr-2 h-4 w-4 animate-spin" />Tambah Undangan</Button>;
   if (error) return <div className="space-y-2"><Button variant="outline" onClick={reload}>Muat ulang brand</Button><p role="alert" className="text-xs text-destructive">Brand belum dapat dimuat.</p></div>;

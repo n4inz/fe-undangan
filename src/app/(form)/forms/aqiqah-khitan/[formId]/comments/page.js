@@ -3,6 +3,8 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
+import { appendFormQuery } from "@/lib/formNavigation";
 import { ArrowLeft, Loader2, MessageCircle, Trash2, UserCheck, Users, UserX } from "lucide-react";
 
 import {
@@ -22,6 +24,7 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 
 export default function AqiqahKhitanCommentsPage({ params }) {
+  const searchParams = useSearchParams();
   const [comments, setComments] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -150,7 +153,7 @@ export default function AqiqahKhitanCommentsPage({ params }) {
             <div className="mb-2 flex items-center gap-3">
               <Button asChild variant="ghost" size="icon" title="Kembali">
                 <Link
-                  href={`/forms/aqiqah-khitan/${params.formId}/atur-foto/success/result`}
+                  href={appendFormQuery(`/forms/aqiqah-khitan/${params.formId}/atur-foto/success/result`, searchParams)}
                 >
                   <ArrowLeft className="h-5 w-5" />
                   <span className="sr-only">Kembali</span>

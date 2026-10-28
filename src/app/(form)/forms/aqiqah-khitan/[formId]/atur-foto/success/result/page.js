@@ -11,7 +11,8 @@ import {
   MessageCircle,
   Share2,
 } from "lucide-react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
+import { appendFormQuery } from "@/lib/formNavigation";
 import DataPhotoTableAk from "@/components/DataPhotoTableAk";
 import { Button } from "@/components/ui/button";
 import { Toaster } from "@/components/ui/toaster";
@@ -21,11 +22,12 @@ import ResellerBrandBanner from "@/components/reseller/ResellerBrandBanner";
 
 export default function ResultAk({ params }) {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const apiBase = process.env.NEXT_PUBLIC_API_URL;
   const [form, setForm] = useState(null);
   const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
-  const { brand, isReseller, loading: brandLoading, error: brandError } = useOrderBrand({
+  const { brand, isReseller, adminPhone, loading: brandLoading, error: brandError } = useOrderBrand({
     type: "aqiqah-khitan",
     formId: params.formId,
   });
@@ -83,7 +85,7 @@ export default function ResultAk({ params }) {
             title="Kembali"
             onClick={() =>
               router.push(
-                `/forms/aqiqah-khitan/${params.formId}/atur-foto/success`
+                appendFormQuery(`/forms/aqiqah-khitan/${params.formId}/atur-foto/success`, searchParams)
               )
             }
           >
@@ -107,7 +109,7 @@ export default function ResultAk({ params }) {
             </Button>
           )}
 
-          {!brandLoading && !brandError && !isReseller && (
+          {!brandLoading && !brandError && !isReseller && !adminPhone && !searchParams.has('brand') && !searchParams.has('phone') && (
             <Button asChild variant="outline">
               <Link href={contactUrl} target="_blank">
                 <MessageCircle className="mr-2 h-4 w-4" />
@@ -123,7 +125,7 @@ export default function ResultAk({ params }) {
 
           <Button asChild variant="outline">
             <Link
-              href={`/forms/aqiqah-khitan/${params.formId}/atur-foto/success/result/edit`}
+              href={appendFormQuery(`/forms/aqiqah-khitan/${params.formId}/atur-foto/success/result/edit`, searchParams)}
             >
               <FilePenLine className="mr-2 h-4 w-4" />
               Edit Data Undangan
@@ -143,7 +145,7 @@ export default function ResultAk({ params }) {
           )}
 
           <Button asChild variant="outline">
-            <Link href={`/forms/aqiqah-khitan/${params.formId}/comments`}>
+            <Link href={appendFormQuery(`/forms/aqiqah-khitan/${params.formId}/comments`, searchParams)}>
               <MessageCircle className="mr-2 h-4 w-4" />
               Lihat Ucapan
             </Link>

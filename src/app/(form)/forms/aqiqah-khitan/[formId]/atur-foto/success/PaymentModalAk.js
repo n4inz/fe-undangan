@@ -27,7 +27,7 @@ import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { toast } from "@/components/ui/use-toast";
 import { getBankAccounts, getCompanyProfile } from "@/lib/company";
-import { useOrderBrand } from "@/components/reseller/useResellerBrand";
+import { usePaymentDestination } from "@/components/reseller/useResellerBrand";
 import ResellerPaymentModal from "@/components/reseller/ResellerPaymentModal";
 
 const createEmptyForm = () => ({
@@ -43,7 +43,7 @@ const formatCurrency = (value) =>
   `Rp ${Number(value || 0).toLocaleString("id-ID")}`;
 
 export default function PaymentModalAk(props) {
-  const { brand, orderId, isReseller, loading, error, reload } = useOrderBrand({
+  const { brand, orderId, phone, contactLabel, paymentQuery, paymentToken, paymentCredentials, loading, error, reload } = usePaymentDestination({
     type: "aqiqah-khitan",
     formId: props.formId,
   });
@@ -68,26 +68,34 @@ export default function PaymentModalAk(props) {
     );
   }
 
-  if (isReseller) {
+  if (phone) {
     return (
       <ResellerPaymentModal
         brand={brand}
         orderId={orderId}
+        title={props.title}
+        contactPhone={phone}
+        buttonLabel={contactLabel}
+        direct
         buttonClassName={props.buttonClassName}
         isPaid={props.isPaid}
       />
     );
   }
 
-  return <StandardPaymentModalAk {...props} />;
+  return <StandardPaymentModalAk {...props} paymentQuery={paymentQuery} paymentToken={paymentToken} paymentCredentials={paymentCredentials} />;
 }
 
 function StandardPaymentModalAk({
   formId,
   isPaid = 0,
   buttonClassName = "",
+  paymentQuery,
+  paymentToken = '',
+  paymentCredentials = false,
 }) {
   const apiBase = process.env.NEXT_PUBLIC_API_URL;
+  const apiQuery = paymentQuery ? `?${paymentQuery}` : '';
   const fileInputRef = useRef(null);
   const previewObjectUrlRef = useRef(null);
   const [isOpen, setIsOpen] = useState(false);
@@ -133,12 +141,15 @@ function StandardPaymentModalAk({
   }, [setLocalPreview]);
 
   const loadPayment = useCallback(async () => {
-    const response = await axios.get(`${apiBase}/payment-ak/${formId}`);
+    const response = await axios.get(`${apiBase}/payment-ak/${formId}${apiQuery}`, {
+      withCredentials: paymentCredentials,
+      headers: paymentToken ? { Authorization: `Bearer ${paymentToken}` } : {},
+    });
     const savedPayment = response.data || null;
     setPayment(savedPayment);
     hydrateForm(savedPayment);
     return savedPayment;
-  }, [apiBase, formId, hydrateForm]);
+  }, [apiBase, formId, apiQuery, paymentToken, paymentCredentials, hydrateForm]);
 
   const loadData = useCallback(async () => {
     setIsFetching(true);
@@ -147,7 +158,10 @@ function StandardPaymentModalAk({
       const savedPayment = await loadPayment();
       const [priceResult, accountsResult, companyResult] =
         await Promise.allSettled([
-          axios.get(`${apiBase}/tema-price-ak/${formId}`),
+          axios.get(`${apiBase}/tema-price-ak/${formId}${apiQuery}`, {
+            withCredentials: paymentCredentials,
+            headers: paymentToken ? { Authorization: `Bearer ${paymentToken}` } : {},
+          }),
           getBankAccounts(),
           getCompanyProfile(),
         ]);
@@ -185,7 +199,7 @@ function StandardPaymentModalAk({
     } finally {
       setIsFetching(false);
     }
-  }, [apiBase, formId, loadPayment]);
+  }, [apiBase, formId, apiQuery, paymentToken, paymentCredentials, loadPayment]);
 
   useEffect(() => {
     loadData();
@@ -312,9 +326,12 @@ function StandardPaymentModalAk({
       }
 
       const response = await axios.post(
-        `${apiBase}/upload-payment-ak/${formId}`,
+        `${apiBase}/upload-payment-ak/${formId}${apiQuery}`,
         payload,
-        { headers: { "Content-Type": "multipart/form-data" } }
+        {
+          withCredentials: paymentCredentials,
+          headers: { "Content-Type": "multipart/form-data", ...(paymentToken ? { Authorization: `Bearer ${paymentToken}` } : {}) },
+        }
       );
 
       setPayment(response.data);

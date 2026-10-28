@@ -5,7 +5,7 @@ export function getFormTheme(searchParams) {
   if (explicit) return explicit;
 
   for (const [key, value] of searchParams.entries()) {
-    if (!value && key && !['brand', 'ref', 'date'].includes(key)) return key;
+    if (!value && key && !['brand', 'phone', 'ref', 'date'].includes(key)) return key;
   }
   return '';
 }

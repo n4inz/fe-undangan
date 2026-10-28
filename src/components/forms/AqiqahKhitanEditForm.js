@@ -4,7 +4,8 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import axios from "axios";
 import Link from "next/link";
 import { ArrowLeft, Loader2, Plus, Save, Trash2 } from "lucide-react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
+import { appendFormQuery } from "@/lib/formNavigation";
 import BankCombobox from "@/components/admin/BankComboBox";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -165,6 +166,7 @@ const normalizePayload = (fields, formData) =>
 
 export default function AqiqahKhitanEditForm({ params, editorApi, returnPath }) {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const apiBase = process.env.NEXT_PUBLIC_API_URL;
   const audioRef = useRef(null);
   const [fields, setFields] = useState([]);
@@ -184,8 +186,9 @@ export default function AqiqahKhitanEditForm({ params, editorApi, returnPath }) 
     enabled: !editorApi,
   });
 
-  const resultPath = returnPath ||
-    `/forms/aqiqah-khitan/${params.formId}/atur-foto/success/result`;
+  const resultPath = returnPath || appendFormQuery(
+    `/forms/aqiqah-khitan/${params.formId}/atur-foto/success/result`, searchParams
+  );
   const updateField = useCallback((fieldName, value) => {
     setFormData((current) => ({ ...current, [fieldName]: value }));
     setErrors((current) => {

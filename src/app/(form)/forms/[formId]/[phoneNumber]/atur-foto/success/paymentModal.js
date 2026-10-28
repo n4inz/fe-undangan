@@ -16,7 +16,7 @@ import axios from "axios";
 import Image from "next/image";
 import placeholder from "/public/images/placeholder.webp";
 import { getBankAccounts, getCompanyProfile } from "@/lib/company";
-import { useOrderBrand } from "@/components/reseller/useResellerBrand";
+import { usePaymentDestination } from "@/components/reseller/useResellerBrand";
 import ResellerPaymentModal from "@/components/reseller/ResellerPaymentModal";
 import {
   Popover,
@@ -24,8 +24,8 @@ import {
   PopoverContent,
 } from "@/components/ui/popover"
 
-export default function PaymentModal({ formId, phoneNumber, buttonClassName, isPaid }) {
-  const { brand, orderId, isReseller, loading, error, reload } = useOrderBrand({ type: "wedding", formId });
+export default function PaymentModal({ formId, phoneNumber, buttonClassName, isPaid, title }) {
+  const { brand, orderId, phone, contactLabel, paymentQuery, paymentToken, paymentCredentials, loading, error, reload } = usePaymentDestination({ type: "wedding", formId });
 
   // Resolve saved attribution before mounting any payment or pricing requests.
   if (loading) {
@@ -39,13 +39,13 @@ export default function PaymentModal({ formId, phoneNumber, buttonClassName, isP
       </div>
     );
   }
-  if (isReseller) {
-    return <ResellerPaymentModal brand={brand} orderId={orderId} isPaid={isPaid} buttonClassName={buttonClassName} />;
+  if (phone) {
+    return <ResellerPaymentModal brand={brand} orderId={orderId} title={title} contactPhone={phone} buttonLabel={contactLabel} direct isPaid={isPaid} buttonClassName={buttonClassName} />;
   }
-  return <NormalPaymentModal formId={formId} phoneNumber={phoneNumber} buttonClassName={buttonClassName} />;
+  return <NormalPaymentModal formId={formId} phoneNumber={phoneNumber} buttonClassName={buttonClassName} paymentQuery={paymentQuery} paymentToken={paymentToken} paymentCredentials={paymentCredentials} />;
 }
 
-function NormalPaymentModal({ formId, phoneNumber, buttonClassName }) {
+function NormalPaymentModal({ formId, phoneNumber, buttonClassName, paymentQuery, paymentToken = '', paymentCredentials = false }) {
   // Main form state
   const [formData, setFormData] = useState({
     name: "",
@@ -72,6 +72,7 @@ function NormalPaymentModal({ formId, phoneNumber, buttonClassName }) {
   // file input ref
   const fileInputRef = useRef(null);
   const apiBase = process.env.NEXT_PUBLIC_API_URL;
+  const apiQuery = paymentQuery ? `?${paymentQuery}` : '';
 
   // ================== IMAGE PREVIEW (thumbnail + fullscreen) ==================
   // previewUrl: either object URL (created from file) or remote URL (api)
@@ -162,7 +163,10 @@ function NormalPaymentModal({ formId, phoneNumber, buttonClassName }) {
 
     const fetchPriceTheme = async () => {
       try {
-        const response = await axios.get(`${apiBase}/tema-price/${formId}`);
+        const response = await axios.get(`${apiBase}/tema-price/${formId}${apiQuery}`, {
+          withCredentials: paymentCredentials,
+          headers: paymentToken ? { Authorization: `Bearer ${paymentToken}` } : {},
+        });
         setPrice(response.data?.price || 0);
         if (response.data?.music === false) {
           setFormData((prev) => ({ ...prev, isMusic: true }));
@@ -177,7 +181,7 @@ function NormalPaymentModal({ formId, phoneNumber, buttonClassName }) {
     fetchPriceTheme();
     fetchBankAccounts();
     fetchCompanyProfile();
-  }, [formId, apiBase]);
+  }, [formId, apiBase, apiQuery, paymentToken, paymentCredentials]);
 
   // ================== CALCULATE TOTAL ==================
   const calculateTotal = useCallback(
@@ -265,9 +269,12 @@ function NormalPaymentModal({ formId, phoneNumber, buttonClassName }) {
       }
 
       const response = await axios.post(
-        `${apiBase}/upload-payment/${formId}/${phoneNumber}`,
+        `${apiBase}/upload-payment/${formId}/${phoneNumber}${apiQuery}`,
         formDataToSend,
-        { headers: { "Content-Type": "multipart/form-data" } }
+        {
+          withCredentials: paymentCredentials,
+          headers: { "Content-Type": "multipart/form-data", ...(paymentToken ? { Authorization: `Bearer ${paymentToken}` } : {}) },
+        }
       );
 
       if (response.status !== 200) throw new Error("Payment submission failed");
@@ -393,7 +400,10 @@ function NormalPaymentModal({ formId, phoneNumber, buttonClassName }) {
     }
 
     try {
-      const response = await axios.get(`${apiBase}/payment/${formId}/${phoneNumber}`);
+      const response = await axios.get(`${apiBase}/payment/${formId}/${phoneNumber}${apiQuery}`, {
+        withCredentials: paymentCredentials,
+        headers: paymentToken ? { Authorization: `Bearer ${paymentToken}` } : {},
+      });
       if (response.data != null) {
         setFormData({ ...response.data });
         setPaymentStatus(true);
@@ -444,7 +454,7 @@ function NormalPaymentModal({ formId, phoneNumber, buttonClassName }) {
   useEffect(() => {
     if (formId && phoneNumber) checkPayment();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [formId, phoneNumber]);
+  }, [formId, phoneNumber, apiQuery, paymentToken, paymentCredentials]);
 
   // ================== RENDER ==================
   return (

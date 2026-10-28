@@ -4,7 +4,8 @@ import { useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { ArrowLeft, ExternalLink, Images } from "lucide-react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
+import { appendFormQuery } from "@/lib/formNavigation";
 import { Button } from "@/components/ui/button";
 import { Toaster } from "@/components/ui/toaster";
 import { checkFormAk } from "@/utils/checkForm";
@@ -14,9 +15,10 @@ import PaymentModalAk from "./PaymentModalAk";
 
 export default function SuccessAk({ params }) {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [form, setForm] = useState(null);
   const [loading, setLoading] = useState(true);
-  const { brand, isReseller, loading: brandLoading, error: brandError } = useOrderBrand({
+  const { brand, isReseller, adminPhone, loading: brandLoading, error: brandError } = useOrderBrand({
     type: "aqiqah-khitan",
     formId: params.formId,
   });
@@ -57,7 +59,7 @@ export default function SuccessAk({ params }) {
           title="Kembali ke atur foto"
         >
           <Link
-            href={`/forms/aqiqah-khitan/${params.formId}/atur-foto`}
+            href={appendFormQuery(`/forms/aqiqah-khitan/${params.formId}/atur-foto`, searchParams)}
           >
             <ArrowLeft className="h-5 w-5" />
             <span className="sr-only">Kembali ke atur foto</span>
@@ -79,10 +81,10 @@ export default function SuccessAk({ params }) {
         <p className="mt-2 max-w-sm text-sm leading-6 text-gray-600">
           {brandLoading || brandError
             ? `Terima kasih. Pesanan dengan ID ${form.id} berhasil disimpan.`
-            : isReseller
+            : isReseller || adminPhone
               ? Number(form.isPaid) === 1
                 ? "Terima kasih. Undangan Anda sudah aktif."
-                : "Silakan hubungi reseller untuk mengaktifkan undangan Anda."
+                : `Silakan hubungi ${isReseller ? 'reseller' : 'admin'} untuk mengaktifkan undangan Anda.`
               : `Terima kasih. Pesanan dengan ID ${form.id} akan diproses setelah pembayaran dikirim.`}
         </p>
 
@@ -100,7 +102,7 @@ export default function SuccessAk({ params }) {
 
           <Button asChild className="w-full bg-gray-700 hover:bg-gray-800">
             <Link
-              href={`/forms/aqiqah-khitan/${params.formId}/atur-foto/success/result`}
+              href={appendFormQuery(`/forms/aqiqah-khitan/${params.formId}/atur-foto/success/result`, searchParams)}
             >
               <Images className="mr-2 h-5 w-5" />
               {form.isPaid === 1 ? "Lihat Foto" : "Lihat dan Edit Foto"}

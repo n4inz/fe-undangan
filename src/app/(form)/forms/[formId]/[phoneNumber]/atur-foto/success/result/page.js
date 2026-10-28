@@ -3,7 +3,8 @@ import { useEffect, useState } from 'react';
 // import Image from 'next/image';
 import Link from 'next/link';
 import { BiEnvelope, BiPhone, BiArrowBack, BiEdit, BiMessageAltDetail, BiShare, BiUserCheck } from "react-icons/bi";
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { appendFormQuery } from '@/lib/formNavigation';
 import axios from 'axios';
 // import DataTable from 'react-data-table-component';
 import { Button } from '@/components/ui/button';
@@ -15,11 +16,12 @@ import DataPhotoTable from '@/components/DataPhotoTable';
 import LoadingOverlay from 'react-loading-overlay-ts'; // Import LoadingOverlay
 import { useOrderBrand } from '@/components/reseller/useResellerBrand';
 import ResellerBrandBanner from '@/components/reseller/ResellerBrandBanner';
-import ResellerPaymentModal from '@/components/reseller/ResellerPaymentModal';
+import PaymentModal from '../paymentModal';
 
 const Result = ({ params }) => {
     const router = useRouter();
-    const { brand, orderId, isReseller, loading: brandLoading, error: brandError } = useOrderBrand({ type: 'wedding', formId: params.formId });
+    const searchParams = useSearchParams();
+    const { brand, isReseller, adminPhone, loading: brandLoading, error: brandError } = useOrderBrand({ type: 'wedding', formId: params.formId });
 
     const [data, setData] = useState([]);
     const [form, setForm] = useState({});
@@ -31,7 +33,7 @@ const Result = ({ params }) => {
         : "#";
 
     const handleBackButtonClick = () => {
-        router.push(`/forms/${params.formId}/${params.phoneNumber}/atur-foto/success`);
+        router.push(appendFormQuery(`/forms/${params.formId}/${params.phoneNumber}/atur-foto/success`, searchParams));
     };
 
     const handleShare = (slug) => {
@@ -108,8 +110,8 @@ const Result = ({ params }) => {
                             Link Undangan
                         </Link>
                     )}
-                    {!brandLoading && !brandError && (isReseller ? (
-                        <ResellerPaymentModal brand={brand} orderId={orderId} isPaid={form.isPaid} buttonClassName="rounded-full bg-blue-600 hover:bg-blue-700 my-2" />
+                    {!brandLoading && !brandError && (isReseller || adminPhone || searchParams.has('brand') || searchParams.has('phone') ? (
+                        <PaymentModal formId={params.formId} phoneNumber={params.phoneNumber} isPaid={form.isPaid} buttonClassName="rounded-full bg-blue-600 hover:bg-blue-700 my-2" />
                     ) : (
                         <Link type="button" href={contactUrl} target='_blank' className="bottom-4 rounded-full shadow-lg bg-blue-600 text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 p-3 my-2 text-sm">
                             <BiPhone className="h-5 w-5 mr-2 inline" />
@@ -128,7 +130,7 @@ const Result = ({ params }) => {
                     )}
 
                     <Link
-                        href="result/edit"
+                        href={appendFormQuery('result/edit', searchParams)}
                         className="rounded-full shadow-lg bg-gray-600 text-white hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 p-3 my-2 text-sm"
                     >
                         <BiEdit className="h-5 w-5 mr-2 inline" />
@@ -137,7 +139,7 @@ const Result = ({ params }) => {
 
                     {form.hasRsvp && (
                         <Link
-                            href={`/forms/${params.formId}/${params.phoneNumber || ""}/rsvp`}
+                            href={appendFormQuery(`/forms/${params.formId}/${params.phoneNumber || ""}/rsvp`, searchParams)}
                             className="rounded-full shadow-lg bg-white text-black hover:bg-gray-200 border border-gray-800 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 p-3 my-2 text-sm"
                         >
                             <BiUserCheck className="h-5 w-5 mr-2 inline" />
@@ -146,7 +148,7 @@ const Result = ({ params }) => {
                     )}
 
                     <Link
-                        href={`/forms/${params.formId}/${params.phoneNumber || ""}/comments`}
+                        href={appendFormQuery(`/forms/${params.formId}/${params.phoneNumber || ""}/comments`, searchParams)}
                         className="rounded-full shadow-lg bg-white text-black hover:bg-gray-200 border border-gray-800 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 p-3 my-2 text-sm"
                     >
                         <BiMessageAltDetail className="h-5 w-5 mr-2 inline" />

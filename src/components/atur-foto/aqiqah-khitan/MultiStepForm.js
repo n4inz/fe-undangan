@@ -6,7 +6,8 @@ import StepD from "./StepD";
 import StepE from "./StepE";
 import StepF from "./StepF";
 import axios from "axios";
-import { useRouter, usePathname, useParams } from "next/navigation";
+import { useRouter, usePathname, useParams, useSearchParams } from "next/navigation";
+import { appendFormQuery } from "@/lib/formNavigation";
 import { Button } from "@/components/ui/button";
 
 const LAST_STEP = 6;
@@ -16,6 +17,7 @@ const MultiStepForm = ({ onFormChange }) => {
   const router = useRouter();
   const params = useParams();
   const pathname = usePathname();
+  const searchParams = useSearchParams();
   const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
   const [isSyari, setIsSyari] = useState(null);
@@ -59,7 +61,7 @@ const MultiStepForm = ({ onFormChange }) => {
         throw new Error(`API call failed with status: ${response.status}`);
       }
 
-      router.push(`${pathname}/success`);
+      router.push(appendFormQuery(`${pathname}/success`, searchParams));
     } catch (error) {
       console.error("Error generating thumbnail:", error);
       finalStepTriggered.current = false;
@@ -69,7 +71,7 @@ const MultiStepForm = ({ onFormChange }) => {
           "Thumbnail gagal dibuat. Silakan coba lagi."
       );
     }
-  }, [params.formId, pathname, router]);
+  }, [params.formId, pathname, router, searchParams]);
 
   const checkIsSyari = useCallback(async () => {
     try {

@@ -26,16 +26,43 @@ export function numericOrderId(value) {
   return Number.isSafeInteger(id) && id > 0 ? id : null;
 }
 
-export function resellerContactUrl(contact, title, orderId) {
+export function normalizeWhatsAppPhone(value) {
+  if (typeof value !== 'string' || !/^\+?[\d\s().-]+$/.test(value.trim())) return null;
+  let phone = value.replace(/\D/g, '');
+  if (phone.startsWith('00')) return null;
+  if (phone.startsWith('0')) phone = `62${phone.slice(1)}`;
+  else if (phone.startsWith('8') && !value.trim().startsWith('+')) phone = `62${phone}`;
+  return /^[1-9]\d{7,14}$/.test(phone) ? phone : null;
+}
+
+export function readPhoneQuery(searchParams) {
+  const values = searchParams?.getAll('phone') || [];
+  return values.length === 1 ? normalizeWhatsAppPhone(values[0]) : null;
+}
+
+// Persisted values have already been normalized by the server. Do not infer a
+// local prefix again for international country codes beginning with 8.
+export function storedWhatsAppPhone(value) {
+  return typeof value === 'string' && /^[1-9]\d{7,14}$/.test(value) ? value : null;
+}
+
+export function paymentDestinationPhone(brand, urlPhone, adminPhone) {
+  return normalizeWhatsAppPhone(brand?.contact) || normalizeWhatsAppPhone(urlPhone) || storedWhatsAppPhone(adminPhone);
+}
+
+export function resellerContactUrl(contact, title, orderId, { normalizedPhone = false } = {}) {
   if (typeof contact !== 'string') return null;
   const value = contact.trim();
   if (!value) return null;
   const id = numericOrderId(orderId);
   const message = `Halo, saya ingin mengaktifkan undangan yang baru saya buat.${id ? ` ID pesanan: ${id}.` : ''}${title ? ` Judul undangan: ${title}.` : ''}`;
+  if (normalizedPhone) {
+    const phone = storedWhatsAppPhone(value);
+    return phone ? `https://wa.me/${phone}?text=${encodeURIComponent(message)}` : null;
+  }
   if (/^\+?[\d\s().-]+$/.test(value)) {
-    let phone = value.replace(/\D/g, '');
-    if (phone.startsWith('0')) phone = `62${phone.slice(1)}`;
-    if (!/^[1-9]\d{7,14}$/.test(phone)) return null;
+    const phone = normalizeWhatsAppPhone(value);
+    if (!phone) return null;
     return `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
   }
   if (/^[a-z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-z0-9.-]+\.[a-z]{2,}$/i.test(value)) {

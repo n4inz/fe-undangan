@@ -48,8 +48,15 @@ test('add invitation links carry the saved reseller brand for both existing form
   ]);
 });
 
+test('resellers without optional brand details can still add either invitation type', async () => {
+  const render = await loadComponent('components/reseller/AddInvitationButton.js', { data: { brandSlug: 'valid-slug', brandName: null, brandLogo: null, contact: null }, loading: false });
+  assert.deepEqual(nodes(render()).filter(node => node.type === 'Link').map(node => node.props.href), [
+    '/forms/new?brand=valid-slug', '/forms/aqiqah-khitan/new?brand=valid-slug',
+  ]);
+});
+
 test('unconfigured brands lead to settings and brand lookup failures cannot create unattributed orders', async () => {
-  for (const brand of [null, {}, { brandSlug: 'valid-slug', brandName: '' }, { brandSlug: 'bad/slug', brandName: 'Brand' }]) {
+  for (const brand of [null, {}, { brandSlug: 'bad/slug', brandName: 'Brand' }]) {
     const render = await loadComponent('components/reseller/AddInvitationButton.js', { data: brand, loading: false });
     assert.deepEqual(nodes(render()).filter(node => node.type === 'Link').map(node => node.props.href), ['/reseller/brand']);
   }
