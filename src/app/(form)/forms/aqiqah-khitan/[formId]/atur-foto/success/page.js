@@ -84,7 +84,7 @@ export default function SuccessAk({ params }) {
             : isReseller || adminPhone
               ? Number(form.isPaid) === 1
                 ? "Terima kasih. Undangan Anda sudah aktif."
-                : `Silakan hubungi ${isReseller ? 'reseller' : 'admin'} untuk mengaktifkan undangan Anda.`
+                : "Silakan hubungi admin untuk mengaktifkan undangan Anda."
               : `Terima kasih. Pesanan dengan ID ${form.id} akan diproses setelah pembayaran dikirim.`}
         </p>
 

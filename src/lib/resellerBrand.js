@@ -3,7 +3,7 @@ export function readBrandQuery(searchParams) {
   if (!values.length) return { requested: false, slug: '', error: null };
   const slug = values[0].trim().toLowerCase();
   if (values.length !== 1 || slug.length < 3 || slug.length > 63 || !/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(slug)) {
-    return { requested: true, slug: '', error: 'Link brand tidak valid. Periksa kembali link dari reseller Anda.' };
+    return { requested: true, slug: '', error: 'Link brand tidak valid. Periksa kembali link dari admin Anda.' };
   }
   return { requested: true, slug, error: null };
 }

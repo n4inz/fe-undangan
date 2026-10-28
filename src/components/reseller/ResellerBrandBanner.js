@@ -18,5 +18,6 @@ export default function ResellerBrandBanner({ brand, loading, error }) {
   }
   if (!brand) return null;
   const logo = brandLogoUrl(brand.brandLogo);
-  return <div className="mb-5 flex items-center gap-3 rounded-lg border bg-white p-4">{logo && <Image src={logo} alt={`Logo ${brand.brandName}`} width={56} height={56} unoptimized className="h-14 w-14 object-contain" />}<span className="font-semibold text-gray-900">{brand.brandName}</span></div>;
+  if (!brand.brandName && !logo) return null;
+  return <div className="mb-5 flex items-center gap-3 rounded-lg border bg-white p-4">{logo && <Image src={logo} alt={brand.brandName ? `Logo ${brand.brandName}` : 'Logo brand'} width={56} height={56} unoptimized className="h-14 w-14 object-contain" />}{brand.brandName && <span className="font-semibold text-gray-900">{brand.brandName}</span>}</div>;
 }

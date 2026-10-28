@@ -35,7 +35,7 @@ export function useResellerBrand() {
     if (redirecting) router.replace(normalUrl, { scroll: false });
   }, [redirecting, normalUrl, router]);
   const message = query.error || (error ? (error.response?.status === 404
-    ? 'Brand tidak tersedia. Periksa kembali link dari reseller Anda.'
+    ? 'Brand tidak tersedia. Periksa kembali link dari admin Anda.'
     : 'Informasi brand gagal dimuat. Silakan coba lagi.') : null)
     || (key && !isLoading && !brand ? 'Informasi brand tidak valid. Silakan coba lagi.' : null);
   return {
